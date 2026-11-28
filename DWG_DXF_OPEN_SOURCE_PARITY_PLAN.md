@@ -107,8 +107,9 @@ below is still open, and its linked evidence defines the present boundary.
    review the candidate, follow FreeCAD's contributor-authored submission policy,
    then freeze it before broad suites and release claims. The 36-patch candidate's
    [Linux and Windows headless run](https://github.com/dxli/libdxfrw/actions/runs/46157961230)
-   is in progress; recheck the final candidate rather than carrying results forward
-   across changed importer code.
+   has passed Linux and is still running on Windows. The current 42-patch
+   [platform run](https://github.com/dxli/libdxfrw/actions/runs/46159919285)
+   is in progress; do not carry earlier results across changed importer code.
 
 The remote ObjectARX host's release, OS, SDK and access route remain unknown.
 Use the [profile intake](tools/research/OBJECTARX_HOST_PROFILE_INTAKE.md) when
