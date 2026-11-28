@@ -9,14 +9,18 @@
   "checks": [
     "A locally generated skewed-axis clipping test failed eight assertions on the prior painter and passes with the corrected transform.",
     "The final bundled-codec Qt offscreen image selection passes 1064 assertions across seven axis bases, normal and inverted rectangular/polygon clipping, disabled clipping, and entity copies. A colored raster checks image orientation for orthogonal, rotated, skewed, and mirrored-skewed axes, both with and without a rotated/translated UCS.",
-    "The earlier native macOS clipping observations used the preceding consumer binary; this new transform has not yet been retested in the native application. No drawing fixture was committed."
+    "On macOS ARM64, the current consumer rendered a locally generated 18-vertex clipped IMAGE with U=(1,0) and V=(0.5,1); its skewed appearance remained after Save As and reopen. Independent ezdxf checked matching pixel vectors, all clipping vertices, image/definition/reactor graph and clean audits for source and output. The scratch app used an isolated settings organization and a separate signed bundle. No drawing fixture was committed."
   ],
   "evidenceSha256": {
     "redLog": "f1e20ed4a45f167556dddc8969abcc1bf0363e401b37917d103b9f4a9ab594cc",
-    "greenLog": "0046be2512cc60ad5fb57bceeb10517cdc3ded1573e007905beef00f10f1c65e"
+    "greenLog": "0046be2512cc60ad5fb57bceeb10517cdc3ded1573e007905beef00f10f1c65e",
+    "nativeInput": "a814cd0f2272794fc9f0d8aaa475f33eafe9027bf05f62db194d7655505a6e9c",
+    "nativeOutput": "cace5e152829623444c213d5ab2409e6a52dd78f5f9f29b20578de0b8cc88f9c",
+    "nativeAppBinary": "fbb63c8abbfeea20145b01589949411faa4448d11d269515ef474b5846c9165d",
+    "independentAudit": "12fa298849e70570b67767d4d53d341f26eaea0f32c60980bd16922974ad5ea8"
   },
   "limits": [
-    "Selected synthetic 2D image bases and offscreen macOS ARM64 only. Native GUI, printing, extreme coordinates, nonplanar geometry, other producers, Linux and Windows are unqualified.",
+    "Selected synthetic 2D image bases on macOS ARM64; native GUI covers one skewed image. Printing, extreme coordinates, nonplanar geometry, other producers, Linux and Windows remain unqualified.",
     "Existing bounded source/graph and more-than-256-vertex restrictions still apply."
   ]
 }
