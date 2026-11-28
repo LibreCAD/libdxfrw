@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-pair-dimstyle-wire-2026-11-27",
+  "supportClaimEffect": "none",
+  "candidateCommit": "9f1575760",
+  "implementationDigestSha256": "59e0427484a253bfc6c05e5efc6a65efd6fcbb321c67342bdaff3ba2976c2ede",
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.1 and 20.4.68",
+  "scope": "Standard DIMSTYLE 0x2D in the locally generated AC1012 pair, including its source wire, selected adapter fields and four peer DXF values.",
+  "checks": [
+    "A specification-directed observer binds the CRC-checked full selected legacy DIMSTYLE body, exact field spans, data/handle boundary, relative owner, null extension and xref and hard-pointer STYLE 0x11. Wrong roles and every byte-prefix truncation are rejected; original-frame retry passes. The adapter matches selected scalar fields and text-style target; both source checks and the shared vector CTest pass.",
+    "For both drawings LibreDWG's same-family decoded source and the wire observer agree on DIMSCALE=1, DIMASZ=0.18, DIMTXT=0.18, DIMEXO=0.0625 and DIMTIH=1. Earlier explicit partial libdxfrw ASCII and binary outputs preserve those selected values; ezdxf 1.4.5 reports no audit errors or fixes.",
+    "On the same source bytes the existing Linux ODA 27.10 and macOS ODA 27.1 DXF reopens retain DIMSCALE=1 but both give DIMASZ=2.5, DIMTXT=2.5, DIMEXO=0.625 and DIMTIH=0. ezdxf reports zero audit errors or fixes. This establishes an output discrepancy, not its cause or native AutoCAD's interpretation.",
+    "The packet now records the DIMSTYLE frame hash and warns against treating ODA reopens as whole-drawing fidelity evidence. The release inventory includes the reusable comparison tool. No drawing fixture was committed."
+  ],
+  "scratchPacket": "/private/tmp/ac1012-native-two-element-dimstyle-20261127",
+  "hashes": {
+    "observer": "69b1dabad624862e749ba78fb744f6a2281723f8a646f63f0cb9d1145098f4f5",
+    "comparisonTool": "b095db43ad4c8dec3e0721b4f25a11a5edaee6fd0964287343e25cd5d9fb1d0a",
+    "observerResults": "4b5a34d7b06a28e456b586e368b33df8173ec90fe57dc50971d237afb9b5f166",
+    "sourceComparison": "f9852527d5c53a4e7683fb547b76e120e44decabdd5038dbf48f1e09bb485219",
+    "destinationComparison": "a6373ee8bfc994ca103c2650fc82c5ceff3d408fe3c330ae6054771ed73056c3",
+    "ctestLog": "f5836e11531e8a69794e3ec3436cd066b1ed623ba3c7d9e3da6ad039230a96f9",
+    "packetManifest": "af3c2064e5d50b1d18e0627d456fe7d194caa7313bf3e34e64c0358a2ba02682"
+  },
+  "limits": [
+    "Cadkit leaves the selected DIMSTYLE body unparsed. Source field interpretation is specification-directed and checked with the sample producer's decoder, not independent native semantics.",
+    "Do not infer why ODA output differs, which application is authoritative for this source, or that the native cloning and complete-graph gates are resolved."
+  ]
+}

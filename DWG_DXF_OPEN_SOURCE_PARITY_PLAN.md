@@ -15,8 +15,8 @@ advisory, and excluded. Completed slice history and validation remain in
 `docs/research/` and Git history.
 
 The current test-inclusive implementation digest is
-`28b631e8875edfc5bfb7fcd4b1828b6b066fbc45eefbaac8f08643748d9700e3`
-(784 inputs; test harness through `8f35a8216`; production implementation through `1a1e502af`). Earlier hosted runs bind prior digests; current-head hosted results are pending. The [latest source-release inventory repair](docs/research/p8-freecad-3dface-source-release-inventory-repair-2026-11-27.json) adds the tracked FreeCAD report patch omitted from the manifest; the local inventory and self-test pass and a new hosted run is pending. The [current CI repair and focused requalification](docs/research/p8-ci-repair-3e681e-2026-11-27.json) tracks completed and pending platform jobs at commit 3e681e694. The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
+`59e0427484a253bfc6c05e5efc6a65efd6fcbb321c67342bdaff3ba2976c2ede`
+(784 inputs; test harness through `9f1575760`; production implementation through `1a1e502af`). Earlier hosted runs bind prior digests; current-head hosted results are pending. The [latest source-release inventory repair](docs/research/p8-freecad-3dface-source-release-inventory-repair-2026-11-27.json) adds the tracked FreeCAD report patch omitted from the manifest; the local inventory and self-test pass and a new hosted run is pending. The [current CI repair and focused requalification](docs/research/p8-ci-repair-3e681e-2026-11-27.json) tracks completed and pending platform jobs at commit 3e681e694. The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
 and the [FreeCAD handoff matrix](docs/research/p8-native-freecad-2e4ae17b-2026-11-27.json) passed on earlier production inputs. The current [FreeCAD recheck](docs/research/p8-ci-repair-3e681e-2026-11-27.json) passes 16 Linux and 17 Windows tests, covering specified CLI and legacy importer profiles, not GUI or general 3D parity; hosted focused native and installed shared/static package checks also pass on Linux, Windows and macOS for matching production inputs.
 Recheck affected profiles against the frozen candidate.
 All support claims remain experimental.
@@ -73,7 +73,7 @@ below is still open, and its linked evidence defines the present boundary.
    and [ODA-generated pair](docs/research/p6-ac1012-oda-root-case-pair-2026-11-25.json).
    Obtain native normal-open and cloning results using the [witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md);
    the [hash-checked handoff](docs/research/p6-ac1012-two-element-handoff-2026-11-27.json)
-   is ready; the [updated packet](docs/research/p6-ac1012-pair-other-controls-wire-2026-11-27.json) adds the checked table and block frame hashes. The ODA source also needs EED, empty-name root, extension/XRECORD
+   is ready; the [updated packet](docs/research/p6-ac1012-pair-dimstyle-wire-2026-11-27.json) includes the checked frames and warns that both ODA DXF reopens change four selected Standard DIMSTYLE values. Resolve that producer/consumer divergence and check the native result before using the pair for whole-drawing evidence. The ODA source also needs EED, empty-name root, extension/XRECORD
    and ModelDocViewStyle closure. Do not regenerate unchanged pairs without a
    discriminating question or infer native merge behavior from peer conversion.
 8. **Integration and FreeCAD.** Recheck affected profiles against final heads
