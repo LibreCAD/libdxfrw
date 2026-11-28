@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-pair-vport-wire-2026-11-27",
+  "supportClaimEffect": "none",
+  "candidateCommit": "db2aa5f0f",
+  "implementationDigestSha256": "af2d9e8a1f4866db44def162e69f1c974fc3b08dbd0f263a4100431460e473ea",
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.1 and 20.4.64",
+  "scope": "Generated AC1012 *Active VPORT 0x26 in the two-element collision pair.",
+  "checks": [
+    "The CRC-checked frames bind the complete selected VPORT body and spans, data boundary, role-12 relative owner, null extension and xref. All byte-prefix truncations and wrong-handle-role mutations are refused; original-frame retry succeeds. The adapter agrees on selected view height, center, aspect ratio, circle zoom and view mode; focused CTest passes.",
+    "The selected source stores height 13314.951254 and view width 19003.498504. ezdxf 1.4.5 reads matching height, center, ratio width/height, circle zoom 1000 and DXF view mode 0 in both ODA reopens and both earlier partial output encodings for each drawing; audits report zero errors or fixes.",
+    "LibreDWG 0.14's source JSON reports the four raw VIEWMODE bits as integer 1. Its bit reader stores those bits as a nibble; it should not be compared directly to DXF group 71 without the versioned bit mapping. The handoff packet records the VPORT frame hash. No drawing fixture was committed."
+  ],
+  "scratchPacket": "/private/tmp/ac1012-native-two-element-vport-20261127",
+  "hashes": {
+    "observer": "2512c9b0a14b8c1510c23111c53eec49a0fcd14eca5465ceb7a1d527d24ccb01",
+    "observerResults": "cd0016c63f3ba8b264e01dd64e6180984c256b0aa1385464d0411612c21a3d83",
+    "peerResults": "b65b5c9e44accced198aa3a73c6fb4758d749627c8357ff15f5bf65ccceb30c1",
+    "ctestLog": "d9245b9325dadff3811e5e8d53d05e25ce6f44428daca6c8d1a7d813a4de29ce",
+    "libreDwgSourceJson": "86cde967ec44082746e3306961f4ecdd408a4ca4b335e29f4605d4c10c1b96cd",
+    "libreDwgDestinationJson": "ade8c0945fb31479b6ee6d0e6f7099cccbadf31bdb3235dc2a99e6620e96ea12",
+    "packetManifest": "1b4247c588a34410274c6f1b0a81699a3f850ee0ce48a4ded0230ece7cee2205"
+  },
+  "limits": [
+    "Source-specific generated R13 values and selected output fields only; no native viewport display, editing, cloning behavior, whole-file fidelity or general support is established.",
+    "Cadkit leaves the selected VPORT body unparsed; LibreDWG is also the sample producer."
+  ]
+}
