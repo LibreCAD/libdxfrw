@@ -40,10 +40,10 @@ constexpr const char* kDxfCustomPropertyValue = "$CUSTOMPROPERTY";
 constexpr const char* kDxfRequiredVersions = "$REQUIREDVERSIONS";
 constexpr const char* kDxfPlotStyleId = "$CEPSNID";
 constexpr std::uint32_t kDwgHeaderFlagsKnownMask = 0x00006fffu;
-constexpr double kHeaderRadiansToDegrees =
-    57.295779513082320876798154814105;
-constexpr double kHeaderDegreesToRadians =
-    0.017453292519943295769236907684886;
+int signedDwgBitShort(dwgBuffer& buffer) {
+    const int value = buffer.getBitShort();
+    return value >= 0x8000 ? value - 0x10000 : value;
+}
 constexpr std::array<int, 32> kDwgLineweights{{
     0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40, 50, 53, 60, 70, 80,
     90, 100, 106, 120, 140, 158, 200, 211, 0, 0, 0, 0, 0, -1, -2, -3
@@ -3773,8 +3773,7 @@ bool DRW_Header::parseDwgBodyForReader(
     storeVar("DIMTM", new DRW_Variant(40, buf->getBitDouble()));
     if (version > DRW::AC1018) {//2007+
         storeVar("DIMFXL", new DRW_Variant(40, buf->getBitDouble()));//////////////////
-        storeVar("DIMJOGANG", new DRW_Variant(
-            40, buf->getBitDouble() * kHeaderRadiansToDegrees));
+        storeVar("DIMJOGANG", new DRW_Variant(40, buf->getBitDouble()));
         storeVar("DIMTFILL", new DRW_Variant(70, buf->getBitShort()));
         if (!readHeaderCmColor("DIMTFILLCLR", 62))
             return false;
@@ -3871,8 +3870,8 @@ bool DRW_Header::parseDwgBodyForReader(
         DRW_DBG("\nDIMLTEX2: "); DRW_DBGHL(DIMLTEX2.code, DIMLTEX2.size, DIMLTEX2.ref);
     }
     if (version > DRW::AC1014) {//2000+
-        storeVar("DIMLWD", new DRW_Variant(70, buf->getBitShort()));
-        storeVar("DIMLWE", new DRW_Variant(70, buf->getBitShort()));
+        storeVar("DIMLWD", new DRW_Variant(70, signedDwgBitShort(*buf)));
+        storeVar("DIMLWE", new DRW_Variant(70, signedDwgBitShort(*buf)));
     }
     dwgHandle CONTROL = hBbuf->getHandle();
     DRW_DBG("\nBLOCK CONTROL: "); DRW_DBGHL(CONTROL.code, CONTROL.size, CONTROL.ref);
@@ -4662,8 +4661,7 @@ bool DRW_Header::encodeDwgForWriterMaterial(
     buf->putBitDouble(dblVar(*this, "DIMTM", 0.0));
     if (version > DRW::AC1018) {  // 2007+: DIMFXL, DIMJOGANG, DIMTFILL, DIMTFILLCLR (parseDwg:2066-2070)
         buf->putBitDouble(dblVar(*this, "DIMFXL", 1.0));
-        buf->putBitDouble(dblVar(*this, "DIMJOGANG", 0.0)
-                          * kHeaderDegreesToRadians);
+        buf->putBitDouble(dblVar(*this, "DIMJOGANG", 0.0));
         buf->putBitShort(static_cast<std::uint16_t>(intVar(*this, "DIMTFILL")));
         if (!putHeaderCmColor("DIMTFILLCLR", 0))
             return false;

@@ -1,0 +1,23 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dwg-dimension-header-scalars-2026-11-27",
+  "supportClaimEffect": "none",
+  "authority": [
+    "ODA Open Design Specification v5.4.1 section 9 HEADER DIMJOGANG BD and DIMLWD/DIMLWE BS fields.",
+    "Autodesk DXF HEADER reference documents negative DIMLWD/DIMLWE values: https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm"
+  ],
+  "sourceSha256": "3e2732452a4b669c5b3dce4d145e5249a73548400d80ded8bd8d0a1e98632ff2",
+  "problem": "DWG DIMJOGANG was converted to degrees despite DXF group 40 and the independent ODA/LibreDWG value being radians. The unsigned BS result for DIMLWD/DIMLWE was exposed as 65534 instead of -2.",
+  "change": "Keep DIMJOGANG in radians in the DWG reader and writer; decode the 16-bit lineweight values with explicit signed conversion.",
+  "checks": [
+    "PASS generated AC1015/AC1021/AC1024/AC1027 DWG reader controls: -2 and -3 lineweights and, for R2007+, 0.73-radian jog angle.",
+    "PASS independent LibreDWG 0.14 decodes those values from the four generated scratch drawings.",
+    "PASS the locally authored ODA-derived source produces matching 0.785398163397, -2, -2 header values in ASCII and binary DXF; ezdxf 1.4.5 reports zero errors and fixes.",
+    "PASS generated AC1024 ASCII/binary readback and existing output rollback and retry controls."
+  ],
+  "remaining": [
+    "The same source has a nonstandard DIMTXSTY hard pointer and a DIMBLK reference that are not yet resolved into corresponding DXF HEADER names; investigate against source table and block identities.",
+    "The unclassified header suffix still blocks strict output; no broad support claim.",
+    "No DWG or DXF fixture was committed."
+  ]
+}

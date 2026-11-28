@@ -4,6 +4,7 @@
 #include "libdwgr.h"
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
@@ -174,6 +175,12 @@ public:
     explicit BindingAuthor(dwgRW& output, bool material = false, int layerShape = 3, int extraLayers = 0)
         : output_(output), material_(material), layerShape_(layerShape), extraLayers_(extraLayers) {}
     bool wantsDwgDefaultMaterialGraph() const override { return material_; }
+    void writeHeader(DRW_Header& header) override {
+        if (extraLayers_ == 0) return;
+        header.addDouble("$DIMJOGANG", 0.73, 40);
+        header.addInt("$DIMLWD", -2, 70);
+        header.addInt("$DIMLWE", -3, 70);
+    }
     bool wantsDwgCanonicalLayerNulls(const DRW_Layer&) const override {
         ++canonicalCalls;
         return material_ && layerShape_ == 3;
@@ -315,6 +322,21 @@ static bool hasCustomDimStyle(const dx_data& data) {
         && dim->get("$DIMTXSTY")->c_str() == style->name;
 }
 
+static bool hasDimensionHeaderValues(const DRW_Header& header, bool hasJogAngle) {
+    const auto get = [&header](const std::string& key) -> const DRW_Variant* {
+        auto found = header.vars.find(key);
+        if (found == header.vars.end()) found = header.vars.find("$" + key);
+        return found == header.vars.end() ? nullptr : found->second;
+    };
+    const auto* dimLwd = get("DIMLWD");
+    const auto* dimLwe = get("DIMLWE");
+    const auto* dimJog = get("DIMJOGANG");
+    return dimLwd && dimLwd->type() == DRW_Variant::INTEGER && dimLwd->i_val() == -2
+        && dimLwe && dimLwe->type() == DRW_Variant::INTEGER && dimLwe->i_val() == -3
+        && (!hasJogAngle || (dimJog && dimJog->type() == DRW_Variant::DOUBLE
+            && std::abs(dimJog->d_val() - 0.73) < 1e-12));
+}
+
 static bool checkFile(const std::filesystem::path& path, bool expectMaterial,
                       bool expectCustomDimStyle = false) {
     dx_data data;
@@ -335,7 +357,7 @@ static bool checkFile(const std::filesystem::path& path, bool expectMaterial,
     return true;
 }
 
-static bool checkDimStyleVersions(const std::filesystem::path& directory) {
+static bool checkDimStyleVersions(const std::filesystem::path& directory, bool keep) {
     for (const auto version : {DRW::AC1015, DRW::AC1021, DRW::AC1024, DRW::AC1027}) {
         const auto path = directory / ("dimstyle-" + std::to_string(version) + ".dwg");
         dwgRW output(path.string().c_str());
@@ -344,10 +366,11 @@ static bool checkDimStyleVersions(const std::filesystem::path& directory) {
             && author.textStyleAdded_ && author.dimStyleAdded_;
         dx_data data;
         dx_iface reader;
-        const bool resolved = written && reader.fileImport(path.string(), &data, false)
+        bool resolved = written && reader.fileImport(path.string(), &data, false)
             && hasCustomDimStyle(data);
+        resolved = resolved && hasDimensionHeaderValues(data.headerC, version > DRW::AC1018);
         std::error_code error;
-        std::filesystem::remove(path, error);
+        if (!keep) std::filesystem::remove(path, error);
         if (!resolved) {
             std::cerr << "DWG DIMSTYLE text-style resolution failed for version " << version << '\n';
             return false;
@@ -397,6 +420,7 @@ static bool checkOutput(const std::filesystem::path& input,
                     return entry.m_name == "ACAD_PLOTSTYLENAME" && entry.m_handle == dict.handle;
                 }) != 1) return false;
         if (expectedLayers > 2u) {
+            if (!hasDimensionHeaderValues(actual.headerC, true)) return false;
             const auto style = std::find_if(actual.textStyles.begin(), actual.textStyles.end(),
                 [](const DRW_Textstyle& item) { return item.name == "P6_CUSTOM_TEXT"; });
             const auto dim = std::find_if(actual.dimStyles.begin(), actual.dimStyles.end(),
@@ -489,7 +513,7 @@ int main(int argc, char** argv) {
     const auto scratch = directory / ("layer-binding-" + std::to_string(nonce));
     std::error_code error;
     if (!std::filesystem::create_directory(scratch, error)) return 1;
-    if (!checkDimStyleVersions(scratch)) return 1;
+    if (!checkDimStyleVersions(scratch, keep)) return 1;
     const auto path = scratch / "generated.dwg";
     const auto materialPath = scratch / "material.dwg";
     const auto extraPath = scratch / "extra-layer.dwg";
