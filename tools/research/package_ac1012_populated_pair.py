@@ -14,6 +14,7 @@ import tempfile
 
 from audit_ac1012_oda_merge_pair import PROFILES, audit
 from audit_ac1012_generated_root import audit as audit_generated_root
+from audit_ac1012_pair_block_entities import audit as audit_block_entities
 from generate_ac1012_dictionary_witness import executable_identity, require, run, sha
 from generate_ac1012_dictionary_merge_samples import (check_single_line_graph,
     observe_populated_style_frame, observe_single_line_frame, read_dictionary_frame,
@@ -94,7 +95,14 @@ def main():
                         "LINE frame differs from the receipt")
                 root_proof = audit_generated_root(packet / f"{side}.dwg", side, expected, dwgread)
                 style_frames = {}
+                block_entity_frames = {}
                 if args.profile == "populated-links":
+                    block_entities = audit_block_entities(scratch, dwgread)
+                    require(block_entities["sourceSha256"] == model["sha256"],
+                            "BLOCK/ENDBLK source changed")
+                    block_entity_frames = {
+                        handle: item["proof"]["frameSha256"]
+                        for handle, item in block_entities["objects"].items()}
                     for name, row in expected["styleFrames"].items():
                         _, style_raw = read_object_frame(scratch, dwgread, row["handle"], 73)
                         style = observe_populated_style_frame(style_raw, row["handle"], name,
@@ -113,6 +121,8 @@ def main():
                                      name: value["wire"]["frameSha256"]
                                      for name, value in root_proof["emptyChildren"].items()},
                                  "styleFrameSha256": style_frames}
+                if block_entity_frames:
+                    records[side]["blockEntityFrameSha256"] = block_entity_frames
         shutil.copyfile(guide, packet / "NATIVE_WITNESS.md")
         (packet / "source-receipt.json").write_bytes(receipt_bytes)
         readme = ("Locally generated AC1012 controls screened by ODA; native behavior is unobserved.\n"

@@ -1289,6 +1289,10 @@ bool checkLegacyBlockPairWire(const std::string& input) {
     const auto paper = std::find_if(data.blockRecords.begin(), data.blockRecords.end(),
         [](const DRW_Block_Record& record) { return record.name == "*PAPER_SPACE"; });
     if (model == data.blockRecords.end() || paper == data.blockRecords.end()
+        || DRW_DwgBlockRecordWireAccess::block(*model) != 0x24u
+        || DRW_DwgBlockRecordWireAccess::end(*model) != 0x25u
+        || DRW_DwgBlockRecordWireAccess::block(*paper) != 0x21u
+        || DRW_DwgBlockRecordWireAccess::end(*paper) != 0x22u
         || DRW_DwgBlockRecordWireAccess::first(*model) != 0x2cu
         || DRW_DwgBlockRecordWireAccess::last(*model) != 0x2cu
         || DRW_DwgBlockRecordWireAccess::first(*paper) != 0u
