@@ -1,0 +1,54 @@
+diff --git a/src/Mod/Import/App/dxf/dxf.cpp b/src/Mod/Import/App/dxf/dxf.cpp
+--- a/src/Mod/Import/App/dxf/dxf.cpp
++++ b/src/Mod/Import/App/dxf/dxf.cpp
+@@ -2840 +2840,7 @@
+-    ProcessAllEntityAttributes();
++    ProcessAllAttributes();
++    const double normalLength = EntityNormalVector.Length();
++    if (!std::isfinite(normalLength) || normalLength == 0.0) {
++        UnsupportedFeature("INSERT invalid extrusion direction");
++        return true;
++    }
++    ResolveEntityAttributes();
+@@ -3353 +3359 @@
+-    Setup3DVectorAttribute(eExtrusionDirection, EntityNormalVector);
++    Setup3DDirectionAttribute(eExtrusionDirection, EntityNormalVector);
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -1416,0 +1417,35 @@
++    def test_insert_direction_units_and_invalid_retry(self):
++        """A direction is dimensionless, and an invalid INSERT must not taint the next."""
++        import math
++        options = FreeCAD.ParamGet(self.option_source)
++        tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                (9, "$INSUNITS"), (70, 1), (0, "ENDSEC"), (0, "SECTION"), (2, "BLOCKS"),
++                (0, "BLOCK"), (8, "0"), (2, "B"), (70, 0), (10, 0), (20, 0), (30, 0),
++                (0, "LINE"), (8, "0"), (10, 0), (20, 0), (30, 0), (11, 0), (21, 0), (31, 1),
++                (0, "ENDBLK"), (8, "0"), (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES"),
++                (0, "INSERT"), (8, "0"), (2, "B"), (10, 0), (20, 0), (30, 0),
++                (210, 0), (220, 0), (230, 0),
++                (0, "INSERT"), (8, "0"), (2, "B"), (10, 0), (20, 0), (30, 0),
++                (210, 1), (220, 0),
++                (0, "INSERT"), (8, "0"), (2, "B"), (10, 0), (20, 0), (30, 0),
++                (210, 1), (220, 0), (230, 1), (0, "ENDSEC"), (0, "EOF")]
++        path = os.path.join(self.temp_dir, "insert-direction-units.dxf")
++        with open(path, "w", encoding="ascii", newline="\n") as stream:
++            stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++        for mode in (2, 3):
++            with self.subTest(mode=mode):
++                options.SetInt("DxfImportMode", mode)
++                previous = set(self.document.Objects)
++                stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                self.document.recompute()
++                links = [obj for obj in self.document.Objects if obj not in previous
++                         and obj.Name.startswith("Link_B")]
++                self.assertIn("INSERT invalid extrusion direction", stats["unsupportedFeatures"])
++                self.assertEqual(len(links), 2)
++                for link in links:
++                    vertices = [v.Point for v in link.Shape.Edges[0].Vertexes]
++                    tip = max(vertices, key=lambda v: v.Length)
++                    self.assertAlmostEqual(tip.x, 25.4 / math.sqrt(2), delta=0.00001)
++                    self.assertAlmostEqual(tip.y, 0, delta=0.00001)
++                    self.assertAlmostEqual(tip.z, 25.4 / math.sqrt(2), delta=0.00001)
++

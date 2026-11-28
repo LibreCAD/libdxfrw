@@ -60,6 +60,7 @@ EXTRA_DIST = \
     docs/patches/freecad-p8-default-shared-mesh-layer-2026-11-16.patch \
     docs/patches/freecad-p8-default-solid-ocs-2026-11-15.patch \
     docs/patches/freecad-p8-frozen-layer-initial-visibility-2026-11-16.patch \
+    docs/patches/freecad-p8-insert-normal-units-2026-11-28.patch \
     docs/patches/freecad-p8-insert-ocs-2026-11-28.patch \
     docs/patches/freecad-p8-layer-color-range-guard-2026-11-16.patch \
     docs/patches/freecad-p8-layer-color-sign-whitespace-2026-11-16.patch \
