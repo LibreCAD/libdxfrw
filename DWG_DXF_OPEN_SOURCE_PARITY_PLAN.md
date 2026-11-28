@@ -70,7 +70,8 @@ below is still open, and its linked evidence defines the present boundary.
    rendering and independent producers. Reuse the [binary layout profile](docs/research/p8d-librecad3-checked-binary-replay-2026-11-26.json).
 7. **AC1012 and legacy source semantics.** Qualify the remaining HEADER,
    graph, output and native semantics of the [generated pair with its 32-frame
-   census](docs/research/p6-ac1012-pair-object-census-2026-11-27.json) and the
+   census](docs/research/p6-ac1012-pair-object-census-2026-11-27.json) and
+   [current bounded partial-output recheck](docs/research/p6-ac1012-pair-current-partial-output-2026-11-27.json), and the
    [ODA-generated pair](docs/research/p6-ac1012-oda-root-case-pair-2026-11-25.json).
    Obtain native normal-open and cloning results using the [witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md);
    the [hash-checked handoff](docs/research/p6-ac1012-two-element-handoff-2026-11-27.json)
