@@ -24,121 +24,71 @@ All support claims remain experimental.
 ## Ready work and cross-cutting dependencies
 
 Work in this order when unblocked; a blocked profile must not stop unrelated work.
+Completed-slice details belong in `docs/research/` and Git history. Each item
+below is still open, and its linked evidence defines the present boundary.
 
-1. **LibreCAD sparse MATERIAL and graph preservation.** Complete same-version
-   raw replay only after validating the full ACAD_MATERIAL dictionary, exact
-   carriers, identities, owners/reactors, layer and current-material references,
-   handle uniqueness/remapping, and staged root and entity edges. Add missing
-   entity/producer profiles and semantic delivery one at a time. Ordinary
-   same-version saves now admit bounded AC1021 [simple lines](docs/research/p8d-librecad-ordinary-sparse-material-2026-11-27.json),
-   [simple circles and arcs](docs/research/p8d-librecad-sparse-material-curves-2026-11-27.json),
-   [planar points](docs/research/p8d-librecad-sparse-material-points-2026-11-27.json), [planar ellipses](docs/research/p8d-librecad-sparse-material-ellipse-2026-11-27.json), and lightweight polylines, both [open](docs/research/p8d-librecad-sparse-material-lwpolyline-2026-11-27.json) and [closed](docs/research/p8d-librecad-sparse-material-closed-lwpolyline-2026-11-27.json), including selected edits and reopen/resave. The [short and nearly full ellipse repair](docs/research/p8d-librecad-ellipse-small-sweeps-2026-11-27.json) preserves selected intervals, lengths, bounds and nearest points; the existing public length helper retains its tolerance contract. Qualify trim operations and other tolerance-dependent ellipse paths separately. The [curved polyline slice](docs/research/p8d-librecad-sparse-material-curved-polyline-2026-11-27.json) adds bounded arc segments, source/delivery comparison and independent output checks; numerically computed arc joins allow only 64 machine epsilons scaled to coordinates. [Explicit zero-valued polyline fields](docs/research/p8d-librecad-sparse-material-polyline-zero-fields-2026-11-27.json) are normalized to their equivalent defaults in the selected profile; conflicting width fields and other metadata remain guarded. The [polyline round-trip repair](docs/research/p8d-librecad-polyline-bulge-ellipse-2026-11-27.json) preserves terminal bulges and selected axial ellipse sidecars across editing and resave; rotated elliptic polyline export remains refused. The [bundled vertex XDATA repair](docs/research/p8d-librecad-bundled-vertex-xdata-2026-11-27.json) addresses two hosted fast-test failures by using the shared vertex extended-data writer; the two previously failing bundled cases, malformed-payload refusal and retry in ASCII/binary R12/R2007, and independent readback of eight generated outputs pass locally. The affected [hosted Linux fast lane](docs/research/p8d-librecad-bundled-vertex-xdata-2026-11-27.json) passes 17/17 CTests, and both headless jobs pass. The [Windows ARM64 line-ending repair](docs/research/p8d-librecad-windows-line-endings-2026-11-27.json) corrects three test cases and passes 111 focused local assertions; the current-head Linux, Windows ARM64 and Windows x64 fast lanes pass; remaining platform checks are pending. Broader curved sources, versions, widths and native consumer qualification remain open. The bounded profile admits
-   [canonical indexed colors](docs/research/p8d-librecad-sparse-material-canonical-aci-2026-11-27.json)
-   when the emitted index matches the source. [Exact RGB entities](docs/research/p8d-librecad-sparse-material-exact-truecolor-2026-11-27.json)
-   are also admitted when the physical 420 value and explicit 62 fallback
-   match the writer's output; missing or conflicting fallback, palette-coincident
-   RGB, named color and other profiles remain guarded. Contextual index 7
-   without exact RGB and palette aliases also remain guarded.
-   The [generic handle checks](docs/research/p8d-librecad-handle-tests-guarded-material-2026-11-27.json)
-   now separate remapping from refusal of incomplete MATERIAL graphs; the
-   [bundled Linux fast lane](docs/research/p8d-librecad-bundled-fast-ci-2026-11-27.json)
-   passed on the stated consumer merge. Complete the remaining hosted and native
-   checks on the final inputs. Extend the 256 KiB capture only with
-   aggregate memory accounting. Reuse the [physical inventory join](docs/research/p8d-librecad-material-physical-inventory-2026-11-26.json),
-   [entity reference guard](docs/research/p8d-librecad-physical-entity-material-source-2026-11-26.json),
-   [LINE delivery guard](docs/research/p8d-librecad-sparse-material-line-delivery-2026-11-27.json),
-   and [binary replay profile](docs/research/p8d-sparse-binary-material-to-ascii-2026-11-26.json). The bounded [unchanged default MATERIAL cross-encoding control](docs/research/p8d-default-material-cross-encoding-2026-11-27.json) retains group 73 as opaque; the [numeric boundary control](docs/research/p8d-default-material-transcode-numeric-boundaries-2026-11-27.json) covers exact binary64 transport. Extend escaped/non-ASCII text and other producer bodies only with separate proof.
-   Verify native FreeCAD and LibreCAD paths separately.
-2. **IMAGE and plot-style graphs.** The [bounded 256-image profile](docs/research/p8d-librecad-256-image-graphs-2026-11-27.json) covers selected same-version model-space graphs with shared or distinct definitions and Qt raster refresh; the [modern sparse-MATERIAL control](docs/research/p8d-librecad-256-images-material-2026-11-27.json) also covers 256 model-space images; [mixed model/block controls](docs/research/p8d-librecad-256-mixed-space-images-2026-11-27.json) now include 256 images in AC1021 and AC1032. Raster source maps share a 4 MiB logical retained-storage budget and IMAGEDEF source frames allow 512 groups; the 256 KiB file capture gate still applies. Extend beyond 256 images and qualify other mixed graphs, additional layouts/versions, unknown fields, layers, clipping and references only after memory, source-span, graph/output closure and independent readback proof. A [native macOS AC1021 control](docs/research/p8d-librecad-image64-native-2026-11-27.json) renders 64 images and verifies an edit, Save As and reopen with independent graph readback; qualify other producers, versions and platforms separately. Keep the 257-image, legacy IMAGE graphs carrying MATERIAL, cross-version, orphan and unsupported-profile refusals until their respective evidence is complete; reuse the [mixed block profile](docs/research/p8d-librecad-block-multi-image-2026-11-26.json) and [cross-version boundary controls](docs/research/p8d-librecad-image-boundaries-all-versions-2026-11-26.json).
-3. **Legacy HEADER and version boundaries.** Resolve native R12/R14 behavior
-   for `$FACETRES`, `$ISOLINES`, `$PELLIPSE`, `$TEXTQLTY`, field presence and
-   extension semantics. Preserve ordinary R14 values and dimension precedence;
-   do not weaken the existing nonzero PELLIPSE or unsupported-field refusals
-   without producer evidence. The [R12 canonical linetype control](docs/research/p8d-librecad-r12-canonical-linetype-2026-11-27.json)
-   fixes selected metadata predeclaration and retains refusal and retry for
-   unsupported extension dictionaries; broader legacy metadata remains open.
-   See the [authority comparison](docs/research/p8d-r14-display-header-authority-2026-11-26.json).
-4. **Graph editing and 64-bit identities.** Complete associative HATCH edits,
-   reverse links, copy behavior and collision handling with an explicit loss
-   report where deassociation is required. The [empty HATCH export control](docs/research/p8d-librecad-hatch-loss-r12-2026-11-27.json)
-   now reports DXF/R12 omissions, removes the omitted boundary reactor, and
-   refuses an incomplete DWG while preserving the destination and retrying;
-   other association, pattern and producer profiles remain open. Extend the bounded AC1027 wide-handle
-   dictionary/XRECORD profile to additional graph shapes, roles, versions,
-   encodings and producers only after source/target closure and output proof.
-   The existing opt-in route is strict and same-version, with at most eight selected
-   chains and 16 proven pointers per XRECORD. Cross-encoding transport is limited
-   to the [safe-text source profile](docs/research/p7-wide-dxf-cross-encoding-2026-11-27.json)
-   and [selected literal-backslash fields](docs/research/p7-wide-dxf-literal-backslash-2026-11-27.json): AC1027 XRECORD group 1 and AC1024/AC1027 default MATERIAL group 2. The [corrected LAYER table-head control](docs/research/p7-material-source-layer-control-audit-2026-11-27.json) passes independent source/output audits and complete selected MATERIAL body and graph comparisons in both directions for AC1024 and AC1027. Qualify escapes, non-ASCII text, other fields and graph types separately. Targets are
-   restricted to the verified root, selected dictionaries and selected XRECORDs;
-   see the [root-reference control](docs/research/p7-wide-dxf-xrecord-root-target-2026-11-27.json).
-   The LibreCAD [typed-object stand-in guard](docs/research/p8d-librecad-version-gates-5e05-2026-11-27.json) covers selected SCALE and MLINESTYLE raw handle collisions and selected NAVISWORKSMODEL, GEOPOSITIONMARKER and SECTIONOBJECT source-to-output identities; other typed entities, fixed-object profiles, graph roles and broader live-identity ambiguity remain open. The public semantic API remains 32-bit; bind original-stream observation
-   before combining it with projection. LibreDWG 0.14 drops XRECORD body groups
-   330/331; the [ODA-qualified profile](docs/research/p7-wide-dxf-xrecord-330-331-oda-witness-2026-11-27.json)
-   does not qualify that peer. Keep unsupported graphs atomic and retryable.
-5. **LibreCAD_3 entity and layer behavior.** Extend true-color metadata,
-   off/frozen/locked layer behavior and edit/undo semantics to other entities,
-   renamed layers, generated copy identities and unqualified operation stacks
-   within a group, other lock-changing operations, custom operations and repeated compound stacks.
-   The [directly staged group preflight](docs/research/p8d-librecad3-staged-locked-group-preflight-2026-11-27.json)
-   covers selected flat and nested create/lock/edit cases and repeated new IDs;
-   the [shared shadow probe](docs/research/p8d-librecad3-new-stack-group-preflight-2026-11-27.json)
-   also projects six tested source entity types from selected built-in stacks,
-   including [loop and removal effects](docs/research/p8d-librecad3-loop-removal-group-preflight-2026-11-27.json). [POINT projection and layer rebinding](docs/research/p8d-librecad3-point-3d-layer-edits-2026-11-27.json) now preserve its three coordinates through selected transforms and layer changes; [POINT mirror](docs/research/p8d-librecad3-point-reflection-2026-11-27.json) uses the existing shared 3D line-reflection semantics. [POINT geometry queries](docs/research/p8d-librecad3-point-3d-queries-2026-11-27.json) now retain elevation through bounds, snap and drag; the [planar picking control](docs/research/p8d-librecad3-elevated-point-planar-picking-2026-11-27.json) selects and snaps an elevated POINT while retaining its snap elevation; the [separately named planar query](docs/research/p8d-librecad3-planar-query-api-compat-2026-11-27.json) preserves the original C++/Lua method. The [wrapped ARC membership and snap repair](docs/research/p8d-librecad3-wrapped-arc-membership-2026-11-27.json) checks selected clockwise and counterclockwise intervals crossing zero and returns the nearest endpoint. The [elevated circle and arc bounds repair](docs/research/p8d-librecad3-elevated-circle-arc-bounds-2026-11-27.json) retains Z through shared area merges and cardinal extrema and passes selected planar picking and snapping controls. The [horizontal ellipse bounds repair](docs/research/p8d-librecad3-elevated-ellipse-bounds-2026-11-27.json) retains the center elevation in bounds and returned extrema, with selected planar selection and snapping. The [shared Bézier bounds repair](docs/research/p8d-librecad3-bezier-spatial-bounds-2026-11-27.json) corrects cubic Y extrema and adds selected quadratic and cubic Z bounds, including linear, constant and large-offset controls. The [sized-area and spline point-hull control](docs/research/p8d-librecad3-sized-area-spline-hull-2026-11-27.json) preserves origin elevation and checks selected control/fit-point hulls across a Z move. The [spatial coordinate scaling fix](docs/research/p8d-librecad3-spatial-coordinate-scale-2026-11-27.json) shares the existing component-wise operators and passes selected C++, Python, Lua and planar controls. The [IMAGE bounds repair](docs/research/p8d-librecad3-spatial-image-bounds-2026-11-27.json) preserves selected base and axis Z coordinates while retaining planar Area behavior. The [IMAGE boundary-query repair](docs/research/p8d-librecad3-image-nearest-boundary-2026-11-27.json) projects selected planar and spatial queries onto finite edges, including degenerate controls and path, boundary and corner snapping. A [shared planar projection](docs/research/p8d-librecad3-planar-line-image-projection-2026-11-27.json) fixes selected tilted LINE and IMAGE picking and snapping with interpolated Z, preserving their spatial queries; zero-length vector paths return their endpoint, and spatial segment queries and entity snaps clamp to their endpoints. The [IMAGE clipping persistence slice](docs/research/p8d-librecad3-image-clipping-persistence-2026-11-27.json) retains selected source polygon boundaries and display fields across move and reopen/resave, with a bounded logical vertex budget and reported downgrade or storage losses. The [metadata-edit follow-up](docs/research/p8d-librecad3-image-metadata-edits-2026-11-27.json) retains the sidecar through selected Image::modify style replacements without mutating the supplied map; manual reconstruction remains unqualified. The [size-change control](docs/research/p8d-librecad3-image-clipping-retry-2026-11-27.json) reports incompatible clipping, then restores the source entity and verifies a corrected retry; null metadata replacement retains the source settings. [Independent selected IMAGE readback](docs/research/p8d-librecad3-image-clipping-ezdxf-2026-11-27.json) confirms one moved R2010 polygon and display fields; its whole-output audit repairs two invalid dictionary entries and one orphan paper-space block. The [raw reactor-entry repair](docs/research/p8d-librecad3-image-reactor-dictionary-entry-2026-11-27.json) removes and reports the selected canonical entry while retaining unrelated entries; custom dictionaries remain unchanged. The [source-bound typed IMAGEDEF repair](docs/research/p8d-librecad3-imagedef-source-identity-2026-11-27.json) removes selected stale source entries; foreign-import tokens do not bind to source identities. The [IMAGEDEF scalar and identity slice](docs/research/p8d-librecad3-imagedef-scalar-identity-2026-11-27.json) preserves selected source dimensions, pixel sizes and flags, keeps same-path definitions distinct, and reserves removed source definition handles. The [simple IMAGEDEF application-data slice](docs/research/p8d-librecad3-imagedef-simple-appdata-2026-11-27.json) retains bounded text-only, reference-free groups through ASCII and binary reopen, reports excluded groups and changed-path loss, and verifies shared-definition and retry controls. The [reference-free IMAGEDEF XDATA slice](docs/research/p8d-librecad3-imagedef-xdata-appid-2026-11-27.json) retains selected strings, controls and scalar values while registering APPIDs. The [layer-reference follow-up](docs/research/p8d-librecad3-imagedef-xdata-layer-2026-11-27.json) retains selected references to the same imported or state-edited layer, with independent readback and removal/replacement/foreign-source retries. Renames and unsupported groups are reported. The [selected XDATA handle follow-up](docs/research/p8d-librecad3-imagedef-xdata-handle-2026-11-27.json) remaps references to selected IMAGEDEFs in the checked same-import dictionary, with independent ASCII/binary readback and missing-target, foreign-import and corrected-retry controls. The [binary-source reopen follow-up](docs/research/p8d-librecad3-imagedef-xdata-binary-reopen-2026-11-27.json) checks an empty group dictionary and the Normal plot-style pair, then retains selected handle targets through ASCII and binary resaves, removal and corrected retry. Other target classes and binary source graphs remain open. The [checked source image-dictionary slice](docs/research/p8d-librecad3-image-dictionary-keys-2026-11-27.json) retains selected ASCII-source keys and remaps their IMAGEDEF targets in ASCII/binary output; deleting a definition falls back with loss and same-writer restoration recovers. Other dictionary shapes, source reactors and broader XDATA handle targets remain open. A 160-definition control exercises the shared logical budget and verifies complete-or-omitted XDATA groups; standalone application-group exhaustion is not separately audited. Independent ASCII and low-handle controls audit cleanly; The [checked binary dictionary replay](docs/research/p8d-librecad3-binary-image-dictionary-replay-2026-11-27.json) retains selected same-revision ASCII-source dictionaries and text XRECORDs, with independent owner/value readback and same-writer refusal/retry; regenerated IMAGE records and filtered entries still report loss. Escaped or long text and unknown graphs retain the reported-loss fallback. The [binary reopen follow-up](docs/research/p8d-librecad3-binary-image-reopen-replay-2026-11-27.json) reuses checked Normal plot-style validation for selected R2000 binary-to-ASCII and binary-to-binary resaves and a tilted R2010 binary-to-ASCII image; independent audits are clean, but original image-dictionary identity, unsupported IMAGEDEF metadata and source reactor identity remain unqualified. The [last-image binary boundary](docs/research/p8d-librecad3-last-image-binary-boundary-2026-11-27.json) exposed an orphan paper-block repair after deletion. The [binary deletion fix](docs/research/p8d-librecad3-last-image-binary-paper-guard-2026-11-27.json) removes it for a checked same-revision empty graph; the [IMAGE/LINE follow-up](docs/research/p8d-librecad3-binary-image-line-paper-guard-2026-11-27.json) extends the guard to selected model-space LINE and same-source IMAGE combinations with clean independent audits. Prove other entity and block references before extending it further; raw-record losses remain reported outside the admitted replay profile. The [last-image removal control](docs/research/p8d-librecad3-last-image-removal-2026-11-27.json) reports and detaches known source objects and preserves unrelated raw reactors; unused source IMAGEDEF preservation remains open. The [last-image paper-block follow-up](docs/research/p8d-librecad3-last-image-paper-guard-2026-11-27.json) omits the synthetic block in the selected deletion output, which independently audits with zero repairs; source paper and unrelated reactor controls remain conservative. The [filtered dictionary reattachment slice](docs/research/p8d-librecad3-filtered-dictionary-reattachment-2026-11-27.json) shares filtering between planning and writing and reattaches a selected text-XRECORD child with matching owner; independent audit now repairs only the orphan paper-space block in that control. The [root-owner guard](docs/research/p8d-librecad3-filtered-dictionary-root-owner-2026-11-27.json) keeps filtered dictionaries detached when their owner is wrong or the source root is not the regenerated C handle. The [ancestor ownership follow-up](docs/research/p8d-librecad3-filtered-dictionary-ancestor-ownership-2026-11-27.json) validates affected nested ownership chains and keeps wrong-owner controls detached; the malformed raw objects may still need peer audit repair. The [bounded IMAGE paper-block guard](docs/research/p8d-librecad3-image-synthetic-paper-guard-2026-11-27.json) omits the synthetic block for selected recognized same-revision graphs; independent model-space and block controls audit without repairs. The [dictionary size boundary](docs/research/p8d-librecad3-image-paper-dictionary-limit-2026-11-27.json) admits 512 source groups and conservatively retains the block at 514; independent readback verifies all retained XRECORD owners. Qualify source paper blocks, other inbound references, custom dictionaries and cross-source profiles with explicit loss and retry before claiming graph closure. Clipped rendering and picking, broader independent readback, IMAGEDEF/reactor graph identity, edge-on depth ambiguity, extreme magnitudes, other entities and native GUI remain open. The [IMAGE transform repair](docs/research/p8d-librecad3-image-transforms-2026-11-27.json) adds selected rotate, scale and 3D-line reflection using shared coordinate operations and preserves identity and metadata; invalid mirror axes are refused without changing the source, and corrected retry succeeds. The [IMAGE layer-edit control](docs/research/p8d-librecad3-image-layer-edit-2026-11-27.json) rebinds selected forced edits and verifies lock refusal, compound preflight and undo/redo. The [cyclic dictionary closure fix](docs/research/p8d-librecad3-dictionary-cycle-closure-2026-11-27.json) propagates missing targets across shared cycles in either root order before reattachment; detached-object preservation remains separate. The [IMAGE persistence control](docs/research/p8d-librecad3-image-persistence-loss-2026-11-27.json) preserves selected transformed geometry on first ASCII/binary reopen but finds reported dictionary/raw-object loss on resave. An earlier output emitted the old image dictionary detached with a dangling definition while generating a new graph; the source-bound fixes above remove selected stale entries and report their loss. The [regenerated-image guard](docs/research/p8d-librecad3-regenerated-image-graph-guard-2026-11-27.json) prevents skipped raw image objects from falsely closing another root in selected model-space, named-block and anonymous-block cases, and reports skipped source image records whose metadata and identity are unverified. Close inbound references, source identities and metadata and independently audit output before admitting complete resave. Qualify native interaction, tilted planes, exact spline bounds, mixed-elevation intersections and other entities separately.
-   The [removal journal repair](docs/research/p8d-librecad3-actual-removal-journal-2026-11-27.json)
-   restores current entities and blocks rather than stale or absent snapshots.
-   Cover viewport
-   freeze and remaining layer flags; preserve warning/report behavior when older
-   formats approximate or omit color. Reuse the [lock-transition preflight](docs/research/p8d-librecad3-layer-lock-transition-preflight-2026-11-26.json)
-   and [stale-line metadata control](docs/research/p8d-librecad3-forced-line-current-layer-2026-11-26.json); the same-name forced-edit rebind also covers [circles and arcs](docs/research/p8d-librecad3-forced-curves-current-layer-2026-11-27.json), and [ellipses and splines](docs/research/p8d-librecad3-forced-ellipse-spline-current-layer-2026-11-27.json).
+1. **LibreCAD MATERIAL graphs.** Extend ordinary same-version replay beyond the
+   [current bounded entity and color profiles](docs/research/p8d-librecad-sparse-material-exact-truecolor-2026-11-27.json).
+   Prove complete ACAD_MATERIAL dictionaries, carriers, identities, ownership,
+   reactors, layer/current-material references, handle remapping, and staged
+   root/entity edges for each new profile. Address contextual ACI 7, palette
+   aliases, other entities, escaped/non-ASCII text, and producer bodies with
+   evidence rather than weakening refusals. Extend the 256 KiB source capture
+   only with aggregate memory accounting. Recheck native LibreCAD and FreeCAD.
+2. **LibreCAD IMAGE and plot graphs.** Extend the checked
+   [256-image mixed-space profile](docs/research/p8d-librecad-256-mixed-space-images-2026-11-27.json)
+   to larger drawings, more graph shapes, layers, versions, clipping and
+   references. Preserve the 257-image, legacy MATERIAL, orphan and
+   cross-version refusals until their respective bounds, output closure and
+   independent readback are proved. Current capture uses a shared 4 MiB logical
+   raster-source budget, 512 IMAGEDEF groups and a 256 KiB source-file gate;
+   raise limits only with aggregate accounting. Qualify rendering and platforms
+   separately.
+3. **Legacy HEADER and versions.** Resolve R12/R14 `$FACETRES`, `$ISOLINES`,
+   `$PELLIPSE`, `$TEXTQLTY`, field presence and extension semantics using
+   [versioned authority](docs/research/p8d-r14-display-header-authority-2026-11-26.json)
+   and native evidence. Retain unsupported-field and nonzero PELLIPSE refusals.
+4. **Graph edits and wide identities.** Complete associative HATCH edit,
+   reverse-link, copy and collision handling with explicit deassociation loss.
+   Extend the [wide XRECORD route](docs/research/p7-wide-dxf-cross-encoding-2026-11-27.json)
+   beyond its eight chains, selected roles and safe text only after source,
+   target, graph and output proof. Qualify other typed-object stand-ins and
+   bind original-stream observation before combining it with 32-bit projection.
+5. **LibreCAD_3 entity and layer behavior.** Extend true-color, layer states,
+   renamed layers, copying, edits, undo/redo and compound-operation preflight
+   to unqualified entities, custom operations and repeated/nested stacks. Cover
+   viewport freeze and remaining layer flags. Complete IMAGE clipping,
+   source definition/reactor identity, remaining XDATA targets and broader
+   graphs. The [checked binary IMAGE profile](docs/research/p8d-librecad3-imagedef-xdata-binary-reopen-2026-11-27.json)
+   is limited to its documented source graph; retain loss reports elsewhere.
+   Qualify picking, rendering, tilted planes, spline bounds, mixed-elevation
+   intersections, edge-on ambiguity, extreme magnitudes and native GUI.
 6. **LibreCAD_3 layouts and MPOLYGON.** Extend checked replay to extra block
-   records, different layout counts, external plot resources, unknown references,
-   source identities and larger bounded captures. Preserve refusal, destination
-   integrity and retry. Qualify gradients, other colors, tilted/elevated planes,
-   native edits/rendering, and independent producers separately. Reuse the
-   [checked binary profile](docs/research/p8d-librecad3-checked-binary-replay-2026-11-26.json)
-   and [unowned-paper guard](docs/research/p8d-librecad3-unowned-paper-refusal-2026-11-26.json).
-7. **AC1012 and legacy source semantics.** The original
-   [generated pair](docs/research/p6-ac1012-fresh-generated-oda-screen-2026-11-27.json)
-   was rejected by ODA; explicit LINE links fixed that failure, but its
-   selected zero-element styles gained an element during conversion. The newer
-   [two-element pair](docs/research/p6-ac1012-populated-style-wire-2026-11-27.json)
-   passes selected physical frame, role, failure/retry, current-codec output,
-   ODA conversions on Linux and macOS and independent selected DXF checks with both elements intact. Cadkit independently checks both dictionary bodies and six style common shells; it leaves the MLINESTYLE bodies unparsed. LibreDWG reads all six style bodies, but also helped generate the samples, so this is same-family evidence. Its
-   [simple root profile](docs/research/p6-ac1012-generated-simple-root-2026-11-27.json)
-   has no root/style EED or extension in the audited frames. Use this pair and
-   the [ODA-generated pair](docs/research/p6-ac1012-oda-root-case-pair-2026-11-25.json)
-   for the [native witness](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md);
-   a [hash-checked two-element handoff](docs/research/p6-ac1012-two-element-handoff-2026-11-27.json) is prepared. Neither pair establishes native normal-open or cloning semantics. Qualify each
-   profile’s remaining graph and, for the ODA pair, the EED, empty-name root
-   entry, extension/XRECORD graph and ModelDocViewStyle bridge before guarded
-   output. Do not regenerate unchanged pairs without a discriminating question.
-8. **Integration.** Recheck affected profiles on the final codec and consumer
-   heads, including LibreCAD PR #3289, LibreCAD_3 PRs #460–#463 and FreeCAD.
-   The [spline branch master merge](docs/research/p8d-librecad3-spline-master-merge-2026-11-27.json)
-   and [HATCH branch master merge](docs/research/p8d-librecad3-hatch-master-merge-2026-11-27.json)
-   resolve their plan-ledger conflicts and pass selected headless checks; hosted
-   CI, GUI and standalone-codec validation remain open.
-   A [native macOS tilted LINE control](docs/research/p8d-librecad3-native-tilted-line-move-2026-11-27.json) opens, moves, saves and reopens one generated ASCII DXF with selected coordinates independently verified; the black captured canvas leaves visible rendering and mouse picking open. The [POINT candidate](docs/research/p8d-librecad3-point-master-merge-2026-11-27.json)
-   now includes current master; its [elevated POINT slice](docs/research/p8d-librecad3-elevated-point-view-2026-11-27.json) passes selected headless selection, snapping, drag and undo/redo checks, including [coincident grips at different elevations](docs/research/p8d-librecad3-point-coincident-grips-2026-11-27.json). The [overlapping line-grip fix](docs/research/p8d-librecad3-line-overlapping-grips-2026-11-27.json) prevents duplicate entity notifications while retaining both endpoint elevations. The [actual POINT/layer merge](docs/research/p8d-librecad3-point-layer-actual-merge-2026-11-27.json) now includes PR #461 at its recorded head. The merged head passes 90 focused tests and 18 layout tests; an off-layer negative control proves the hidden-layer filter must follow elevated candidate collection. Recheck on the final codec and hosted platforms. The shared [mirror-axis scaling fix](docs/research/p8d-librecad3-point-mirror-axis-2026-11-27.json) passes 154 headless tests for the candidate, including planar and spatial axes from 1e-300 to 1e300; overflowing endpoint differences remain unqualified. Qualify the standalone-codec linetype dependency and native GUI before final acceptance.
-   Selected macOS headless [LibreCAD](docs/research/p8d-librecad-current-codec-219b-2026-11-27.json)
-   and [LibreCAD_3](docs/research/p8d-librecad3-current-codec-219b-2026-11-27.json)
-   checks do not qualify native GUI or other platforms. The [Windows test link repair](docs/research/p8d-librecad3-windows-link-2026-11-27.json)
-   passed its hosted link step; the subsequent [MPOLYGON cleanup repair](docs/research/p8d-librecad3-windows-mpolygon-cleanup-2026-11-27.json)
-   passed the affected Windows tests. Two later stream-sharing failures were fixed
-   in the [unit and spline cleanup](docs/research/p8d-librecad3-windows-unit-spline-cleanup-2026-11-27.json);
-   the hosted Windows run at bdeb2046 passed build and packaging but failed
-   six LF-only layout tests on CRLF output. The [line-ending repair](docs/research/p8d-librecad3-windows-layout-crlf-2026-11-27.json) passes 18 local layout tests; its [hosted Linux and Windows persistence jobs](docs/research/p8d-librecad3-1395-hosted-2026-11-27.json) pass. The [hosted Windows and AppImage jobs](docs/research/p8d-librecad3-1395-windows-appimage-2026-11-27.json) also pass on PR #461 head 1395a2f5, including 17 Windows layout tests and packaged runtime smokes; rerun on subsequent heads. Preserve the FreeCAD
-   3DFACE, SOLID and polyface limitations until their independent gates close.
-   Freeze the candidate before broad suites and release claims.
+   records, layout counts, external plot resources, unknown references and
+   larger bounded captures, retaining atomic refusal and retry. Qualify
+   gradients, additional colors, tilted/elevated planes, native edits,
+   rendering and independent producers. Reuse the [binary layout profile](docs/research/p8d-librecad3-checked-binary-replay-2026-11-26.json).
+7. **AC1012 and legacy source semantics.** Qualify the remaining graphs of the
+   [two-element generated pair](docs/research/p6-ac1012-populated-style-wire-2026-11-27.json)
+   and [ODA-generated pair](docs/research/p6-ac1012-oda-root-case-pair-2026-11-25.json).
+   Obtain native normal-open and cloning results using the [witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md);
+   the [hash-checked handoff](docs/research/p6-ac1012-two-element-handoff-2026-11-27.json)
+   is ready. The ODA source also needs EED, empty-name root, extension/XRECORD
+   and ModelDocViewStyle closure. Do not regenerate unchanged pairs without a
+   discriminating question or infer native merge behavior from peer conversion.
+8. **Integration and FreeCAD.** Recheck affected profiles against final heads
+   of LibreCAD PR #3289, LibreCAD_3 PRs #460–#463 and the codec. Finish native
+   GUI, Linux/Windows, package and FreeCAD handoff qualification. For the local
+   FreeCAD candidate, preserve named child layers through block composition;
+   the [3DFACE check](docs/research/p8-freecad-3dface-block-layer-loss-2026-11-27.json)
+   reports current loss while retaining geometry. Review color, other block
+   entities and independent producers, split the candidate, and follow
+   FreeCAD's contributor-authored submission policy. Freeze the candidate
+   before broad suites and release claims.
 
-The remote ObjectARX host's release, OS, SDK and access route are still unknown.
-Use the [profile intake](tools/research/OBJECTARX_HOST_PROFILE_INTAKE.md) once a
-usable host is available, and continue independent work in the meantime.
-
-The [replay CI repair](docs/research/p8-freecad-replay-ci-inventory-digest-2026-11-27.json) refreshes the source-release and 1,407-test inventories and the implementation digest after adding the FreeCAD replay regression. All 15 format claims remain EXPERIMENTAL; previous digest-bound platform qualification must be reassessed and the new hosted checks must finish.
-
-The [ODA R2000 round-trip control](docs/research/p8d-librecad3-imagedef-oda-r2000-roundtrip-2026-11-27.json) retains selected fields and distinct references for two same-path IMAGEDEFs. Its converted DXF needs one orphan paper-space-block repair; the control does not establish raster loading, rendering or native AutoCAD semantics.
+The remote ObjectARX host's release, OS, SDK and access route remain unknown.
+Use the [profile intake](tools/research/OBJECTARX_HOST_PROFILE_INTAKE.md) when
+it becomes available; continue independent work in the meantime.
 
 ## Execution and evidence rules
 
