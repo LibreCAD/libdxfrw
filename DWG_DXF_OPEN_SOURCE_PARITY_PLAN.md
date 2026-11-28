@@ -69,10 +69,10 @@ below is still open, and its linked evidence defines the present boundary.
    matches the selected physical paths to live geometry. An [explicit handle scan](docs/research/p8d-hatch-source-handle-isolation-2026-11-28.json)
    checks incoming references to the selected identities; [opaque-source guards](docs/research/p8d-hatch-opaque-source-guards-2026-11-28.json)
    suppress that evidence for selected unsupported payloads and classes. The
-   codec exposes its canonical HEADER-name inventory for consumer checks;
-   verify the integrated consumer. Finish
-   field-level graph closure, copy/identity checks and finalization with late-edit
-   revalidation before enabling replay.
+   [shared HEADER query and observed-field guard](docs/research/p8d-hatch-known-header-fields-2026-11-28.json)
+   also refuse unknown variables, custom properties and unrecognized field
+   codes. Finish per-field semantic closure, copy/identity checks and staged
+   finalization with late-edit revalidation before enabling replay.
    The [composed entity inspector](docs/research/p8d-entity-inspector-composition-2026-11-28.json)
    provides the common hook for binding the check to consumer finalization.
    Preserve explicit deassociation outside the verified profile;
