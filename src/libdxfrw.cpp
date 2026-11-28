@@ -35395,6 +35395,7 @@ bool dxfRW::dxfClassForRecordName(const std::string &recName, DRW_Class &out) {
         {"ACDBSUN",          "AcDbSun",                 "SCENEOE",           1153, 0},
         {"SCALE",            "AcDbScale",               "ObjectDBX Classes", 1153, 0},
         {"DICTIONARYVAR",    "AcDbDictionaryVar",       "ObjectDBX Classes", 0, 0},
+        {"LAYOUT",           "AcDbLayout",              "ObjectDBX Classes", 0, 0},
         {"RASTERVARIABLES",  "AcDbRasterVariables",     "ISM",               0, 0},
         {"ACDBRASTERVARIABLES", "AcDbRasterVariables",  "ISM",               0, 0},
         {"WIPEOUTVARIABLES", "AcDbWipeoutVariables",    "WipeOut",           0, 0},

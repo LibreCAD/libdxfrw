@@ -1,0 +1,214 @@
+{
+  "authority": [
+    "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-DBDBE57E-9045-46A5-9FB9-99CADEB81CF0.htm",
+    "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-DBD5351C-E408-4CED-9336-3BD489179EF5.htm"
+  ],
+  "controls": [
+    "The new registration assertion failed on unchanged production code for five versions in both encodings.",
+    "Generated output/readback covers R2000-R2013, ASCII and binary, supplied metadata/ordinal preservation, append-only ordinal preservation, conflict refusal, destination preservation and corrected retry.",
+    "An independent physical walker checks class fields and versioned group 91, rejects a damaged class and backlink, and verifies corrected original retry. ezdxf audits all ten generated outputs with zero errors and fixes."
+  ],
+  "ezdxfVersion": "1.4.5",
+  "fixtureTestSha256": "b6627569630ad988b4d29253f453e9b27dfd29d7c68535f31683631069e946fe",
+  "id": "p6-layout-dxf-class-registration-2026-11-28",
+  "implementation": "When a rooted LAYOUT graph is emitted, append a default LAYOUT CLASS if absent; preserve supplied class metadata and order, and reject conflicting identity atomically. Synthesized R2004+ count equals the emitted layout count; R2000 has no group 91.",
+  "laterVersions": {
+    "AC1018": {
+      "ascii": {
+        "auditErrors": 0,
+        "auditFixes": 0,
+        "layoutClass": {
+          "app": "ObjectDBX Classes",
+          "class": "AcDbLayout",
+          "entity": 0,
+          "instanceCount": 3,
+          "proxyFlag": 0,
+          "record": "LAYOUT",
+          "wasProxy": 0
+        },
+        "sha256": "0328583cfad8a5e84c3a1d1e9fe58d22284e4c3f5e953df8b4f9c5749349c8f3"
+      },
+      "binary": {
+        "auditErrors": 0,
+        "auditFixes": 0,
+        "layoutClass": {
+          "app": "ObjectDBX Classes",
+          "class": "AcDbLayout",
+          "entity": 0,
+          "instanceCount": 3,
+          "proxyFlag": 0,
+          "record": "LAYOUT",
+          "wasProxy": 0
+        },
+        "sha256": "c8d59c5297793fde4a0a8549cfd012a38fa8fae5091cc098ea9200372c5685b3"
+      }
+    },
+    "AC1021": {
+      "ascii": {
+        "auditErrors": 0,
+        "auditFixes": 0,
+        "layoutClass": {
+          "app": "ObjectDBX Classes",
+          "class": "AcDbLayout",
+          "entity": 0,
+          "instanceCount": 3,
+          "proxyFlag": 0,
+          "record": "LAYOUT",
+          "wasProxy": 0
+        },
+        "sha256": "020c997b712d4538b6a25788313f1d6431f1bfa9ac1b6a424a957aade2d1f040"
+      },
+      "binary": {
+        "auditErrors": 0,
+        "auditFixes": 0,
+        "layoutClass": {
+          "app": "ObjectDBX Classes",
+          "class": "AcDbLayout",
+          "entity": 0,
+          "instanceCount": 3,
+          "proxyFlag": 0,
+          "record": "LAYOUT",
+          "wasProxy": 0
+        },
+        "sha256": "cfb71825416344933c8d0d0f7015baa0862ec900aaa282f82503734bd61e93e5"
+      }
+    },
+    "AC1024": {
+      "ascii": {
+        "auditErrors": 0,
+        "auditFixes": 0,
+        "layoutClass": {
+          "app": "ObjectDBX Classes",
+          "class": "AcDbLayout",
+          "entity": 0,
+          "instanceCount": 3,
+          "proxyFlag": 0,
+          "record": "LAYOUT",
+          "wasProxy": 0
+        },
+        "sha256": "ee878e6b868c06fb0382f7260529eb42d6a3adfb67ec7bbd2780bebf899f0479"
+      },
+      "binary": {
+        "auditErrors": 0,
+        "auditFixes": 0,
+        "layoutClass": {
+          "app": "ObjectDBX Classes",
+          "class": "AcDbLayout",
+          "entity": 0,
+          "instanceCount": 3,
+          "proxyFlag": 0,
+          "record": "LAYOUT",
+          "wasProxy": 0
+        },
+        "sha256": "3b82c5d7c815c7b175e6f36d12b2a813bde6cb4991a2e8f9c645e9c62f53bbf3"
+      }
+    },
+    "AC1027": {
+      "ascii": {
+        "auditErrors": 0,
+        "auditFixes": 0,
+        "layoutClass": {
+          "app": "ObjectDBX Classes",
+          "class": "AcDbLayout",
+          "entity": 0,
+          "instanceCount": 3,
+          "proxyFlag": 0,
+          "record": "LAYOUT",
+          "wasProxy": 0
+        },
+        "sha256": "6d68102bf4438536497344c891dc19a658e897f57ce7b23d253fa94f25dc97a9"
+      },
+      "binary": {
+        "auditErrors": 0,
+        "auditFixes": 0,
+        "layoutClass": {
+          "app": "ObjectDBX Classes",
+          "class": "AcDbLayout",
+          "entity": 0,
+          "instanceCount": 3,
+          "proxyFlag": 0,
+          "record": "LAYOUT",
+          "wasProxy": 0
+        },
+        "sha256": "d7e9db7b0c5788aebf00f4ab9d810f682e73ab2baf580107dbe4f1014fba1836"
+      }
+    }
+  },
+  "limits": [
+    "No native AutoCAD claim or decision on omission of unused proxy classes; production legacy DWG output guards remain unchanged.",
+    "Generated drawings are temporary and no fixture was committed."
+  ],
+  "outputs": {
+    "ascii": {
+      "auditErrors": 0,
+      "auditFixes": 0,
+      "brokenBacklinkRefused": true,
+      "brokenClassRefused": true,
+      "layoutClass": {
+        "app": "ObjectDBX Classes",
+        "class": "AcDbLayout",
+        "entity": 0,
+        "instanceCount": null,
+        "proxyFlag": 0,
+        "record": "LAYOUT",
+        "wasProxy": 0
+      },
+      "layouts": {
+        "Model": {
+          "block": "1F",
+          "blockName": "*Model_Space",
+          "handle": "202"
+        },
+        "Sheet A": {
+          "block": "1E",
+          "blockName": "*Paper_Space",
+          "handle": "723"
+        },
+        "Sheet B": {
+          "block": "725",
+          "blockName": "*Paper_Space0",
+          "handle": "201"
+        }
+      },
+      "originalRetryPassed": true,
+      "sha256": "fec8fcadf9d9f0556aaf971f8f1e7d42e6bea4cd71cde30b452cc98a49a7ba17"
+    },
+    "binary": {
+      "auditErrors": 0,
+      "auditFixes": 0,
+      "brokenBacklinkRefused": true,
+      "brokenClassRefused": true,
+      "layoutClass": {
+        "app": "ObjectDBX Classes",
+        "class": "AcDbLayout",
+        "entity": 0,
+        "instanceCount": null,
+        "proxyFlag": 0,
+        "record": "LAYOUT",
+        "wasProxy": 0
+      },
+      "layouts": {
+        "Model": {
+          "block": "1F",
+          "blockName": "*Model_Space",
+          "handle": "202"
+        },
+        "Sheet A": {
+          "block": "1E",
+          "blockName": "*Paper_Space",
+          "handle": "723"
+        },
+        "Sheet B": {
+          "block": "725",
+          "blockName": "*Paper_Space0",
+          "handle": "201"
+        }
+      },
+      "originalRetryPassed": true,
+      "sha256": "89b0c92ee4c5d409935b8d20cce147e360d9198854b20185038d5cc19acb79f0"
+    }
+  },
+  "schema": 1,
+  "scope": "generated R2000-R2013 DXF projection controls; no legacy DWG or native semantics qualification",
+  "supportClaimEffect": "none"
+}

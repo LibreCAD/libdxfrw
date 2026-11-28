@@ -2927,6 +2927,99 @@ void testLayoutGraphReadContract(TestContext& t) {
                 + target.second + " layout graph reads back through the adapter";
             t.expect(imported.fileImport(exportedPath.string(), &exportedData,
                                         false), importLabel.c_str());
+            const auto layoutClasses = std::count_if(
+                exportedData.dxfClasses.begin(), exportedData.dxfClasses.end(),
+                [](const DRW_Class& cls) {
+                    return cls.recName == "LAYOUT" && cls.className == "AcDbLayout"
+                        && cls.appName == "ObjectDBX Classes" && cls.proxyFlag == 0
+                        && cls.wasaProxyFlag == 0 && cls.entityFlag == 0;
+                });
+            const auto layoutClass = std::find_if(
+                exportedData.dxfClasses.begin(), exportedData.dxfClasses.end(),
+                [](const DRW_Class& cls) { return cls.recName == "LAYOUT"; });
+            t.expect(layoutClasses == 1 && layoutClass != exportedData.dxfClasses.end()
+                         && (target.first == DRW::AC1015
+                             || layoutClass->instanceCount == 3),
+                     "emitted layout graph has one default LAYOUT CLASS with the target instance count");
+            if (target.first == DRW::AC1024) {
+                DRW_Class otherClass;
+                otherClass.recName = "EXAMPLE_CLASS";
+                otherClass.className = "ExampleClass";
+                otherClass.appName = "Example application";
+                DRW_Class suppliedLayout;
+                suppliedLayout.recName = "LAYOUT";
+                suppliedLayout.className = "AcDbLayout";
+                suppliedLayout.appName = "Example layout application";
+                suppliedLayout.proxyFlag = 8;
+                suppliedLayout.instanceCount = 3;
+                exportSource.dxfClasses.push_back(otherClass);
+                const auto suppliedOutput = directory / (binary
+                    ? "layout-supplied-class-binary.dxf"
+                    : "layout-supplied-class-ascii.dxf");
+                const bool appendedWritten = exporter.fileExport(
+                    suppliedOutput.string(), target.first, binary, &exportSource, false, true);
+                dx_data appendedReadback;
+                dx_iface appendedReader;
+                const bool appendedRead = appendedWritten && appendedReader.fileImport(
+                    suppliedOutput.string(), &appendedReadback, false);
+                const auto original = std::find_if(appendedReadback.dxfClasses.begin(),
+                    appendedReadback.dxfClasses.end(), [](const DRW_Class& cls) {
+                        return cls.recName == "EXAMPLE_CLASS";
+                    });
+                const auto appended = std::find_if(appendedReadback.dxfClasses.begin(),
+                    appendedReadback.dxfClasses.end(), [](const DRW_Class& cls) {
+                        return cls.recName == "LAYOUT";
+                    });
+                t.expect(appendedRead && original == appendedReadback.dxfClasses.begin()
+                             && appended != appendedReadback.dxfClasses.end()
+                             && appended > original && appended->instanceCount == 3,
+                         "synthesized LAYOUT CLASS does not shift an existing class ordinal");
+                exportSource.dxfClasses.push_back(suppliedLayout);
+                const bool suppliedWritten = exporter.fileExport(
+                    suppliedOutput.string(), target.first, binary, &exportSource, false, true);
+                dx_data suppliedReadback;
+                dx_iface suppliedReader;
+                const bool suppliedRead = suppliedWritten && suppliedReader.fileImport(
+                    suppliedOutput.string(), &suppliedReadback, false);
+                const auto other = std::find_if(suppliedReadback.dxfClasses.begin(),
+                    suppliedReadback.dxfClasses.end(), [](const DRW_Class& cls) {
+                        return cls.recName == "EXAMPLE_CLASS";
+                    });
+                const auto supplied = std::find_if(suppliedReadback.dxfClasses.begin(),
+                    suppliedReadback.dxfClasses.end(), [](const DRW_Class& cls) {
+                        return cls.recName == "LAYOUT";
+                    });
+                t.expect(suppliedRead && other != suppliedReadback.dxfClasses.end()
+                             && supplied != suppliedReadback.dxfClasses.end()
+                             && std::distance(other, supplied) == 1
+                             && supplied->className == suppliedLayout.className
+                             && supplied->appName == suppliedLayout.appName
+                             && supplied->proxyFlag == suppliedLayout.proxyFlag
+                             && supplied->instanceCount == suppliedLayout.instanceCount,
+                         "supplied LAYOUT CLASS metadata and ordinal remain unchanged");
+                for (unsigned fault = 0u; fault < 3u; ++fault) {
+                    exportSource.dxfClasses.back() = suppliedLayout;
+                    if (fault == 0u) exportSource.dxfClasses.back().className = "ConflictingLayout";
+                    if (fault == 1u) exportSource.dxfClasses.back().recName = "CONFLICTING_LAYOUT";
+                    if (fault == 2u) exportSource.dxfClasses.back().entityFlag = 1;
+                    {
+                        std::ofstream sentinel(suppliedOutput, std::ios::binary | std::ios::trunc);
+                        sentinel << "class-conflict-sentinel";
+                    }
+                    const bool conflictRejected = !exporter.fileExport(
+                        suppliedOutput.string(), target.first, binary, &exportSource, false, true);
+                    std::ifstream preserved(suppliedOutput, std::ios::binary);
+                    const std::string preservedText((std::istreambuf_iterator<char>(preserved)),
+                                                    std::istreambuf_iterator<char>());
+                    exportSource.dxfClasses.back() = suppliedLayout;
+                    const bool corrected = exporter.fileExport(
+                        suppliedOutput.string(), target.first, binary, &exportSource, false, true);
+                    t.expect(conflictRejected && preservedText == "class-conflict-sentinel" && corrected,
+                             "conflicting LAYOUT CLASS refuses atomically and corrected retry succeeds");
+                }
+                exportSource.dxfClasses.pop_back();
+                exportSource.dxfClasses.pop_back();
+            }
             const auto rootLayout = std::find_if(
                 exportedData.namedObjectDictionary.m_entries.begin(),
                 exportedData.namedObjectDictionary.m_entries.end(),

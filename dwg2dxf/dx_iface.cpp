@@ -93404,6 +93404,46 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         }
         return true;
     };
+    // Append only: proxy group 91 refers to an existing CLASS ordinal.
+    // Preserve a supplied LAYOUT row verbatim, including its application and
+    // proxy metadata. Only synthesize the documented default when the rooted
+    // layout graph will actually be written and no matching row exists.
+    const auto registerLayoutClass = [this, v](std::vector<DRW_Class>& classes) {
+        if (v < DRW::AC1015 || cData->layouts.empty()
+            || !cData->hasNamedObjectDictionary)
+            return true;
+        const bool emitsLayouts = std::any_of(
+            cData->namedObjectDictionary.m_entries.begin(),
+            cData->namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_handle != 0u
+                    && asciiIdentifierEquals(entry.m_name, "ACAD_LAYOUT");
+            });
+        if (!emitsLayouts)
+            return true;
+        bool found = false;
+        for (const DRW_Class& candidate : classes) {
+            const bool record = sameAsciiName(candidate.recName, "LAYOUT");
+            const bool type = sameAsciiName(candidate.className, "AcDbLayout");
+            if (!record && !type)
+                continue;
+            if (!record || !type || found || candidate.entityFlag != 0)
+                return false;
+            found = true;
+        }
+        if (found)
+            return true;
+        if (classes.size() >= DRW::kMaxDxfClasses
+            || cData->layouts.size() > static_cast<std::size_t>(
+                std::numeric_limits<int>::max()))
+            return false;
+        DRW_Class layoutClass;
+        if (!dxfRW::dxfClassForRecordName("LAYOUT", layoutClass))
+            return false;
+        layoutClass.instanceCount = static_cast<int>(cData->layouts.size());
+        classes.push_back(std::move(layoutClass));
+        return true;
+    };
     std::vector<DRW_Block_Record> sourceBlockRecords;
     sourceBlockRecords.reserve(cData->blockRecords.size());
     for (const DRW_Block_Record& record : cData->blockRecords) {
@@ -93670,7 +93710,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 || !registerNamedResourceClasses(classes)
                 || !registerDictionaryDefaultClasses(classes)
                 || !registerSunClass(classes)
-                || !registerAssociativeClasses(classes))
+                || !registerAssociativeClasses(classes)
+                || !registerLayoutClass(classes))
                 return failAcdsExport();
             dxfW->setDxfClasses(std::move(classes));
         } else {
@@ -93804,7 +93845,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             || !registerMLeaderStyleClass(classes)
             || !registerNamedResourceClasses(classes)
             || !registerDictionaryDefaultClasses(classes)
-            || !registerAssociativeClasses(classes))
+            || !registerAssociativeClasses(classes)
+            || !registerLayoutClass(classes))
             return failAcdsExport();
         dxfW->setDxfClasses(std::move(classes));
         }
@@ -93967,6 +94009,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         if (!registerProxyEntityClasses(classes))
             return rejectClassRegistration(
                 "ACAD_PROXY_ENTITY source class ordinals or instances");
+        if (!registerLayoutClass(classes))
+            return rejectClassRegistration("LAYOUT CLASS metadata");
         dxfW->setDxfClasses(std::move(classes));
     }
     if (appendedAcdsDataSection)
