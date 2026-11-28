@@ -1313,6 +1313,7 @@ tools/research/compare_field_peer_graph.py
 tools/research/compare_layerstates_selected_ezdxf.py
 tools/research/compare_mechanical_material_ezdxf.py
 tools/research/create_ac1021_field_derivative.py
+tools/research/create_ac1021_field_one_edit.py
 tools/research/decode_ac1024_appid_frames.py
 tools/research/decode_dxf_sat1.py
 tools/research/dwg_ac1024_object_section_probe.cpp

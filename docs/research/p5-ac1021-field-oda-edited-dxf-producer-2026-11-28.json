@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1021-field-oda-edited-dxf-producer-2026-11-28",
+  "supportClaimEffect": "none",
+  "candidateCommit": "2c4b247d3",
+  "implementationDigestSha256": "ad5b209a8d7087b49f00070533616bfd91628ea6a80be07f7156bbe4d0ef0640",
+  "scope": "An ODA DXF-to-AC1021 producer witness with one locally edited FIELD child value derived from the existing AutoCAD 2007 metric source.",
+  "sources": {
+    "odaSpecification": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "acadsharpReader": "https://github.com/DomCR/ACadSharp/blob/3a52a52047e84670759c1f9ad3916ec3ce85ff56/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.Entities.cs"
+  },
+  "checks": [
+    "A new scratch-only generator changes exactly one ASCII DXF group 1 in FIELD 0x182EA from UpdatedDistance to the same-length ChangedDistance. The selected FIELD contains no unqualified opaque group; the generator rejects a wrong source value, succeeds on corrected same-path retry, and refuses to overwrite the output.",
+    "ODA File Converter 27.1.0.0 creates AC1021 DWG from that DXF. ODA DXF readback and ACadSharp independently report ChangedDistance for the selected child; the resulting candidate in-body UTF-16 payload occupies bits 309\u2013564. This demonstrates the edited value was encoded through the DXF-to-DWG path, not merely copied as original DWG bytes.",
+    "The verifier checks the exact one-line input change, all 42 selected profiles, the remaining 24 profiles and 58 candidate values, owner and object roles, and all 162 FIELD identities. Extra input edits, wrong owner roles and payload changes are rejected; corrected retries pass.",
+    "The produced DXF retains 162 FIELDs and one FIELDLIST and ezdxf reports zero errors/fixes. LibreDWG versus ODA child-value disagreements persist. Strict and explicit-partial libdxfrw outputs both refuse without replacing the destination. No derived DWG or DXF fixture is committed."
+  ],
+  "hashes": {
+    "baselineDxf": "481f24f4f7d8cdcc054a02b5894322acdd51335db3e5597a7330ab981b61d580",
+    "editedDxf": "2359d496970457716dc57ee334116a53658521a67c81eb8b618e2a5d0059b9e8",
+    "odaDwg": "551e546fee9ee8c618c91448730abd60696af3766716ee267cc03b1ad6121e61",
+    "odaReadbackDxf": "909c83bde72065817ea6791a1cfe840dc8a1268df0d62390ef921cecf96f54b1",
+    "acadsharpLog": "40681cfcae88988ad19416944ab0b423bbb1a143f9afc23cee718d8476414d7c",
+    "generator": "8f8ce57cdab2da5a9c85770616432da55bd1e846fe1baf5fb5e6d3551a820a77",
+    "verifier": "55f072da35dacca63eb60784ba0079748c7131d624ab44cc13e07aba14ff9d1c",
+    "proof": "c1032435d5b74177f7938b38ffe7979a8bb709fdb2f9312948360ce0bc84e394",
+    "generatorNegativeRetry": "9b75b9ba4a18ae7af4981bf0a5dbdc3ada401a9b3c7d913c74e2fe1c876d4d28",
+    "verificationNegativeRetry": "dcfa0001dbd732ec54393d03da2ab967d93559aa35f8ac121130ce54af4c26cc",
+    "peerComparison": "d07ce9682812cb2a9c9fa26104e4907c416b4f531208c1d9cc12abd6aa1877c5"
+  },
+  "limits": [
+    "The input is derived from an existing drawing and the edited property name was not established to exist or evaluate natively. ODA export and ACadSharp decoding are not native AutoCAD semantic evidence.",
+    "The candidate body encoding still conflicts with the authoritative ODA v5.4.1 general string-stream rule; retain raw-only data and strict output refusal until the discrepancy and all graph carriers are resolved. No support claim is promoted."
+  ]
+}
