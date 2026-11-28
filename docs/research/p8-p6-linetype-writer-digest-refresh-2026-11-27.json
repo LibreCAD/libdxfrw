@@ -1,0 +1,15 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-p6-linetype-writer-digest-refresh-2026-11-27",
+  "supportClaimEffect": "none",
+  "implementationCommit": "6b24ecea9",
+  "previousDigest": "8220aa6f0762d64562f8b403ff9853e9f900f1a51a4642af94d6902e3886f20a",
+  "implementationDigestSha256": "b36fd3a17b58efdc525efb593428c3837a281aa284852a0dde450099a694cafd",
+  "inputCount": 784,
+  "checks": [
+    "Clean detached checkout qualification digest, inventory, support status and workflow contract. All 15 claims remain experimental with no advertised routes."
+  ],
+  "limits": [
+    "Current-head hosted and platform qualification is pending; previous receipts bind older implementation digests."
+  ]
+}
