@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit block and layer frames of the locally generated AC1012 witness pair.
+"""Audit block, layer and linetype frames of the generated AC1012 witness pair.
 
 This is a bounded source-wire observer, not native cloning evidence.
 """
@@ -12,8 +12,8 @@ from generate_ac1012_dictionary_merge_samples import read_object_frame
 from generate_ac1012_dictionary_witness import Bits, require, sha
 
 
-def observe_control(frame: bytes, layer: bool = False) -> dict:
-    """Bind the selected BLOCK_CONTROL or LAYER_CONTROL table frame."""
+def observe_control(frame: bytes, profile: str = "block") -> dict:
+    """Bind the selected BLOCK, LAYER or LTYPE control table frame."""
     bits = Bits(frame)
     spans = {}
 
@@ -23,14 +23,17 @@ def observe_control(frame: bytes, layer: bool = False) -> dict:
         spans[label] = {"startBit": start, "endBit": bits.position, "value": value}
         return value
 
-    handle = 2 if layer else 1
-    require(field("type", bits.bs) == (50 if layer else 48)
+    profiles = {"block": (1, 48, 0, (("model", 3, 0x1f), ("paper", 3, 0x20))),
+                "layer": (2, 50, 1, (("entry", 2, 0x10),)),
+                "linetype": (5, 56, 1, (("entry", 2, 0x16),
+                                        ("byBlock", 3, 0x14), ("byLayer", 3, 0x15)))}
+    handle, kind, count, slots = profiles[profile]
+    require(field("type", bits.bs) == kind
             and field("self", lambda: bits.handle(0, own=True))["value"] == handle
             and field("eedSize", bits.bs) == 0, "unexpected control prefix")
     boundary = field("dataEnd", lambda: bits.little(4))
-    require(field("reactorCount", bits.bl) == 0 and field("count", bits.bl) == (1 if layer else 0)
+    require(field("reactorCount", bits.bl) == 0 and field("count", bits.bl) == count
             and bits.position == boundary, "unexpected control body")
-    slots = (("entry", 2, 0x10),) if layer else (("model", 3, 0x1f), ("paper", 3, 0x20))
     for label, role, expected in (("owner", 4, 0), ("extension", 3, 0)) + slots:
         value = field(label, lambda: bits.handle(role, handle))
         require(value["role"] == role and value["value"] == expected,
@@ -69,6 +72,46 @@ def observe_layer(frame: bytes) -> dict:
         require(value["role"] == raw_role and value["value"] == expected,
                 f"wrong LAYER {label}")
     require(len(frame) * 8 - bits.position < 8, "unexpected LAYER tail")
+    return {"frameSha256": sha(frame), "spans": spans, "paddingBits": len(frame) * 8 - bits.position}
+
+
+def observe_linetype(frame: bytes, handle: int, name: str, description: str) -> dict:
+    """Bind the selected R13 zero-dash standard LTYPE frames."""
+    bits = Bits(frame)
+    spans = {}
+
+    def field(label, read):
+        start = bits.position
+        value = read()
+        spans[label] = {"startBit": start, "endBit": bits.position, "value": value}
+        return value
+
+    def read_text():
+        length = bits.bs()
+        require(length <= 128, "linetype text exceeds profile")
+        return bytes(bits.take(8) for _ in range(length)).decode("ascii")
+
+    require(field("type", bits.bs) == 57
+            and field("self", lambda: bits.handle(0, own=True))["value"] == handle
+            and field("eedSize", bits.bs) == 0, "unexpected LTYPE prefix")
+    boundary = field("dataEnd", lambda: bits.little(4))
+    require(field("reactorCount", bits.bl) == 0 and field("name", read_text) == name
+            and field("xref64", lambda: bits.take(1)) == 1
+            and field("xrefIndexPlusOne", bits.bs) == 0
+            and field("xrefDependent", lambda: bits.take(1)) == 0
+            and field("description", read_text) == description
+            and field("zeroPatternTag", lambda: bits.take(2)) == 2
+            and field("alignment", lambda: bits.take(8)) == 65
+            and field("dashCount", lambda: bits.take(8)) == 0,
+            "unexpected LTYPE body")
+    area = field("textArea", lambda: bytes(bits.take(8) for _ in range(256)).hex())
+    require(area == "00" * 256 and bits.position == boundary, "unexpected LTYPE string area")
+    for label, role, expected, raw_role in (("owner", 4, 5, 12), ("extension", 3, 0, 3),
+                                             ("xref", 5, 0, 5)):
+        value = field(label, lambda: bits.handle(role, handle))
+        require(value["role"] == raw_role and value["value"] == expected,
+                f"wrong LTYPE {label}")
+    require(len(frame) * 8 - bits.position < 8, "unexpected LTYPE tail")
     return {"frameSha256": sha(frame), "spans": spans, "paddingBits": len(frame) * 8 - bits.position}
 
 
@@ -173,8 +216,13 @@ def audit(path: Path, dwgread: str) -> dict:
     require(observe_control(raw) == control, "unchanged BLOCK_CONTROL retry differs")
     dependencies = {}
     for label, handle, kind, reader, handle_names in (
-            ("layerControl", 2, 50, lambda f: observe_control(f, True), ("owner", "extension", "entry")),
-            ("layer", 0x10, 51, observe_layer, ("owner", "extension", "xref", "linetype"))):
+            ("layerControl", 2, 50, lambda f: observe_control(f, "layer"), ("owner", "extension", "entry")),
+            ("layer", 0x10, 51, observe_layer, ("owner", "extension", "xref", "linetype")),
+            ("linetypeControl", 5, 56, lambda f: observe_control(f, "linetype"),
+             ("owner", "extension", "entry", "byBlock", "byLayer")),
+            ("byBlock", 0x14, 57, lambda f: observe_linetype(f, 0x14, "BYBLOCK", ""), ("owner", "extension", "xref")),
+            ("byLayer", 0x15, 57, lambda f: observe_linetype(f, 0x15, "BYLAYER", ""), ("owner", "extension", "xref")),
+            ("continuous", 0x16, 57, lambda f: observe_linetype(f, 0x16, "CONTINUOUS", "Solid line"), ("owner", "extension", "xref"))):
         location, frame = read_object_frame(path, dwgread, handle, kind)
         layer_proof = reader(frame)
         for field_name in handle_names:

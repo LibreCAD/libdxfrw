@@ -1298,6 +1298,11 @@ bool checkLegacyBlockPairWire(const std::string& input) {
     data.layers.front().parentHandle ^= 1u;
     if (!rejectedLayerOwner || !data.getLayerTableControlExtensionDictionary(layerControl, layerExtension)
         || layerControl != 2u || layerExtension != 0u) return false;
+    if (data.lineTypes.size() != 3u || !data.hasCompleteDwgLineTypeControlMembership()) return false;
+    data.lineTypes.front().parentHandle ^= 1u;
+    const bool rejectedLtypeOwner = !data.hasCompleteDwgLineTypeControlMembership();
+    data.lineTypes.front().parentHandle ^= 1u;
+    if (!rejectedLtypeOwner || !data.hasCompleteDwgLineTypeControlMembership()) return false;
     const auto model = std::find_if(data.blockRecords.begin(), data.blockRecords.end(),
         [](const DRW_Block_Record& record) { return record.name == "*MODEL_SPACE"; });
     const auto paper = std::find_if(data.blockRecords.begin(), data.blockRecords.end(),
