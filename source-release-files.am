@@ -1279,6 +1279,7 @@ EXTRA_DIST = \
     tools/research/audit_ac1012_generated_root.py \
     tools/research/audit_ac1012_oda_merge_pair.py \
     tools/research/audit_ac1012_pair_block_entities.py \
+    tools/research/audit_ac1012_pair_object_census.py \
     tools/research/audit_ac1021_field_graph.py \
     tools/research/audit_ac1024_sortents_boundary.py \
     tools/research/audit_ac1027_associative_constraints.py \

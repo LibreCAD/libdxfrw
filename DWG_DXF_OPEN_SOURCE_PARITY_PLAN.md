@@ -68,9 +68,10 @@ below is still open, and its linked evidence defines the present boundary.
    larger bounded captures, retaining atomic refusal and retry. Qualify
    gradients, additional colors, tilted/elevated planes, native edits,
    rendering and independent producers. Reuse the [binary layout profile](docs/research/p8d-librecad3-checked-binary-replay-2026-11-26.json).
-7. **AC1012 and legacy source semantics.** Qualify the remaining graphs of the
-   [two-element generated pair](docs/research/p6-ac1012-populated-style-wire-2026-11-27.json), whose [model/paper BLOCK_HEADER frames](docs/research/p6-ac1012-pair-block-wire-2026-11-27.json), [BLOCK/ENDBLK boundaries](docs/research/p6-ac1012-pair-block-entity-wire-2026-11-27.json), [BLOCK_CONTROL membership](docs/research/p6-ac1012-pair-block-control-wire-2026-11-27.json), [layer dependencies](docs/research/p6-ac1012-pair-layer-wire-2026-11-27.json), [standard linetypes](docs/research/p6-ac1012-pair-linetype-wire-2026-11-27.json), [STYLE/APPID tables](docs/research/p6-ac1012-pair-style-appid-wire-2026-11-27.json), and [other table controls](docs/research/p6-ac1012-pair-other-controls-wire-2026-11-27.json) pass source and role observers,
-   and [ODA-generated pair](docs/research/p6-ac1012-oda-root-case-pair-2026-11-25.json).
+7. **AC1012 and legacy source semantics.** Qualify the remaining HEADER,
+   graph, output and native semantics of the [generated pair with its 32-frame
+   census](docs/research/p6-ac1012-pair-object-census-2026-11-27.json) and the
+   [ODA-generated pair](docs/research/p6-ac1012-oda-root-case-pair-2026-11-25.json).
    Obtain native normal-open and cloning results using the [witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md);
    the [hash-checked handoff](docs/research/p6-ac1012-two-element-handoff-2026-11-27.json)
    is ready; the [updated packet](docs/research/p6-ac1012-pair-vport-wire-2026-11-27.json) includes the selected active VPORT frame and earlier checked frames, and warns that ODA DXF reopens differ on four selected Standard DIMSTYLE values. The same [divergence occurs on ODA-generated AC1012 inputs](docs/research/p6-ac1012-oda-generated-dimstyle-divergence-2026-11-27.json), whose input and reopened DXFs agree despite different intervening DWG values. Resolve the interpretation and check the native result before using either pair for whole-drawing evidence. The ODA source also needs EED, empty-name root, extension/XRECORD
