@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-hatch-matched-edits-2026-11-28",
+  "supportClaimEffect": "none",
+  "consumerCommit": "f41be6c233f2eae14e632ad84c01a3088c87ce2d",
+  "codecImplementationDigestSha256": "ad5b209a8d7087b49f00070533616bfd91628ea6a80be07f7156bbe4d0ef0640",
+  "scope": "Selected AC1024 ASCII model-space source with one solid straight HATCH and one closed polyline, using the existing source and staged-output isolation gates.",
+  "checks": [
+    "The physical source contour and the matching live hatch/export/polyline contour have separate snapshots. Both pass the shared bounded dyadic simplicity test; the live snapshot is rechecked before destination replacement.",
+    "Locally authored translated and nonuniformly scaled matched contours retain reciprocal links and exact edited geometry on fresh readback. The translated drawing retains its association after a second save.",
+    "A matching edit during finalization refuses replacement and a restored retry succeeds. A boundary-only move and matching coordinates outside the bounded grid fall back to deassociation.",
+    "Shared-codec focused checks pass 1061 assertions in seven cases; bundled-codec focused checks pass 236 assertions in five cases.",
+    "ezdxf 1.4.5 checks translated vertices, hatch edges, model-space ownership, reciprocal links and zero audit errors or fixes in the saved drawing and its ODA File Converter 27.1.0 AC1024 DXF round trip."
+  ],
+  "sha256": {
+    "sharedTestLog": "ad55c26ddc4aa19798393fdc058d1698bd55001497d46b41a7d90f96e2a3fe51",
+    "bundledTestLog": "d07d736cffa5cf8ac253821b08d588bc8774acdb24ee247c75ef03fda043d70a",
+    "translatedDxf": "995941e30c026001c8a7179d915710a12333a475fea3d409eff203dd046a1673",
+    "odaTranslatedDxf": "14059f99fb2296e9cd361a62377c6cd7743959c59bfe70f3ec160555a5c0e73e"
+  },
+  "limits": [
+    "This does not establish native GUI editing, general shape editing, arbitrary object graphs, other versions, or general producer/platform interoperability.",
+    "No generated drawing fixture is committed. Existing graph, source-size, coordinate-grid and staged-output exclusions remain in force."
+  ]
+}
