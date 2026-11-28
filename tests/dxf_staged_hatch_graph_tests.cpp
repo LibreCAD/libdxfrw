@@ -81,6 +81,18 @@ void write(const std::filesystem::path& path, const std::string& value) {
     output.write(value.data(), static_cast<std::streamsize>(value.size()));
 }
 
+void appendText(std::string& bytes, bool binary, int code, std::string_view value) {
+    if (binary) {
+        bytes.push_back(static_cast<char>(code & 0xff));
+        bytes.push_back(static_cast<char>((code >> 8) & 0xff));
+        bytes.append(value.data(), value.size());
+        bytes.push_back('\0');
+    } else {
+        bytes += std::to_string(code); bytes += '\n';
+        bytes.append(value.data(), value.size()); bytes += '\n';
+    }
+}
+
 bool mutate(std::string& bytes, bool binary, dx_raster_output::Profile profile, unsigned mode) {
     dx_raster_output::Cursor cursor(bytes, binary, profile);
     dx_raster_output::Token token;
@@ -165,11 +177,74 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
     const dxfRW::DxfObjectsWriteView outside{{}, version, binary, {}, profile};
     if (writer.inspectDxfHatchOutputLinks(outside, {})) return false;
     if (writer.inspectDxfHatchOutputIsolation(outside, {{1, 2, 3}}, false)) return false;
+    if (writer.inspectDxfOutputHandleIsolation(outside, dxfRW::DxfIsolationSection::Header, {1, 2})) return false;
     writer.setDxfCompatibilityProfile(profile);
     writer.setReferenceResolver([&](std::uint32_t source) { return writer.remapEntityHandle(source); });
     Exporter adapter(writer, reverse);
     unsigned mode = 0;
     bool mutationApplied = false;
+    const std::vector<std::uint32_t> otherTargets{0xFFF001u, 0xFFF002u};
+    const auto otherSection = [&](const auto& view, dxfRW::DxfIsolationSection section, unsigned fault) {
+        if (!writer.inspectDxfOutputHandleIsolation(view, section, otherTargets)) return false;
+        if (mode != 0 && mode != fault) return true;
+        if (mode == 0 && section == dxfRW::DxfIsolationSection::Header) {
+            for (const auto name : {"$CUSTOMPROPERTY", "CUSTOMPROPERTY", "$VENDOR_DATA"}) {
+                auto unsafe = std::string(view.bytes);
+                appendText(unsafe, binary, 9, name);
+                appendText(unsafe, binary, 1, "opaque");
+                auto candidate = view;
+                candidate.bytes = unsafe;
+                if (writer.inspectDxfOutputHandleIsolation(candidate, section, otherTargets)) return false;
+            }
+            auto oversized = std::string(view.bytes);
+            appendText(oversized, binary, 9, std::string(129u, 'X'));
+            auto oversizedView = view;
+            oversizedView.bytes = oversized;
+            if (writer.inspectDxfOutputHandleIsolation(oversizedView, section, otherTargets)) return false;
+            auto wrongShape = std::string(view.bytes);
+            appendText(wrongShape, binary, 9, "$CMATERIAL");
+            appendText(wrongShape, binary, 1, "FFF001");
+            auto wrongShapeView = view;
+            wrongShapeView.bytes = wrongShape;
+            if (writer.inspectDxfOutputHandleIsolation(wrongShapeView, section, otherTargets)) return false;
+            if (writer.inspectDxfOutputHandleIsolation(view, section, {otherTargets.front(), otherTargets.front()}))
+                return false;
+            if (writer.inspectDxfOutputHandleIsolation(view, static_cast<dxfRW::DxfIsolationSection>(255), otherTargets))
+                return false;
+        }
+        if (mode == 0 && section == dxfRW::DxfIsolationSection::Objects) {
+            auto unknown = std::string(view.bytes);
+            appendText(unknown, binary, 0, "DICTIONARY");
+            appendText(unknown, binary, 5, "F00");
+            appendText(unknown, binary, 100, "AcDbUnknown");
+            auto candidate = view;
+            candidate.bytes = unknown;
+            if (writer.inspectDxfOutputHandleIsolation(candidate, section, otherTargets)) return false;
+        }
+        auto changed = std::string(view.bytes);
+        if (section == dxfRW::DxfIsolationSection::Header) {
+            appendText(changed, binary, 9, "$CMATERIAL");
+            appendText(changed, binary, 347, mode == fault ? "FFF001" : "FFF004");
+        } else {
+            appendText(changed, binary, 0,
+                       section == dxfRW::DxfIsolationSection::Tables ? "LAYER" : "DICTIONARY");
+            appendText(changed, binary, 5, "F00");
+            appendText(changed, binary, 330, mode == fault ? "FFF001" : "FFF004");
+            appendText(changed, binary, 100,
+                       section == dxfRW::DxfIsolationSection::Tables ? "AcDbLayerTableRecord" : "AcDbDictionary");
+        }
+        auto altered = view;
+        altered.bytes = changed;
+        if (mode == fault) mutationApplied = true;
+        return writer.inspectDxfOutputHandleIsolation(altered, section, otherTargets);
+    };
+    if (!writer.setDxfHeaderWriteInspector([&](const auto& view) {
+            return otherSection(view, dxfRW::DxfIsolationSection::Header, 29);
+        }) || !writer.setDxfTablesWriteInspector([&](const auto& view) {
+            return otherSection(view, dxfRW::DxfIsolationSection::Tables, 30);
+        }) || !writer.setDxfObjectsWriteInspector([&](const auto& view) {
+            return otherSection(view, dxfRW::DxfIsolationSection::Objects, 31);
+        })) return false;
     if (!writer.setDxfEntitySectionsWriteInspector([&](const auto& view, std::string_view section) {
         std::vector<Links> links;
         if (section == "ENTITIES") links.push_back(adapter.links);
@@ -199,7 +274,7 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
             mutationApplied = true;
             return writer.inspectDxfHatchOutputIsolation(view, links, true);
         }
-        if (section == "ENTITIES" && mode >= 6) {
+        if (section == "ENTITIES" && mode >= 6 && mode <= 23) {
             std::string changed(view.bytes);
             const auto p = profile == dxfRW::DxfCompatibilityProfile::StandaloneSafe
                 ? dx_raster_output::Profile::StandaloneSafe : dx_raster_output::Profile::LibreCadMasterLegacy;
@@ -220,7 +295,7 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
         return writer.inspectDxfHatchOutputIsolation(view, links, true);
     })) return false;
     const std::string sentinel = "preserve destination";
-    for (unsigned fault = 1; fault <= 28; ++fault) {
+    for (unsigned fault = 1; fault <= 31; ++fault) {
         if (fault == 27 && version < DRW::AC1018) continue; // true color is not written before R2004
         mode = fault;
         adapter.extraReference = fault >= 24 && fault <= 27 ? fault - 23u : 0u;

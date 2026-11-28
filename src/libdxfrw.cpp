@@ -5094,6 +5094,127 @@ bool dxfRW::inspectDxfHatchOutputIsolation(
     } catch (...) { return false; }
 }
 
+bool dxfRW::inspectDxfOutputHandleIsolation(
+        const DxfObjectsWriteView& view, DxfIsolationSection section,
+        const std::vector<std::uint32_t>& targets) const noexcept {
+    if (!m_dxfWriteAttemptActive || !m_dxfWriteInspecting || !writer
+        || m_writeError || writer->hasWriteError() || view.version != version
+        || view.version < DRW::AC1015 || view.binary != binFile
+        || view.compatibilityProfile != dxfCompatibilityProfile()
+        || view.bytes.size() > 256u * 1024u * 1024u
+        || targets.empty() || targets.size() > 8192u) return false;
+    try {
+        const auto profile = view.compatibilityProfile == DxfCompatibilityProfile::StandaloneSafe
+            ? dx_raster_output::Profile::StandaloneSafe
+            : view.compatibilityProfile == DxfCompatibilityProfile::LibreCadMasterLegacy
+                ? dx_raster_output::Profile::LibreCadMasterLegacy
+                : dx_raster_output::Profile::Invalid;
+        if (!dx_raster_output::valid(profile)) return false;
+        std::set<std::uint32_t> selected;
+        for (const auto target : targets)
+            if (!target || target == DRW::NoHandle || !selected.insert(target).second) return false;
+        const auto isTarget = [&](const dx_raster_output::Token& token, bool& target) {
+            std::uint32_t value = 0u;
+            if (token.type != dx_raster_output::Kind::Text
+                || !dx_raster_output::integer(token.text, value, 16)) return false;
+            target = selected.count(value) != 0u;
+            return true;
+        };
+        if (section == DxfIsolationSection::Header) {
+            dx_raster_output::Cursor cursor(view.bytes, view.binary, profile);
+            dx_raster_output::Token token;
+            if (!cursor.next(token) || token.code != 2 || token.text != "HEADER") return false;
+            std::string variable;
+            std::set<std::string> variables;
+            std::set<int> codes;
+            while (!cursor.done()) {
+                if (!cursor.next(token)) return false;
+                if (token.code == 9) {
+                    if (!variable.empty() && codes.empty()) return false;
+                    if (token.text.empty() || token.text.size() > 128u || variables.size() >= 1024u)
+                        return false;
+                    variable.assign(token.text.data(), token.text.size());
+                    if (variable.empty() || variable.front() != '$'
+                        || !DRW_Header::isDxfCanonicalVariableName(variable)
+                        || variable == "$CUSTOMPROPERTY" || variable == "$CUSTOMPROPERTYTAG"
+                        || !variables.insert(variable).second) return false;
+                    codes.clear();
+                    continue;
+                }
+                if (variable.empty() || !codes.insert(token.code).second) return false;
+                const int referenceCode = variable == "$INTERFEREOBJVS" ? 345
+                    : variable == "$INTERFEREVPVS" ? 346 : variable == "$CMATERIAL" ? 347
+                    : variable == "$DRAGVS" ? 349 : variable == "$CEPSNID" ? 390
+                    : variable == "$HANDSEED" ? 5 : 0;
+                if (referenceCode && token.code != referenceCode) return false;
+                const bool reference = (token.code == 345 && variable == "$INTERFEREOBJVS")
+                    || (token.code == 346 && variable == "$INTERFEREVPVS")
+                    || (token.code == 347 && variable == "$CMATERIAL")
+                    || (token.code == 349 && variable == "$DRAGVS")
+                    || (token.code == 390 && variable == "$CEPSNID");
+                if (reference || (token.code == 5 && variable == "$HANDSEED")) {
+                    bool target = false;
+                    if (!isTarget(token, target) || (reference && target)) return false;
+                } else if (token.code != 1 && token.code != 2 && token.code != 3 && token.code != 6
+                           && token.code != 7 && token.code != 8 && token.code != 10 && token.code != 20
+                           && token.code != 30 && token.code != 40 && token.code != 50 && token.code != 62
+                           && token.code != 70 && token.code != 280 && token.code != 290 && token.code != 370
+                           && token.code != 380) return false;
+            }
+            return !variables.empty() && !codes.empty();
+        }
+        if (section != DxfIsolationSection::Tables && section != DxfIsolationSection::Objects) return false;
+        static const std::map<std::string_view, std::set<int>> tables{
+            {"TABLE", {2,5,70,71,100,330,340}}, {"ENDTAB", {}},
+            {"BLOCK_RECORD", {2,5,70,100,280,281,330}}, {"APPID", {2,5,70,100,330}},
+            {"DIMSTYLE", {2,40,41,42,43,44,45,46,47,48,49,69,70,71,72,73,74,75,76,77,78,79,
+                90,100,105,140,141,142,143,144,145,146,147,148,170,171,172,173,174,175,176,
+                177,178,179,271,272,273,274,275,276,277,278,279,280,281,282,283,284,285,286,
+                288,289,295,330,340,371,372}},
+            {"LAYER", {2,5,6,62,70,100,290,330,370,390}}, {"LTYPE", {2,3,5,40,70,72,73,100,330}},
+            {"STYLE", {2,3,4,5,40,41,42,50,70,71,100,330}},
+            {"VPORT", {2,5,10,11,12,13,14,15,16,17,20,21,22,23,24,25,26,27,36,37,40,41,42,43,44,
+                50,51,60,61,63,65,70,71,72,73,74,75,76,77,78,79,100,110,111,112,120,121,122,
+                130,131,132,141,142,146,281,282,292,330}}};
+        static const std::map<std::string_view, std::set<int>> objects{
+            {"DICTIONARY", {3,5,100,280,281,330,350}},
+            {"ACDBDICTIONARYWDFLT", {3,5,100,280,281,330,340,350}},
+            {"ACDBPLACEHOLDER", {5,100,330}}};
+        const auto& allowed = section == DxfIsolationSection::Tables ? tables : objects;
+        static const std::map<std::string_view, std::set<std::string_view>> subclasses{
+            {"TABLE", {"AcDbSymbolTable", "AcDbDimStyleTable"}},
+            {"BLOCK_RECORD", {"AcDbSymbolTableRecord", "AcDbBlockTableRecord"}},
+            {"APPID", {"AcDbSymbolTableRecord", "AcDbRegAppTableRecord"}},
+            {"DIMSTYLE", {"AcDbSymbolTableRecord", "AcDbDimStyleTableRecord"}},
+            {"LAYER", {"AcDbSymbolTableRecord", "AcDbLayerTableRecord"}},
+            {"LTYPE", {"AcDbSymbolTableRecord", "AcDbLinetypeTableRecord"}},
+            {"STYLE", {"AcDbSymbolTableRecord", "AcDbTextStyleTableRecord"}},
+            {"VPORT", {"AcDbSymbolTableRecord", "AcDbViewportTableRecord"}},
+            {"DICTIONARY", {"AcDbDictionary"}},
+            {"ACDBDICTIONARYWDFLT", {"AcDbDictionary", "AcDbDictionaryWithDefault"}},
+            {"ACDBPLACEHOLDER", {"AcDbPlaceHolder"}}};
+        return dx_raster_output::inspect(view.bytes, view.binary,
+            [&](std::string_view name, std::uint32_t, std::string_view body) {
+                const auto fields = allowed.find(name);
+                if (fields == allowed.end()) return false;
+                dx_raster_output::Cursor cursor(body, view.binary, profile);
+                dx_raster_output::Token token;
+                while (!cursor.done()) {
+                    if (!cursor.next(token) || !fields->second.count(token.code)) return false;
+                    if (token.code == 100) {
+                        const auto classes = subclasses.find(name);
+                        if (classes == subclasses.end() || !classes->second.count(token.text)) return false;
+                    } else if (token.code == 5 || token.code == 105 || token.code == 330
+                               || token.code == 340 || token.code == 350 || token.code == 390) {
+                        bool target = false;
+                        if (!isTarget(token, target) || target) return false;
+                    }
+                }
+                return true;
+            }, profile);
+    } catch (...) { return false; }
+}
+
 bool dxfRW::inspectDxfImageOutputReferences(
         const DxfObjectsWriteView& view,
         const std::vector<DxfImageOutputReferences>& expected) const noexcept {

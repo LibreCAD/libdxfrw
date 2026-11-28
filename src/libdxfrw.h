@@ -115,6 +115,7 @@ public:
 #define LIBDXFRW_HAS_DXF_STAGED_ENTITY_MATERIAL_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_HATCH_GRAPH_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_HATCH_ISOLATION_INSPECTOR 1
+#define LIBDXFRW_HAS_DXF_STAGED_FOREIGN_HANDLE_ISOLATION_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_PHYSICAL_ENTITY_SOURCE_HANDLERS 1
 #define LIBDXFRW_HAS_DXF_PHYSICAL_IDENTITY_SOURCE_HANDLER 1
 #define LIBDXFRW_HAS_DXF_DEFAULT_PLOT_PLACEHOLDER_HANDLE 1
@@ -389,6 +390,14 @@ public:
         const DxfObjectsWriteView& view,
         const std::vector<DxfHatchOutputLinks>& expected,
         bool selectedPresent) const noexcept;
+    enum class DxfIsolationSection { Header, Tables, Objects };
+    /** Check a bounded HEADER, TABLES or OBJECTS staged body for references
+     * to selected emitted handles. Only a narrow standard field profile is
+     * accepted. Call from that section's active inspector; this does not
+     * establish complete record semantics or inspect other sections. */
+    bool inspectDxfOutputHandleIsolation(
+        const DxfObjectsWriteView& view, DxfIsolationSection section,
+        const std::vector<std::uint32_t>& targets) const noexcept;
     struct DxfImageOutputReferences {
         std::uint32_t image{0u};
         std::uint32_t owner{0u};
