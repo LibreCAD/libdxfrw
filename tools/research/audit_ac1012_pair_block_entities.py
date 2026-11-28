@@ -105,6 +105,70 @@ def observe_style_or_appid(frame: bytes, style: bool) -> dict:
     return {"frameSha256": sha(frame), "spans": spans, "paddingBits": len(frame) * 8 - bits.position}
 
 
+def observe_dimstyle(frame: bytes) -> dict:
+    """Bind the generated R13 Standard DIMSTYLE's complete selected body."""
+    bits = Bits(frame)
+    spans = {}
+
+    def field(label, read):
+        start = bits.position
+        value = read()
+        spans[label] = {"startBit": start, "endBit": bits.position, "value": value}
+        return value
+
+    def text_value():
+        length = bits.bs()
+        require(length <= 128, "DIMSTYLE text exceeds profile")
+        return bytes(bits.take(8) for _ in range(length)).decode("ascii")
+
+    def bit_double():
+        tag = bits.take(2)
+        if tag == 0:
+            return struct.unpack("<d", bytes(bits.take(8) for _ in range(8)))[0]
+        require(tag in (1, 2), "invalid bit-double")
+        return 1.0 if tag == 1 else 0.0
+
+    require(field("type", bits.bs) == 69
+            and field("self", lambda: bits.handle(0, own=True))["value"] == 0x2d
+            and field("eedSize", bits.bs) == 0, "unexpected DIMSTYLE prefix")
+    boundary = field("dataEnd", lambda: bits.little(4))
+    require(field("reactorCount", bits.bl) == 0 and field("name", text_value) == "Standard"
+            and field("xref64", lambda: bits.take(1)) == 1
+            and field("xrefIndexPlusOne", bits.bs) == 0
+            and field("xrefDependent", lambda: bits.take(1)) == 0,
+            "unexpected DIMSTYLE common body")
+    fields = (
+        ("DIMTOL", "B", 0), ("DIMLIM", "B", 0), ("DIMTIH", "B", 1), ("DIMTOH", "B", 1),
+        ("DIMSE1", "B", 0), ("DIMSE2", "B", 0), ("DIMALT", "B", 0), ("DIMTOFL", "B", 0),
+        ("DIMSAH", "B", 0), ("DIMTIX", "B", 0), ("DIMSOXD", "B", 0),
+        ("DIMALTD", "RC", 2), ("DIMZIN", "RC", 0), ("DIMSD1", "B", 0), ("DIMSD2", "B", 0),
+        ("DIMTOLJ", "RC", 1), ("DIMJUST", "RC", 0), ("DIMFIT", "RC", 3), ("DIMUPT", "B", 0),
+        ("DIMTZIN", "RC", 0), ("DIMALTZ", "RC", 0), ("DIMALTTZ", "RC", 0), ("DIMTAD", "RC", 0),
+        ("DIMUNIT", "BS", 2), ("DIMAUNIT", "BS", 0), ("DIMDEC", "BS", 4), ("DIMTDEC", "BS", 4),
+        ("DIMALTU", "BS", 2), ("DIMALTTD", "BS", 2),
+        ("DIMSCALE", "BD", 1.0), ("DIMASZ", "BD", 0.18), ("DIMEXO", "BD", 0.0625),
+        ("DIMDLI", "BD", 0.38), ("DIMEXE", "BD", 0.18), ("DIMRND", "BD", 0.0),
+        ("DIMDLE", "BD", 0.0), ("DIMTP", "BD", 0.0), ("DIMTM", "BD", 0.0),
+        ("DIMTXT", "BD", 0.18), ("DIMCEN", "BD", 0.09), ("DIMTSZ", "BD", 0.0),
+        ("DIMALTF", "BD", 25.4), ("DIMLFAC", "BD", 1.0), ("DIMTVP", "BD", 0.0),
+        ("DIMTFAC", "BD", 1.0), ("DIMGAP", "BD", 0.09),
+        ("DIMPOST", "TV", ""), ("DIMAPOST", "TV", ""), ("DIMBLK", "TV", ""),
+        ("DIMBLK1", "TV", ""), ("DIMBLK2", "TV", ""),
+        ("DIMCLRD", "BS", 0), ("DIMCLRE", "BS", 0), ("DIMCLRT", "BS", 0), ("flag0", "B", 0))
+    readers = {"B": lambda: bits.take(1), "RC": lambda: bits.take(8),
+               "BS": bits.bs, "BD": bit_double, "TV": text_value}
+    for name, kind, expected in fields:
+        require(field(name, readers[kind]) == expected, f"unexpected DIMSTYLE {name}")
+    require(bits.position == boundary, "unexpected DIMSTYLE data boundary")
+    for label, role, expected, raw_role in (("owner", 4, 10, 12), ("extension", 3, 0, 3),
+                                             ("xref", 5, 0, 5), ("textStyle", 5, 0x11, 5)):
+        value = field(label, lambda: bits.handle(role, 0x2d))
+        require(value["role"] == raw_role and value["value"] == expected,
+                f"wrong DIMSTYLE {label}")
+    require(len(frame) * 8 - bits.position < 8, "unexpected DIMSTYLE tail")
+    return {"frameSha256": sha(frame), "spans": spans, "paddingBits": len(frame) * 8 - bits.position}
+
+
 def observe_layer(frame: bytes) -> dict:
     """Bind the exact generated R13 LAYER 0 body and its reference roles."""
     bits = Bits(frame)
@@ -291,6 +355,7 @@ def audit(path: Path, dwgread: str) -> dict:
             ("ucsControl", 7, 62, lambda f: observe_control(f, "ucs"), ("owner", "extension")),
             ("vportControl", 8, 64, lambda f: observe_control(f, "vport"), ("owner", "extension", "entry")),
             ("dimstyleControl", 10, 68, lambda f: observe_control(f, "dimstyle"), ("owner", "extension", "entry")),
+            ("dimstyle", 0x2d, 69, observe_dimstyle, ("owner", "extension", "xref", "textStyle")),
             ("viewportEntityControl", 11, 70, lambda f: observe_control(f, "viewportEntity"), ("owner", "extension")),
             ("byBlock", 0x14, 57, lambda f: observe_linetype(f, 0x14, "BYBLOCK", ""), ("owner", "extension", "xref")),
             ("byLayer", 0x15, 57, lambda f: observe_linetype(f, 0x15, "BYLAYER", ""), ("owner", "extension", "xref")),

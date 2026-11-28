@@ -136,6 +136,7 @@ def main():
                         name: block_entities[name]["proof"]["frameSha256"]
                         for name in ("viewControl", "ucsControl", "vportControl",
                                      "dimstyleControl", "viewportEntityControl")}
+                    records[side]["dimstyleFrameSha256"] = block_entities["dimstyle"]["proof"]["frameSha256"]
         shutil.copyfile(guide, packet / "NATIVE_WITNESS.md")
         (packet / "source-receipt.json").write_bytes(receipt_bytes)
         readme = ("Locally generated AC1012 controls screened by ODA; native behavior is unobserved.\n"
@@ -146,6 +147,9 @@ def main():
                   "Screen normal-open and style validity before native merge testing.\n"
                   "See NATIVE_WITNESS.md; repository-relative links refer to libdxfrw.\n"
                   "Root, EED, complete graph, and native semantics remain unqualified.\n")
+        if args.profile == "populated-links":
+            readme += ("ODA DXF reopens change selected Standard DIMSTYLE values compared with the\n"
+                       "source DWG; do not use those reopens as whole-drawing fidelity evidence.\n")
         (packet / "README.txt").write_text(readme)
         manifest = {"schema": 1, "profile": args.profile,
                     "scope": "selected physical controls; native semantics unobserved",

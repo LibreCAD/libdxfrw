@@ -1314,6 +1314,9 @@ bool checkLegacyBlockPairWire(const std::string& input) {
         || data.dimStyles.size() != 1u || data.dimStyles.front().handle != 0x2du
         || data.dimStyles.front().parentHandle != 10u || data.dimStyles.front().name != "Standard"
         || !data.views.empty() || !data.ucsList.empty()) return false;
+    const auto& dimension = data.dimStyles.front();
+    if (dimension.dimscale != 1.0 || dimension.dimasz != 0.18 || dimension.dimtxt != 0.18
+        || dimension.dimtxstyH.ref != 0x11u) return false;
     const auto model = std::find_if(data.blockRecords.begin(), data.blockRecords.end(),
         [](const DRW_Block_Record& record) { return record.name == "*MODEL_SPACE"; });
     const auto paper = std::find_if(data.blockRecords.begin(), data.blockRecords.end(),
