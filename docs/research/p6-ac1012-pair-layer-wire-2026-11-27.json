@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-pair-layer-wire-2026-11-27",
+  "supportClaimEffect": "none",
+  "candidateCommit": "df67d703f",
+  "implementationDigestSha256": "66c7551859fe503f09ce283a70f78bc51a065ad6035718175d4ecd8af2c9eb62",
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.1, 20.4.53 and 20.4.54",
+  "scope": "LAYER_CONTROL 0x2 and LAYER 0x10 referenced by the selected locally generated AC1012 model/paper block boundaries and LINE.",
+  "checks": [
+    "Both CRC-checked control frames contain one role-2 LAYER 0x10 entry; both LAYER frames bind name 0, selected xref and legacy flag fields, color 7, relative role-12 owner to control 0x2, typed null extension and xref, and role-5 LTYPE 0x16. Exact data boundaries and padding are checked.",
+    "Every byte-prefix truncation and each handle-role mutation is rejected by the shared-bit observer, then the original passes again. The adapter's source-bound layer membership rejects a changed owner and passes after correction; both drawings and the shared relative-handle vectors pass focused CTest.",
+    "Independent cadkit-dwg 0.5.4 decodes the selected source layer name, owner, color, visibility flags and linetype; the peer labels R13 untested. The handoff packager records both layer frame hashes. No drawing fixture was committed."
+  ],
+  "scratchPacket": "/private/tmp/ac1012-native-two-element-layer-20261127",
+  "hashes": {
+    "observer": "a03bea303cedb0cd070d390579defcc0e4293f747f14b9e57b451cece8df11f2",
+    "observerResults": "da855b351a3472b591497b4ee194ec561cb8883a09417f8114b9bae7194b49bf",
+    "ctestLog": "190fade78a8efb145801b2ee5ca817a2c9da2c6e18997463969acd00588e3f7a",
+    "cadkitLayerLog": "6ad48b6636f59b764d12e1b387a3d72cd52b24228e7a92b5d796c1a9ea595514",
+    "cadkitControlLog": "0f5bfed5f68712a9dc0853b7bcea688c7e45cf4a7bc65cea84992098e7dd6c83",
+    "packetManifest": "a1937373e0e6c5b9a43b1952eb3889bc6ee7d43ff48d0876191f002186a6076d"
+  },
+  "limits": [
+    "The selected R13 LAYER tail ends after the linetype handle; the specification also mentions an unknown null handle. Do not infer a universal absence rule from these generated frames.",
+    "This is not proof of complete graph closure, native AutoCAD open, dictionary cloning behavior, output support or general interoperability."
+  ]
+}
