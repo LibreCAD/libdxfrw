@@ -8,6 +8,7 @@
   "checks": [
     "Locally generated AC1024 18-vertex polygon rendered clipped in an isolated macOS ARM64 application; after Save As and reopen it remained visibly clipped. Independent ezdxf checked image, definition, reactor, geometry and all vertices in the saved file with a clean audit.",
     "A locally generated AC1021 image in a named block with clipping enabled rendered as the expected triangle on macOS. The earlier named-block graph control had display group 70=3 and therefore did not demonstrate active clipping; it now uses group 70=7 for the polygon case.",
+    "A variant of the locally generated AC1024 image with group 290 set to 1 displayed the raster outside the 18-vertex polygon and the drawing background inside it in the native macOS application. This was an open/render check only.",
     "The bundled-codec painter test passes 432 assertions across normal, rotated and mirrored bases, rectangular and polygon clips, inverse and disabled modes, and copied entities; this includes offscreen containment, not native GUI picking.",
     "The system-codec 18/256-vertex 1/2/384-image test passes 3425 assertions including live metadata agreement, mutation refusal and destination preservation; the corrected active named-block case passes 22 assertions.",
     "No scratch DWG/DXF or image fixture was committed. The native application was built with an isolated settings organization and signed as a scratch bundle; the seven changed consumer source and test files match the commit."
@@ -24,7 +25,8 @@
       "painter": "93660c9b576b6e145e619601ca1235c110b9b20a5d15b32890551f3dd9e9a562",
       "system": "554c4526f7eada3a4c1e5ffb952be2831eeaee03e577fb17ba4bed0a8f5d0dd3",
       "activeBlock": "bf36d4cc202a86cf19c68483efb321ca04f0d08c5921a416ff5191eb6315d56e"
-    }
+    },
+    "inverseNativeInputSha256": "dbe3b0bb17890e6d54004facc82f0e3c34333d41d0ac43dde473220fd8b80cfe"
   },
   "limits": [
     "Selected scratch-generated sources and macOS ARM64 GUI only; no independent producer, native picking, GUI editing, printing, or Linux/Windows GUI qualification.",
