@@ -16,6 +16,7 @@
 #include "libdwgr.h"
 #include "dx_raster_dwg_wire.h"
 #include "dx_dwg_class_evidence.h"
+#include "dx_legacy_frame_census.h"
 #include "intern/dxftablereferences.h"
 #include "intern/dxfattdef.h"
 #include "intern/dxfcompound.h"
@@ -2726,6 +2727,11 @@ private:
     std::size_t m_classSourceByteLimit{DRW::kMaxDwgClassSourceBytes};
     std::size_t m_classSourceReportLimit{1024u};
     friend class DxIfaceDwgClassSourceTestAccess;
+    // Bounded evidence for one legacy import; never changes import success or
+    // authorizes output on its own.
+    dx_legacy_frame_census::Capture m_legacyFrameTypeCensus;
+    bool legacyClassFrameCount(std::uint16_t classNumber,
+                               std::size_t& count) const noexcept;
     struct AcdsRawDxfSectionBaseline {
         std::uint64_t generation{0};
         std::size_t sectionIndex{0};

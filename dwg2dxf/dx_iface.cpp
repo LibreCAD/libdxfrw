@@ -8161,6 +8161,25 @@ bool dx_data::hasCompleteOpaqueDwgSourceCapture() const noexcept {
     return currentGenerationFrames == outcome.opaqueSourceFramesCaptured;
 }
 
+bool dx_data::legacyClassFrameCount(std::uint16_t classNumber,
+                                    std::size_t& count) const noexcept {
+    if (sourceFormat != dx_source_format::DWG || !dwgReadOutcome.attempted
+        || !dwgReadOutcome.operationSucceeded || dwgReadOutcome.error != DRW::BAD_NONE
+        || dwgReadOutcome.sourceVersion != sourceVersion
+        || !dwgClassCoverage.m_complete
+        || dwgClassCoverage.m_status != DRW_DwgClassCoverageStatus::FinalizedComplete
+        || !hasUnchangedDwgClassEvidence())
+        return false;
+    std::size_t matches = 0u;
+    for (const auto& row : dwgClassCoverage.m_entries)
+        if (row.m_classNumber == classNumber
+            && row.m_state == DRW_DwgClassCoverageState::Published
+            && row.m_reason == DRW_DwgClassCoverageReason::None)
+            ++matches;
+    return matches == 1u && m_legacyFrameTypeCensus.count(
+        importGeneration, m_classEvidenceAttempt, sourceVersion, classNumber, count);
+}
+
 bool dx_data::hasCompleteOpaqueDwgOutputQualification() const noexcept {
     const dx_dwgReadOutcome& outcome = dwgReadOutcome;
     if (!outcome.attempted)
@@ -29576,6 +29595,16 @@ bool dx_iface::hasCurrentDwgLayerControlSourceProof(
 void dx_iface::addDwgFramePublication(const DRW_DwgFramePublication& data) {
     if (cData == nullptr || !cData->dwgReadOutcome.attempted)
         return;
+    if (data.m_version == DRW::AC1012 || data.m_version == DRW::AC1014) {
+        const bool bound = typeid(*this) == typeid(dx_iface)
+            && m_classEvidenceReadData == cData && m_classEvidenceReadAttempt != 0u
+            && cData->m_classEvidenceOwner == this
+            && cData->m_classEvidenceAttempt == m_classEvidenceReadAttempt
+            && cData->m_classEvidenceGeneration == cData->importGeneration;
+        cData->m_legacyFrameTypeCensus.observe(
+            data, bound ? cData->importGeneration : 0u,
+            bound ? m_classEvidenceReadAttempt : 0u);
+    }
     retainAerialMaterialAppIdPublication(data);
     retainAerialDwgGlobalMaterialEedPublication(data);
     retainAerialDwgOtherMaterialEedPublication(data);
@@ -71545,6 +71574,8 @@ void dx_iface::beginDwgClassEvidenceRead(dx_data& data) noexcept {
     m_classEvidenceReadData = &data;
     m_classEvidenceReadAttempt = data.m_classEvidenceAttempt;
     data.m_classEvidenceOwner = this;
+    data.m_legacyFrameTypeCensus.begin(data.importGeneration,
+                                       m_classEvidenceReadAttempt);
     beginRasterDwgNamesRead(data);
     if (data.m_classEvidenceFailure.state == ClassEvidenceState::ContextMismatch) return;
     data.m_classEvidenceFailure.state = ClassEvidenceState::Pending;
@@ -82278,6 +82309,9 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         fData->dwgReadOutcome.sourceCodePageRecognized =
             dwg.hasRecognizedSourceCodePage();
         fData->dwgReadOutcome.observations = dwg.getReadObservations();
+        fData->m_legacyFrameTypeCensus.seal(
+            dwg.getVersion(), success && dwg.getError() == DRW::BAD_NONE,
+            fData->dwgReadOutcome.observations.frames);
         finishStandardDwgObjectCapture(success);
         finishRasterDwgSources(success, standardObjectRange.appIdBegin, standardObjectRange.layerBegin);
         if (success) {

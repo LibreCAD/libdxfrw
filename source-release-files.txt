@@ -209,6 +209,7 @@ dwg2dxf/dx_legacy_block_record_wire.h
 dwg2dxf/dx_legacy_blockrecord_whole_source.h
 dwg2dxf/dx_legacy_blockref_source_relation.h
 dwg2dxf/dx_legacy_dwg_wire.h
+dwg2dxf/dx_legacy_frame_census.h
 dwg2dxf/dx_legacy_identity_join.h
 dwg2dxf/dx_legacy_layout_wire.h
 dwg2dxf/dx_legacy_mlinestyle_wire.h

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "dx_dwg_class_evidence.h"
+#include "dx_legacy_frame_census.h"
 #include <iostream>
 
 namespace wire = dx_class_wire;
@@ -231,7 +232,99 @@ bool rasterRows() {
     return true;
 }
 }
+bool legacyFrameCensus() {
+    using dx_legacy_frame_census::Capture;
+    DRW_DwgFramePublication first;
+    first.m_version = DRW::AC1012;
+    first.m_handle = 1u;
+    first.m_encodedType = 531;
+    first.m_sourceOffset = 100u;
+    first.m_sourceMapOrdinal = 0u;
+    first.m_sourceOffsetSpace = DRW_DwgFrameOffsetSpace::PhysicalFile;
+    first.m_hasSourceLocation = true;
+    auto second = first;
+    second.m_handle = 2u;
+    second.m_encodedType = 42;
+    second.m_sourceOffset = 200u;
+    second.m_sourceMapOrdinal = 1u;
+    DwgReadFrameObservations complete;
+    complete.status = DRW_DwgFrameCoverageStatus::FinalizedComplete;
+    complete.sourceFrames = 2u;
+    complete.dispositions[static_cast<std::size_t>(DRW_DwgFrameDisposition::Published)] = 2u;
+    const auto good = [&] {
+        Capture value;
+        value.begin(7u, 9u);
+        value.observe(first, 7u, 9u);
+        value.observe(second, 7u, 9u);
+        return value;
+    };
+    auto valid = good();
+    std::size_t count = 99u;
+    CHECK(!valid.count(7u, 9u, DRW::AC1012, 531, count) && count == 99u);
+    valid.seal(DRW::AC1012, true, complete);
+    CHECK(valid.count(7u, 9u, DRW::AC1012, 531, count) && count == 1u);
+    CHECK(valid.count(7u, 9u, DRW::AC1012, 532, count) && count == 0u);
+    count = 99u;
+    CHECK(!valid.count(8u, 9u, DRW::AC1012, 531, count) && count == 99u);
+    CHECK(!valid.count(7u, 10u, DRW::AC1012, 531, count) && count == 99u);
+    CHECK(!valid.count(7u, 9u, DRW::AC1014, 531, count) && count == 99u);
+    CHECK(!valid.count(7u, 9u, DRW::AC1012, 42, count) && count == 99u);
+    for (unsigned fault = 0u; fault < 14u; ++fault) {
+        Capture bad;
+        bad.begin(7u, 9u);
+        auto damaged = second;
+        auto report = complete;
+        if (fault == 0u) damaged.m_handle = first.m_handle;
+        if (fault == 1u) damaged.m_sourceOffset = first.m_sourceOffset;
+        if (fault == 2u) damaged.m_sourceMapOrdinal = first.m_sourceMapOrdinal;
+        if (fault == 3u) damaged.m_hasSourceLocation = false;
+        if (fault == 4u) damaged.m_version = DRW::AC1014;
+        if (fault == 5u) report.status = DRW_DwgFrameCoverageStatus::FinalizedPartial;
+        if (fault == 6u) ++report.sourceFrames;
+        if (fault == 7u) ++report.unrecognizedDispositions;
+        if (fault == 8u) ++report.dispositions[static_cast<std::size_t>(DRW_DwgFrameDisposition::Failed)];
+        if (fault == 9u) damaged.m_sourceOffsetSpace = DRW_DwgFrameOffsetSpace::Unknown;
+        if (fault == 10u) damaged.m_handle = 0u;
+        if (fault == 11u) damaged.m_encodedType = -1;
+        bad.observe(first, 7u, 9u);
+        bad.observe(damaged, fault == 12u ? 8u : 7u, 9u);
+        bad.seal(DRW::AC1012, fault != 13u, report);
+        count = 99u;
+        CHECK(!bad.count(7u, 9u, DRW::AC1012, 531, count) && count == 99u);
+        bad.begin(7u, 10u);
+        bad.observe(first, 7u, 10u);
+        bad.observe(second, 7u, 10u);
+        bad.seal(DRW::AC1012, true, complete);
+        CHECK(bad.count(7u, 10u, DRW::AC1012, 531, count) && count == 1u);
+    }
+    valid.observe(first, 7u, 9u);
+    count = 99u;
+    CHECK(!valid.count(7u, 9u, DRW::AC1012, 531, count) && count == 99u);
+    auto r14first = first;
+    auto r14second = second;
+    r14first.m_version = r14second.m_version = DRW::AC1014;
+    Capture r14;
+    r14.begin(7u, 9u);
+    r14.observe(r14first, 7u, 9u);
+    r14.observe(r14second, 7u, 9u);
+    r14.seal(DRW::AC1014, true, complete);
+    CHECK(r14.count(7u, 9u, DRW::AC1014, 531, count) && count == 1u);
+    Capture capped;
+    capped.begin(7u, 9u);
+    auto frame = first;
+    for (std::size_t i = 0u; i <= Capture::MaxFrames; ++i) {
+        frame.m_handle = static_cast<std::uint32_t>(i + 1u);
+        frame.m_sourceOffset = static_cast<std::uint32_t>(i + 100u);
+        frame.m_sourceMapOrdinal = i;
+        capped.observe(frame, 7u, 9u);
+    }
+    capped.seal(DRW::AC1012, true, complete);
+    count = 99u;
+    CHECK(!capped.count(7u, 9u, DRW::AC1012, 531, count) && count == 99u);
+    return true;
+}
+
 int main() {
-    if (!ambiguity() || !textConventions() || !rasterRows()) return 1;
+    if (!ambiguity() || !textConventions() || !rasterRows() || !legacyFrameCensus()) return 1;
     std::cout << "class source joins: " << checks << " controls PASS; schema/support not promoted\n";
 }

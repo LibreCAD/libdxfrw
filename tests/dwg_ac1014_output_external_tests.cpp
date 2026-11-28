@@ -18,6 +18,10 @@
 
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
+    static bool legacyClassCount(const dx_data& data, std::uint16_t number,
+                                 std::size_t& count) {
+        return data.legacyClassFrameCount(number, count);
+    }
     static bool boundLegacyLayout(const dx_iface& adapter) {
         return adapter.hasBoundLegacyLayoutSources();
     }
@@ -1721,8 +1725,46 @@ bool generatedR2000DefaultRetry(const std::string& input, const std::filesystem:
 }
 } // namespace
 
+bool legacyClassFrameCensus(const std::string& source) {
+    dx_iface adapter;
+    dx_data data;
+    if (!adapter.fileImport(source, &data, false)
+        || data.sourceVersion != DRW::AC1012)
+        return false;
+    const auto findClass = [&data](const char* name) {
+        return std::find_if(data.dwgClassCoverage.m_entries.begin(),
+            data.dwgClassCoverage.m_entries.end(), [name](const auto& row) {
+                return row.m_recordName == name;
+            });
+    };
+    const auto geodata = findClass("GEODATA");
+    const auto layout = findClass("LAYOUT");
+    const auto dictionary = findClass("ACDBDICTIONARYWDFLT");
+    if (geodata == data.dwgClassCoverage.m_entries.end()
+        || layout == data.dwgClassCoverage.m_entries.end()
+        || dictionary == data.dwgClassCoverage.m_entries.end())
+        return false;
+    std::size_t count = 99u;
+    if (!DxIfaceStandardDwgCaptureTestAccess::legacyClassCount(data, geodata->m_classNumber, count)
+        || count != 0u
+        || !DxIfaceStandardDwgCaptureTestAccess::legacyClassCount(data, layout->m_classNumber, count)
+        || count != 2u
+        || !DxIfaceStandardDwgCaptureTestAccess::legacyClassCount(data, dictionary->m_classNumber, count)
+        || count != 1u)
+        return false;
+    ++data.importGeneration;
+    count = 99u;
+    const bool rejected = !DxIfaceStandardDwgCaptureTestAccess::legacyClassCount(
+        data, geodata->m_classNumber, count) && count == 99u;
+    --data.importGeneration;
+    return rejected && DxIfaceStandardDwgCaptureTestAccess::legacyClassCount(
+        data, geodata->m_classNumber, count) && count == 0u;
+}
+
 int main(int argc, char** argv) {
-    const bool ok = argc == 3 && std::string(argv[1]) == "--legacy-block-pair-wire"
+    const bool ok = argc == 3 && std::string(argv[1]) == "--legacy-class-frame-census"
+                ? legacyClassFrameCensus(argv[2])
+            : argc == 3 && std::string(argv[1]) == "--legacy-block-pair-wire"
         ? checkLegacyBlockPairWire(argv[2])
         : argc == 3 && std::string(argv[1]) == "--legacy-layout-graph"
         ? checkLegacyLayoutGraph(argv[2])

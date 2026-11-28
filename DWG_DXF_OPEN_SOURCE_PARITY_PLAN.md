@@ -15,7 +15,7 @@ advisory, and excluded. Completed slice history and validation remain in
 `docs/research/` and Git history.
 
 The current test-inclusive implementation digest is
-`c876ad8a16901029b23c87d8b0d3ab6fa6d70a0e8fa282d482c787f935b8a1e6`
+`dc35b2cda32830e0fbb59305e88f0f072f56ded6178c8279a524f3d3c1738720`
 (785 inputs, including the shared layout and class-family identity checks). Earlier hosted runs bind prior digests; current-head hosted results are pending. The [latest source-release inventory repair](docs/research/p8-freecad-3dface-source-release-inventory-repair-2026-11-27.json) adds the tracked FreeCAD report patch omitted from the manifest; the local inventory and self-test pass and a new hosted run is pending. The [current CI repair and focused requalification](docs/research/p8-ci-repair-3e681e-2026-11-27.json) tracks completed and pending platform jobs at commit 3e681e694. The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
 and the [FreeCAD handoff matrix](docs/research/p8-native-freecad-2e4ae17b-2026-11-27.json) passed on earlier production inputs. The current [FreeCAD recheck](docs/research/p8-ci-repair-3e681e-2026-11-27.json) passes 16 Linux and 17 Windows tests, covering specified CLI and legacy importer profiles, not GUI or general 3D parity; hosted focused native and installed shared/static package checks also pass on Linux, Windows and macOS for matching production inputs.
 The fast CI inventory now includes the legacy dictionary wire audit; verify the
@@ -98,9 +98,13 @@ below is still open, and its linked evidence defines the present boundary.
    [bounded physical census](docs/research/p6-ac1012-proxy-class-map-census-2026-11-28.json)
    finds no mapped GEODATA class frames in those two samples and no mapped
    RASTERVARIABLES or WIPEOUTVARIABLES frames in the destination. A second
-   diagnostic-only bypass reaches the RASTERVARIABLES class guard. Bind shared
-   complete source-frame and class-number evidence for all three in the adapter,
-   then inspect target CLASS emission and refusal/retry before changing guards.
+   diagnostic-only bypass reaches the RASTERVARIABLES class guard. The
+   [bounded reader census](docs/research/p6-legacy-reader-frame-census-2026-11-28.json)
+   now binds complete AC1012/AC1014 publications to the import generation,
+   CLASS report and frame coverage; selected AC1012 counts agree with an
+   independent physical object-map walk. Determine how each of the three
+   guards may safely consume that evidence, inspect target CLASS emission,
+   and prove output refusal, rollback and retry before changing the guards.
    The [shared raw-frame family counter](docs/research/p6-dwg-class-family-raw-census-2026-11-28.json)
    already prevents incomplete names or matching class numbers from hiding a
    retained frame; it does not prove absence from the whole object map. Neither
