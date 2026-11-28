@@ -32,6 +32,7 @@ below is still open, and its linked evidence defines the present boundary.
 
 1. **LibreCAD MATERIAL graphs.** Extend ordinary same-version replay beyond the
    [current bounded entity and color profiles](docs/research/p8d-librecad-sparse-material-exact-truecolor-2026-11-27.json), [explicit POINT, LINE, CIRCLE and ARC defaults](docs/research/p8d-librecad-sparse-material-curved-defaults-2026-11-27.json), [ELLIPSE/LWPOLYLINE default extrusion](docs/research/p8d-librecad-sparse-material-ellipse-polyline-defaults-2026-11-27.json), and [explicit model-space, visibility and linetype-scale defaults](docs/research/p8d-librecad-sparse-material-common-defaults-2026-11-27.json).
+   The [AC1032 sparse POINT slice](docs/research/p8d-librecad-ac1032-sparse-point-and-raster-versions-2026-11-28.json) also passes selected same-version replay and independent readback; AC1024/AC1027 minimal sparse bodies still fail codec parsing and need separate versioned evidence.
    The [ODA AC1024 compact-material import](docs/research/p8d-ac1024-oda-compact-material-import-2026-11-28.json)
    is raw-only; qualify its source graph and output before allowing replay.
    Prove complete ACAD_MATERIAL dictionaries, carriers, identities, ownership,
@@ -48,7 +49,7 @@ below is still open, and its linked evidence defines the present boundary.
    and cross-version refusals until their respective bounds, output closure and
    independent readback are proved. The [512 KiB raster-only source slice](docs/research/p8d-librecad-raster-512k-source-2026-11-28.json)
    checks a 512-image, 256-definition AC1024 graph and exact size-boundary retry.
-   The [512-distinct-definition slice](docs/research/p8d-librecad-raster-512-distinct-definitions-2026-11-28.json) retains the selected AC1024 graph with independently checked output and a shared 6 MiB logical source budget. Mixed raster/material sources retain the 256 KiB gate. The 640 IMAGEDEF groups and 542 IMAGE groups remain in force; raise limits only
+   The [512-distinct-definition slice](docs/research/p8d-librecad-raster-512-distinct-definitions-2026-11-28.json) retains the selected AC1024 graph with independently checked output and a shared 6 MiB logical source budget. The [version matrix](docs/research/p8d-librecad-ac1032-sparse-point-and-raster-versions-2026-11-28.json) independently checks the selected graph on AC1021, AC1024, AC1027 and AC1032. Mixed raster/material sources retain the 256 KiB gate. The 640 IMAGEDEF groups and 542 IMAGE groups remain in force; raise limits only
    with aggregate accounting. Qualify rendering and platforms
    separately; one native skewed-image save/reopen, [selected pointer picks](docs/research/p8d-librecad-native-image-picking-2026-11-28.json), and [one macOS print-to-PDF check](docs/research/p8d-librecad-image-skew-print-pdf-2026-11-28.json) are checked after the affine change. Clipping beyond 256 vertices, broader GUI picking and printing remain open.
 3. **Legacy HEADER and versions.** Resolve R12/R14 `$FACETRES`, `$ISOLINES`,
