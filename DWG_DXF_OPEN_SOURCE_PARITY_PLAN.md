@@ -106,7 +106,10 @@ below is still open, and its linked evidence defines the present boundary.
    is not source-graph evidence. In the [unsafe bypass experiment](docs/research/p6-ac1012-unsafe-projection-link-loss-2026-11-28.json),
    both encodings omit physical BLOCK_RECORD 340 backlinks even though ezdxf
    reconstructs them without an audit fix. Project the uniquely resolved legacy
-   links into writer-only identities and verify the original physical links,
+   links into writer-only identities. A [scratch-only projection](docs/research/p6-ac1012-scratch-projected-layout-links-2026-11-28.json)
+   restores the physical reciprocal links in four outputs; it bypasses guards
+   and does not qualify export. Integrate the bounded projection and verify
+   the original physical links,
    source snapshots, staged output, rollback and corrected retry before admitting
    any profile. The [shared association
    identity checks](docs/research/p6-layout-association-identity-guards-2026-11-28.json)

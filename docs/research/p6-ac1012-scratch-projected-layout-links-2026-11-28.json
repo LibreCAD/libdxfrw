@@ -1,0 +1,110 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-scratch-projected-layout-links-2026-11-28",
+  "date": "2026-11-28",
+  "gate": "P6-F",
+  "supportClaimEffect": "none",
+  "method": "Separate diagnostic build bypasses the legacy layout validator and three zero-callback proxy-class guards and adds associated LAYOUT handles to writer-only BLOCK_RECORD identity copies. The ordinary guarded build is unchanged. Both AC1012 scratch resaves were attempted in R2000 ASCII and binary explicit-partial mode.",
+  "observations": [
+    {
+      "source": "destination-resaved.dwg",
+      "sourceSha256": "7d2a2c7a201a96bf2c5c9623c2d2bd7536976d8e684d8a62074f0d124db208e5",
+      "encoding": "ascii",
+      "guardedRefusedAndPreserved": true,
+      "scratchOutputSha256": "357f7f970829df77ce554a5a800673a55100608870f64da7316fd546456a32e3",
+      "physicalLinks": {
+        "Model": {
+          "handle": "2E",
+          "block": "1F",
+          "blockName": "*Model_Space"
+        },
+        "Layout1": {
+          "handle": "2F",
+          "block": "1E",
+          "blockName": "*Paper_Space"
+        }
+      },
+      "peerAuditErrors": 0,
+      "peerAuditFixes": 0,
+      "selectedLineAndStyleMatched": true,
+      "wrongBacklinkRejectedAndOriginalRetryPassed": true
+    },
+    {
+      "source": "destination-resaved.dwg",
+      "sourceSha256": "7d2a2c7a201a96bf2c5c9623c2d2bd7536976d8e684d8a62074f0d124db208e5",
+      "encoding": "binary",
+      "guardedRefusedAndPreserved": true,
+      "scratchOutputSha256": "bb1704cd5b0bd10f07dd9c27f9ec53e166b6d3f2990791e155d99ef855737fe2",
+      "physicalLinks": {
+        "Model": {
+          "handle": "2E",
+          "block": "1F",
+          "blockName": "*Model_Space"
+        },
+        "Layout1": {
+          "handle": "2F",
+          "block": "1E",
+          "blockName": "*Paper_Space"
+        }
+      },
+      "peerAuditErrors": 0,
+      "peerAuditFixes": 0,
+      "selectedLineAndStyleMatched": true,
+      "wrongBacklinkRejectedAndOriginalRetryPassed": true
+    },
+    {
+      "source": "source-resaved.dwg",
+      "sourceSha256": "93cb1e6c0d62c53ef485b9c74eda41151e28db60c1514cecd0607bbcf30b77aa",
+      "encoding": "ascii",
+      "guardedRefusedAndPreserved": true,
+      "scratchOutputSha256": "a036be0f5af50005cdffb47838f449d50c7e62d1712bf4b8fced69ace6af886c",
+      "physicalLinks": {
+        "Model": {
+          "handle": "2E",
+          "block": "1F",
+          "blockName": "*Model_Space"
+        },
+        "Layout1": {
+          "handle": "2F",
+          "block": "1E",
+          "blockName": "*Paper_Space"
+        }
+      },
+      "peerAuditErrors": 0,
+      "peerAuditFixes": 0,
+      "selectedLineAndStyleMatched": true,
+      "wrongBacklinkRejectedAndOriginalRetryPassed": true
+    },
+    {
+      "source": "source-resaved.dwg",
+      "sourceSha256": "93cb1e6c0d62c53ef485b9c74eda41151e28db60c1514cecd0607bbcf30b77aa",
+      "encoding": "binary",
+      "guardedRefusedAndPreserved": true,
+      "scratchOutputSha256": "0ed6efc657fc5601b6f06fbc014560cfa323c363d13f81aadfa0119ce83e69da",
+      "physicalLinks": {
+        "Model": {
+          "handle": "2E",
+          "block": "1F",
+          "blockName": "*Model_Space"
+        },
+        "Layout1": {
+          "handle": "2F",
+          "block": "1E",
+          "blockName": "*Paper_Space"
+        }
+      },
+      "peerAuditErrors": 0,
+      "peerAuditFixes": 0,
+      "selectedLineAndStyleMatched": true,
+      "wrongBacklinkRejectedAndOriginalRetryPassed": true
+    }
+  ],
+  "result": "All four diagnostic outputs have physical reciprocal LAYOUT/BLOCK_RECORD links matching the separately loaded peer graph. Broken physical backlinks are rejected and untouched outputs recheck. The ordinary guarded build refuses and preserves the destination.",
+  "limits": [
+    "The scratch-only linear association projection is not production code and is not a substitute for uniqueness, source, class, dependency or output proofs.",
+    "The diagnostic bypasses validation and uses a locally altered, native-unqualified source; success is not an admission or support claim.",
+    "Readback covered selected layout links, LINE coordinates and SAME_KEY angle, not every field, object, or reference.",
+    "Corruption and original retry exercise the external physical observer, not writer rollback or same-object retry.",
+    "No diagnostic drawing or executable is committed."
+  ]
+}
