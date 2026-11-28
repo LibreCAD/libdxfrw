@@ -107,9 +107,10 @@ below is still open, and its linked evidence defines the present boundary.
    review the candidate, follow FreeCAD's contributor-authored submission policy,
    then freeze it before broad suites and release claims. The [36-patch
    platform run](docs/research/p8-freecad-36-platforms-2026-11-28.json) passes
-   selected Linux/Windows headless checks; the current 45-patch [platform run](https://github.com/dxli/libdxfrw/actions/runs/46160971025)
-   is in progress. The later closed-polyline control and classic-polyline change
-   need their own platform check; do not carry earlier results across changed importer code.
+   selected Linux/Windows headless checks. The current 47-patch [platform run](https://github.com/dxli/libdxfrw/actions/runs/46161593587)
+   includes the existing GUI and framebuffer checks and is in progress; it
+   supersedes the cancelled 45-patch GUI run. Do not carry earlier results across
+   changed importer code.
 
 The remote ObjectARX host's release, OS, SDK and access route remain unknown.
 Use the [profile intake](tools/research/OBJECTARX_HOST_PROFILE_INTAKE.md) when
