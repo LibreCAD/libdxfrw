@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-native-material-mixed-move-2026-11-28",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "7d175ccf5c611bbaa07e5e45b1b5303bcbbf582d",
+  "codecCommit": "1e8cd41fc",
+  "host": {
+    "os": "macOS 27.2.1",
+    "build": "26B131",
+    "architecture": "arm64"
+  },
+  "scope": "One locally authored AC1024 ASCII graph with a sparse material and one each of POINT, LINE, CIRCLE, ARC, ELLIPSE and LWPOLYLINE.",
+  "checks": [
+    "The current isolated LibreCAD app opened and visibly rendered the source, selected six entities, moved them from reference (0,0) to target (1,2), preserving original layers and attributes, and saved as DXF 2010 to a new file.",
+    "A fresh ezdxf 1.4.5 read of the saved file verifies all six translated geometries, material references, original layers, model-space and dictionary ownership, current-material and LAYER links, with zero audit errors or fixes. Floating comparisons use absolute 1e-10 and relative 1e-12 tolerance."
+  ],
+  "hashes": {
+    "source": "8e4b1518f5b686a1364f5b9b875a5affedba223f0ab0e1247d79bb89aab0d684",
+    "nativeSave": "f7d840ec8d5eac9c050776e62517aa9082090a2405310394560b371a47329a2f",
+    "application": "8b3feb1703bf1f99c27d80dac42a02c6a7b66a244ea51a6040800475bbac2fe7",
+    "sharedCodec": "af4e1c1f040c11be32fe8ae449d77d4d77098c82acf7b2f80870f9b4118bfe7c"
+  },
+  "limits": [
+    "The native reopen attempt timed out in computer-use automation; only fresh independent ezdxf readback, not a native reopen, is established for this saved file.",
+    "The selected move and source do not qualify other graph shapes, editing operations, 3D rendering or platforms. The source is locally authored; no drawing fixture is committed."
+  ]
+}
