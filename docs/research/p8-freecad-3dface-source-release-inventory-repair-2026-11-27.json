@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-3dface-source-release-inventory-repair-2026-11-27",
+  "supportClaimEffect": "none",
+  "failure": {
+    "workflowRun": 46097785828,
+    "job": "fast-regressions",
+    "step": "Check build and source-release inventories",
+    "reason": "The tracked FreeCAD 3DFACE block-layer report patch was absent from source-release-files.am and source-release-files.txt."
+  },
+  "change": "Regenerate the two derived inventories from the tracked source list; no implementation input or qualification status changes.",
+  "checks": [
+    "PASS build inventory check: 1429 released files.",
+    "PASS inventory self-test: archive policy and 18 refusal controls."
+  ],
+  "limits": [
+    "A new hosted run is required for the committed repair; no platform or support claim is promoted."
+  ]
+}
