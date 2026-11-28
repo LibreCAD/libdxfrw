@@ -56,6 +56,15 @@
     {
       "name": "Bundled-codec filter compile check",
       "result": "pass"
+    },
+    {
+      "name": "Image source file-size guard under AddressSanitizer",
+      "assertions": 42,
+      "result": "pass",
+      "host": "macOS ARM64",
+      "binarySha256": "af7ba645ada3e53fad6b2ec00bbd3b2beeb6283e693980863c856bdfd3bffb10",
+      "logSha256": "2de9371b99c9340cba043a5078cb0680ea5178b414288ba6b615443db14d3b61",
+      "limits": "Leak detection disabled for the Qt process; linked system codec was not instrumented."
     }
   ],
   "limits": [
