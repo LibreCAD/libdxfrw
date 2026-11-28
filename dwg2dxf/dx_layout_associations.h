@@ -27,11 +27,25 @@ bool resolve(const Layouts& layouts, const Records& records, Mode mode,
              std::map<std::uint32_t, std::uint32_t>& associations,
              std::string& failure) {
     std::map<std::uint32_t, std::uint32_t> staged;
+    for (const auto& item : records) {
+        if (item.second == nullptr || item.first == 0u
+            || item.first == DRW::NoHandle
+            || item.second->handle != item.first) {
+            failure = "BLOCK_RECORD identity is invalid";
+            return false;
+        }
+    }
     for (const auto& item : layouts) {
+        if (item.second == nullptr || item.first == 0u
+            || item.first == DRW::NoHandle
+            || item.second->handle != item.first) {
+            failure = "LAYOUT identity is invalid";
+            return false;
+        }
         const auto& layout = *item.second;
         const auto handle = layout.paperSpaceBlockRecordHandle.ref;
         const auto record = records.find(handle);
-        if (!handle || record == records.end()) {
+        if (!handle || handle == DRW::NoHandle || record == records.end()) {
             failure = "LAYOUT associated BLOCK_RECORD is null or missing";
             return false;
         }
@@ -82,20 +96,6 @@ bool projectLegacyToR2000(const Layouts& layouts, const Records& records,
         failure = "R13/R14 LAYOUT projection requires an R2000 DXF target";
         return false;
     }
-    for (const auto& item : layouts) {
-        if (item.second == nullptr || item.first == 0u
-            || item.first == DRW::NoHandle
-            || item.second->handle != item.first) {
-            failure = "R13/R14 LAYOUT identity is invalid";
-            return false;
-        }
-    }
-    for (const auto& item : records) {
-        if (item.second == nullptr) {
-            failure = "R13/R14 BLOCK_RECORD identity is missing";
-            return false;
-        }
-    }
     std::map<std::uint32_t, std::uint32_t> associations;
     if (!resolve(layouts, records, Mode::LegacyDwgForwardOnly,
                  associations, failure))
@@ -104,8 +104,7 @@ bool projectLegacyToR2000(const Layouts& layouts, const Records& records,
     staged.reserve(records.size());
     for (const auto& item : records) {
         const auto& source = *item.second;
-        if (item.first == 0u || item.first == DRW::NoHandle
-            || source.handle != item.first || source.name.empty()) {
+        if (source.name.empty()) {
             failure = "R13/R14 BLOCK_RECORD identity is invalid";
             return false;
         }

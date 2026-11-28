@@ -39971,7 +39971,10 @@ bool independentLayoutViewportCountMatches(
     }
 
     if (version > DRW::AC1018) {
-        if (!stringCursor.skipStringPadding(stringStartBit, true))
+        // The object writer appends logical string bits directly, followed
+        // only by combined-stream footer alignment; there is no byte-rounded
+        // string carrier between those two portions.
+        if (!stringCursor.skipStringPadding(stringStartBit, false))
             return false;
     }
     return dataCursor.good() && stringCursor.good();
@@ -40122,7 +40125,7 @@ bool independentLayoutDictionaryEntriesMatch(
     };
     if (!boundedPadding(dataCursor)
         || (version >= DRW::AC1021
-            && !stringCursor.skipStringPadding(stringStartBit, true)))
+            && !stringCursor.skipStringPadding(stringStartBit, false)))
         return fail("entry stream padding");
 
     std::vector<std::uint32_t> observedChildren;

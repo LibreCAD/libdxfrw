@@ -65,6 +65,45 @@ int main() {
     extra.layoutHandle = 0u;
     expect(run(Mode::LegacyDwgForwardOnly) && result == expected,
            "corrected legacy source must succeed after refusal");
+    // All users of the shared resolver must reject malformed identities before
+    // dereferencing them, without replacing the caller's previous result.
+    const auto identityRefused = [&](Mode mode, const char* label) {
+        result = {{0x99u, 0x98u}};
+        expect(!run(mode)
+                   && result == std::map<std::uint32_t, std::uint32_t>{{0x99u, 0x98u}}, label);
+    };
+    for (const Mode mode : {Mode::LegacyDwgForwardOnly, Mode::Reciprocal}) {
+        a.layoutHandle = mode == Mode::Reciprocal ? first.handle : 0u;
+        b.layoutHandle = mode == Mode::Reciprocal ? second.handle : 0u;
+        auto* savedRecord = records[0x11u];
+        records[0x11u] = nullptr;
+        identityRefused(mode, "null record must refuse without changing result");
+        records[0x11u] = savedRecord;
+        b.handle = 0x19u;
+        identityRefused(mode, "record key mismatch must refuse without changing result");
+        b.handle = 0x11u;
+        auto* savedLayout = layouts[0x31u];
+        layouts[0x31u] = nullptr;
+        identityRefused(mode, "null layout must refuse without changing result");
+        layouts[0x31u] = savedLayout;
+        second.handle = 0x39u;
+        identityRefused(mode, "layout key mismatch must refuse without changing result");
+        second.handle = 0x31u;
+        Record invalidRecord{DRW::NoHandle, "Invalid", 0u, 0u};
+        records.emplace(invalidRecord.handle, &invalidRecord);
+        identityRefused(mode, "sentinel record identity must refuse without changing result");
+        records.erase(invalidRecord.handle);
+        Layout invalidLayout{0u, {a.handle}};
+        layouts.emplace(invalidLayout.handle, &invalidLayout);
+        identityRefused(mode, "null layout identity must refuse without changing result");
+        layouts.erase(invalidLayout.handle);
+        second.paperSpaceBlockRecordHandle.ref = DRW::NoHandle;
+        identityRefused(mode, "sentinel block target must refuse without changing result");
+        second.paperSpaceBlockRecordHandle.ref = b.handle;
+        expect(run(mode) && result == expected,
+               "corrected identities must succeed after refusal");
+    }
+    a.layoutHandle = b.layoutHandle = 0u;
     std::vector<BlockRecordProjection> projection;
     const auto project = [&](DRW::Version target) {
         return projectLegacyToR2000(layouts, records, target, projection, reason);

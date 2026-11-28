@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-layout-association-identity-guards-2026-11-28",
+  "date": "2026-11-28",
+  "gate": "P6-F",
+  "supportClaimEffect": "none",
+  "baseCommit": "b3b74a451cd290b999271fe25f907bc7891d8fef",
+  "scope": "Shared legacy-forward and reciprocal LAYOUT/BLOCK_RECORD association identity validation, plus generated R2007 string-padding observer correction; not legacy output qualification.",
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1",
+    "pdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "20.4.52",
+      "20.4.84"
+    ],
+    "finding": "R13/R14 BLOCK_HEADER has no LAYOUT backlink; LAYOUT carries the block record forward reference. R2000+ BLOCK_HEADER carries a layout handle."
+  },
+  "changes": [
+    "Shared resolver checks all non-null source pointers, nonzero/non-sentinel identities and matching map keys before dereference; associated block targets cannot use the sentinel. Legacy R2000 projection reuses the shared identity validation. Failures preserve the previously supplied association map and corrected retries succeed in both modes.",
+    "A generated R2007 dictionary/layout wire observer now expects the current writer's directly concatenated logical string bits and combined-stream footer alignment, rather than an extra byte-rounded carrier. Its separate bit-packed footer controls exercise both forms, alignment residues, corruption and truncation. No production stream encoding changed."
+  ],
+  "baseline": "A clean build at the base commit and two older binaries reproduced the pre-existing AC1021 dictionary observer padding failure; the corrected observer passes the same owning test.",
+  "validation": {
+    "focusedCTest": [
+      "libdxfrw_layout_associations",
+      "libdxfrw_layout_source_proof",
+      "libdxfrw_original_layout_roles",
+      "libdxfrw_original_layout_dependencies",
+      "libdxfrw_layout_graph_read_contract",
+      "libdxfrw_layout_source_identity",
+      "dwg_block_record_layout_association",
+      "dwg_layout_compound_insert_owner_roundtrip",
+      "libdxfrw_legacy_layout_handles",
+      "dwg2dxf_cli_layout_recovery"
+    ],
+    "result": "10/10 passed after rebuilding owning executables",
+    "sanitizers": "shared identity test passed with Clang address and undefined-behavior sanitizers",
+    "inventory": "build inventory and 18-control self-test passed",
+    "qualification": "clean indexed-tree implementation digest and format support metadata passed; 15 claims experimental and zero advertised",
+    "digest": "49459a9c2903c722bf7770b093581ddd4db82a1a2aef1ceb44fe83f8d04192f1",
+    "inputCount": 785
+  },
+  "sourceSha256": {
+    "dwg2dxf/dx_layout_associations.h": "d1c6820d276512af34b002c6c3f52126de9b5a06900a14452c022bc7e1b1384e",
+    "tests/layout_associations_tests.cpp": "960a7ba5b3ae28022c7f6e3f6a1f1d388faedb1dcde5b499dc567bd29fb65276",
+    "tests/dwg_local_roundtrip_tests.cpp": "e0ab62139ffcb36796f632460b6557ffcafd7b523d1ca987d5ce00adf354a94f"
+  },
+  "limitations": [
+    "R13/R14 source acceptance and native dictionary cloning semantics are not established.",
+    "Legacy LAYOUT writer projection remains disabled until its source graph, viewport ownership, writer identities and staged output are qualified together.",
+    "The generated-wire footer controls do not establish independent producer or native DWG interoperability.",
+    "Hosted checks for this changed implementation remain pending."
+  ]
+}
