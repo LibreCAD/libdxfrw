@@ -62,6 +62,8 @@ below is still open, and its linked evidence defines the present boundary.
    The [HEADER/TABLES/OBJECTS isolation check](docs/research/p8d-hatch-staged-other-section-isolation-2026-11-28.json)
    covers selected fields in those staged sections. Bind emitted identities
    early, compose all section observers and revalidate live state at finalization.
+   [HEADER and TABLES hooks are composable](docs/research/p8d-hatch-header-table-inspector-composition-2026-11-28.json);
+   connect the HATCH checks without replacing existing material or image checks.
    The [per-loop source identities](docs/research/p8d-librecad-hatch-source-loops-2026-11-28.json)
    retain input order. Use the [live geometry matcher](docs/research/p8d-hatch-live-geometry-2026-11-28.json)
    for its one-straight-loop profile. [Decoded owner candidates and geometry snapshots](docs/research/p8d-dxf-owner-candidate-snapshot-2026-11-28.json)

@@ -1,0 +1,26 @@
+{
+  "kind": "librecad-composable-header-table-inspectors",
+  "date": "2026-11-28",
+  "consumerCommit": "0b2d89981cd11e380f1619c047463941076e1750",
+  "codecCommit": "4c8485ad6",
+  "scope": "Defer existing MATERIAL HEADER and TABLES inspector registration through local composable hooks, matching the existing entity/object pattern. Existing checks and writer publication behavior remain unchanged.",
+  "checks": {
+    "systemCodec": {
+      "cases": 5,
+      "assertions": 735,
+      "result": "pass; material header/table, mixed IMAGE/MATERIAL, HATCH rollback and retries",
+      "logSha256": "e23267d8c005f048514dad811a1520f5e8a1c5aab9143decc65597de16198860"
+    },
+    "bundledCodec": {
+      "cases": 4,
+      "assertions": 225,
+      "result": "pass",
+      "logSha256": "1c3b9b8194108fc0cd800d7557f9af3d41df45a7ced6472dd606ee025a2eea3c"
+    }
+  },
+  "limits": [
+    "No HATCH replay or output isolation is enabled by the hook refactor.",
+    "Native editing and full consumer qualification remain open."
+  ],
+  "supportClaimsPromoted": false
+}
