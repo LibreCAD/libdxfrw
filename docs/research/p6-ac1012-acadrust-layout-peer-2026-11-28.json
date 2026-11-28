@@ -1,0 +1,164 @@
+{
+  "date": "2026-11-28",
+  "finding": [
+    "LibreDWG observes the same two layout bodies and block associations in originals and same-writer resaves; the original root lacks ACAD_LAYOUT, while each resave links its existing two-member dictionary.",
+    "The supplied ODA DXFs for the originals use newly created layout handles, whereas the resaved-input outputs retain selected layout handles and all four retain selected BLOCK_RECORD handles. Physical DXF backlinks and loaded reciprocal links agree with zero ezdxf audit errors or repairs.",
+    "The source model LAYOUT has a null last-active viewport, but each supplied DXF has a non-null model viewport. ODA output therefore cannot be used as evidence that the entire source layout graph was preserved without transformation.",
+    "The audit rejects a changed DWG hash and a physically modified DXF BLOCK_RECORD backlink, preserves a preexisting result, and succeeds on corrected retry."
+  ],
+  "gate": "P6-F",
+  "id": "p6-ac1012-acadrust-layout-peer-2026-11-28",
+  "limitations": [
+    "ODA DXFs are supplied inputs; this audit does not independently attest their conversion provenance.",
+    "Peer agreement is not native AutoCAD open or cloning evidence.",
+    "DXF layout identities synthesized by ODA for unrooted source layouts do not validate source ownership.",
+    "The comparison covers selected identities and references, not all layout/plot fields or complete object graph closure.",
+    "It does not connect legacy layout projection to libdxfrw output or change any support claim."
+  ],
+  "observations": {
+    "destination": {
+      "auditErrors": 0,
+      "auditFixes": 0,
+      "dwgSha256": "8702bc7aa27ebb411c06d34d26de464cef159e53764512d18a8b7c6d6dc4751e",
+      "dxf": {
+        "Layout1": {
+          "activeViewport": 0,
+          "block": 24,
+          "layout": 101
+        },
+        "Model": {
+          "activeViewport": 32,
+          "block": 21,
+          "layout": 100
+        }
+      },
+      "dxfDictionary": 99,
+      "dxfSha256": "6ba2e58a3fecc1f99efb101c29dfdc54cad7a06d727ed88840535666d21b8937",
+      "source": {
+        "Layout1": {
+          "activeViewport": 0,
+          "block": 24,
+          "layout": 47
+        },
+        "Model": {
+          "activeViewport": 0,
+          "block": 21,
+          "layout": 46
+        }
+      },
+      "sourceDictionary": 35,
+      "sourceRootContainsLayout": false
+    },
+    "destination-resaved": {
+      "auditErrors": 0,
+      "auditFixes": 0,
+      "dwgSha256": "b8e4eabf4feb1f84bc272650344c191873fd5425698b58761bc19f4fbd6e740b",
+      "dxf": {
+        "Layout1": {
+          "activeViewport": 0,
+          "block": 24,
+          "layout": 47
+        },
+        "Model": {
+          "activeViewport": 32,
+          "block": 21,
+          "layout": 46
+        }
+      },
+      "dxfDictionary": 35,
+      "dxfSha256": "2a5b45a333fce26471c1b4dc0cf2b4285e7b98865e4236b39863698f38a8017f",
+      "source": {
+        "Layout1": {
+          "activeViewport": 0,
+          "block": 24,
+          "layout": 47
+        },
+        "Model": {
+          "activeViewport": 0,
+          "block": 21,
+          "layout": 46
+        }
+      },
+      "sourceDictionary": 35,
+      "sourceRootContainsLayout": true
+    },
+    "source": {
+      "auditErrors": 0,
+      "auditFixes": 0,
+      "dwgSha256": "f3cb3547b3d699cc817ef745ea7f42297a0cb414a0437339c487d386d170bba4",
+      "dxf": {
+        "Layout1": {
+          "activeViewport": 0,
+          "block": 24,
+          "layout": 101
+        },
+        "Model": {
+          "activeViewport": 32,
+          "block": 21,
+          "layout": 100
+        }
+      },
+      "dxfDictionary": 99,
+      "dxfSha256": "a87f0d15b50de011887f8be94482e6da99496216917d320aa3e8ede6f1427748",
+      "source": {
+        "Layout1": {
+          "activeViewport": 0,
+          "block": 24,
+          "layout": 47
+        },
+        "Model": {
+          "activeViewport": 0,
+          "block": 21,
+          "layout": 46
+        }
+      },
+      "sourceDictionary": 35,
+      "sourceRootContainsLayout": false
+    },
+    "source-resaved": {
+      "auditErrors": 0,
+      "auditFixes": 0,
+      "dwgSha256": "2da9c240f21068137b6b58023724b5aa84bd786d9e996d00d4af0d20c88cf5ae",
+      "dxf": {
+        "Layout1": {
+          "activeViewport": 0,
+          "block": 24,
+          "layout": 47
+        },
+        "Model": {
+          "activeViewport": 32,
+          "block": 21,
+          "layout": 46
+        }
+      },
+      "dxfDictionary": 35,
+      "dxfSha256": "5325a8b8a35763bda65550e691da11870494338e2b6a53a86ef64fbfebd03953",
+      "source": {
+        "Layout1": {
+          "activeViewport": 0,
+          "block": 24,
+          "layout": 47
+        },
+        "Model": {
+          "activeViewport": 0,
+          "block": 21,
+          "layout": 46
+        }
+      },
+      "sourceDictionary": 35,
+      "sourceRootContainsLayout": true
+    }
+  },
+  "sampleReceipt": "p6-ac1012-acadrust-distinct-pair-2026-11-28.json",
+  "schema": "libdxfrw.research-receipt.v1",
+  "scope": "Selected source-root, layout/block associations and ODA AC1024 ASCII DXF readback for the source-distinct AC1012 pair and same-writer resaves.",
+  "supportClaimEffect": "none",
+  "tools": {
+    "auditor": "tools/research/audit_ac1012_layout_peer.py",
+    "auditorSha256": "c66cc3fbffd5e6c9363d510ad086cbf237238d2c3bbc7d07931bff96743f006f",
+    "ezdxf": "1.4.5",
+    "fullScratchAuditSha256": "2fa48069e7b184f49f7cbf45da9d3f67becfee0d22e87b4c7c2b3a88d67925fc",
+    "libredwg": "0.14",
+    "reportedConverter": "ODA File Converter 27.1.0"
+  }
+}

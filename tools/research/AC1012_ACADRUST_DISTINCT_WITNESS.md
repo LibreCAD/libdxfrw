@@ -36,6 +36,29 @@ The original and same-writer resaved selected style frames must agree. The
 resave adds an `ACAD_LAYOUT` root entry in this exact producer profile; it does
 not prove that graph's validity or authorize a projection.
 
+To compare the LAYOUT graph with an ODA conversion, separately convert the two
+originals and the two resaves to ASCII DXF, preserving their base names in two
+outside-repository directories. With `ezdxf` and LibreDWG installed, run:
+
+```sh
+python3 -B tools/research/audit_ac1012_layout_peer.py \
+  --sample-dir /tmp/ac1012-distinct-pair \
+  --oda-original-dir /tmp/ac1012-oda-original \
+  --oda-resaved-dir /tmp/ac1012-oda-resaved \
+  --dwgread /path/to/dwgread \
+  --output /tmp/ac1012-layout-peer-audit.json
+```
+
+The audit checks the source hashes, LibreDWG's selected root, dictionary,
+LAYOUT and BLOCK_HEADER identities, physical DXF BLOCK_RECORD backlinks before
+document loading, and ezdxf's selected reciprocal links and audit result. The
+supplied DXF files and their conversion provenance must be recorded separately;
+the audit alone does not prove which converter produced them. In the recorded
+run, ODA creates new layout identities for the unrooted originals, retains the
+resaved layout identities and assigns a model viewport in both cases. Do not
+interpret these transformations as proof of native semantics or lossless
+conversion.
+
 For native qualification, keep the drawings scratch-only and follow the
 [existing native witness procedure](AC1012_DICTIONARY_NATIVE_WITNESS.md) on a
 profiled AutoCAD host. Record the exact source hashes and producer revision,

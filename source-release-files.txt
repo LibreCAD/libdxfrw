@@ -1304,6 +1304,7 @@ tools/research/apply_freecad_import_candidate.py
 tools/research/audit_ac1012_acadrust_pair.py
 tools/research/audit_ac1012_dimstyle_defaults.py
 tools/research/audit_ac1012_generated_root.py
+tools/research/audit_ac1012_layout_peer.py
 tools/research/audit_ac1012_oda_merge_pair.py
 tools/research/audit_ac1012_pair_block_entities.py
 tools/research/audit_ac1012_pair_header.py

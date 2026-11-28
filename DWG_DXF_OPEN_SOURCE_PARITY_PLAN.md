@@ -86,7 +86,12 @@ below is still open, and its linked evidence defines the present boundary.
    The [shared HEADER envelope audit](docs/research/p6-ac1012-pair-header-envelope-2026-11-28.json) and [complete selected-pair HEADER wire walk](docs/research/p6-ac1012-pair-header-complete-wire-2026-11-28.json) account for 195 fields, four padding bits and 24 selected targets per drawing with rejection/retry controls. [Shared bounded bit readers](docs/research/p6-ac1012-shared-bits-refactor-2026-11-28.json) and the [version-aware frame and dictionary walker](docs/research/p6-legacy-shared-dictionary-wire-2026-11-28.json) reduce duplicated checks; native semantics and complete output closure remain open.
    The [source-distinct acadrust pair](docs/research/p6-ac1012-acadrust-distinct-pair-2026-11-28.json)
    adds zero-reactor physical and ODA readback evidence; strict cloning and the
-   partial LAYOUT forward-reference gates remain open. The [shared association
+   partial LAYOUT forward-reference gates remain open. The [layout peer
+   comparison](docs/research/p6-ac1012-acadrust-layout-peer-2026-11-28.json)
+   distinguishes the unrooted originals from the rooted resaves: ODA creates
+   new layout identities for the former and fills a model viewport in both.
+   Qualify each source and its target mapping separately; peer repair is not
+   source-graph evidence. The [shared association
    identity checks](docs/research/p6-layout-association-identity-guards-2026-11-28.json)
    reject malformed source identities transactionally in both legacy and
    reciprocal modes. The target projection must still be integrated with
