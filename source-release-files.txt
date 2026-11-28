@@ -1338,6 +1338,7 @@ tools/research/freecad_dwg_handoff_bootstrap.FCMacro
 tools/research/freecad_framebuffer_capture.py
 tools/research/freecad_gui_mesh_probe.FCMacro
 tools/research/freecad_imported_sat_torus_bound_probe.py
+tools/research/freecad_minsert_handoff_probe.py
 tools/research/freecad_real_draft_mesh_layer_probe.py
 tools/research/freecad_torus_bound_probe.py
 tools/research/generate_ac1012_dictionary_merge_samples.py

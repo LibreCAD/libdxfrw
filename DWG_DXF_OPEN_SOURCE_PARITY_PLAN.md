@@ -91,7 +91,10 @@ below is still open, and its linked evidence defines the present boundary.
    discriminating question or infer native merge behavior from peer conversion.
 8. **Integration and FreeCAD.** Recheck affected profiles against final heads
    of LibreCAD PR #3289, LibreCAD_3 PRs #460–#463 and the codec. Finish the
-   native GUI, Linux/Windows, package and FreeCAD handoff gates. For the local
+   native GUI, Linux/Windows, package and FreeCAD handoff gates. The [selected
+   AC1024 array partial handoff](docs/research/p8-freecad-ac1024-minsert-partial-handoff-2026-11-28.json)
+   checks six lines in both FreeCAD modes; strict conversion remains blocked by
+   the HEADER suffix and partial output is not whole-file proof. For the local
    [42-patch FreeCAD draft](docs/research/p8-freecad-minsert-inch-negative-control-2026-11-28.json),
    preserve named child-layer visibility and color through block composition;
    qualify additional geometry, INSERT/OCS and unit profiles, malformed numeric
