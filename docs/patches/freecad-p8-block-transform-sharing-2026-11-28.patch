@@ -1,0 +1,72 @@
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.cpp b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.cpp
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+@@ -629,5 +629 @@
+-                    Base::Placement pl(
+-                        nestedInsert.Point,
+-                        Base::Rotation(Base::Vector3d(0, 0, 1), nestedInsert.Rotation)
+-                    );
+-                    Base::Matrix4D transform = pl.toMatrix();
++                    Base::Matrix4D transform;
+@@ -635 +631,5 @@
+-                    nestedShape.transformShape(transform, true, true);  // Use copy=true
++                    transform.rotZ(nestedInsert.Rotation);
++                    transform.move(nestedInsert.Point);
++                    // Rigid transforms can share topology. TopoShape copies when
++                    // scaling or reflection requires geometry transformation.
++                    nestedShape.transformShape(transform, false, true);
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -1171,0 +1172,51 @@
++    def _assert_nested_block_transforms(self, mode):
++        """Reuse rigid nested geometry without changing scaled or sibling instances."""
++        options = FreeCAD.ParamGet(self.option_source)
++        options.SetInt("DxfImportMode", mode)
++        tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"), (2, "BLOCKS"),
++                (0, "BLOCK"), (8, "0"), (2, "INNER"), (70, 0), (10, 0), (20, 0), (30, 0),
++                (0, "LINE"), (8, "0"), (10, 1), (20, 1), (30, 0), (11, 2), (21, 2), (31, 0),
++                (0, "ENDBLK"), (8, "0"),
++                (0, "BLOCK"), (8, "0"), (2, "OUTER"), (70, 0), (10, 0), (20, 0), (30, 0)]
++        for x, y, rotation, sx, sy, sz in ((10, 0, 0, 1, 1, 1), (0, 10, 90, 1, 1, 1),
++                                            (20, 0, 0, 2, 2, 2), (30, 0, 0, 2, 3, 1),
++                                            (40, 0, 0, -1, 1, 1), (50, 0, 90, 2, 3, 1)):
++            tags.extend([(0, "INSERT"), (8, "0"), (2, "INNER"), (10, x), (20, y), (30, 0),
++                         (41, sx), (42, sy), (43, sz), (50, rotation)])
++        tags.extend([(0, "ENDBLK"), (8, "0"), (0, "ENDSEC"),
++                     (0, "SECTION"), (2, "ENTITIES"),
++                     (0, "INSERT"), (8, "0"), (2, "OUTER"), (10, 0), (20, 0), (30, 0),
++                     (0, "INSERT"), (8, "0"), (2, "INNER"), (10, 100), (20, 100), (30, 0),
++                     (0, "ENDSEC"), (0, "EOF")])
++        path = os.path.join(self.temp_dir, "shared-rigid-blocks.dxf")
++        with open(path, "w", encoding="ascii", newline="\n") as stream:
++            stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++        previous = set(self.document.Objects)
++        Import.readDXF(path, self.document.Name, True, self.option_source)
++        self.document.recompute()
++        added = [obj for obj in self.document.Objects if obj not in previous]
++        outer = [obj for obj in added if obj.Name.startswith("Link_OUTER")]
++        inner = [obj for obj in added if obj.Name.startswith("Link_INNER") and obj.Label == "INNER"]
++        self.assertEqual(len(outer), 1)
++        self.assertEqual(len(inner), 1)
++        edges = outer[0].Shape.Edges
++        self.assertEqual(len(edges), 6)
++        def endpoints(edge):
++            return tuple(sorted((round(v.Point.x, 7), round(v.Point.y, 7), round(v.Point.z, 7))
++                                for v in edge.Vertexes))
++        expected = [((11, 1, 0), (12, 2, 0)), ((-2, 12, 0), (-1, 11, 0)),
++                    ((22, 2, 0), (24, 4, 0)), ((32, 3, 0), (34, 6, 0)),
++                    ((38, 2, 0), (39, 1, 0)), ((44, 4, 0), (47, 2, 0))]
++        self.assertEqual(sorted(endpoints(edge) for edge in edges), sorted(expected))
++        self.assertEqual(endpoints(inner[0].Shape.Edges[0]), ((101, 101, 0), (102, 102, 0)))
++        if mode == 3:
++            shared = {endpoints(edge) for edge in edges if edge.isPartner(inner[0].Shape.Edges[0])}
++            self.assertEqual(shared, {expected[0], expected[1]})
++
++    def test_flattened_block_rigid_instances_share_geometry(self):
++        self._assert_nested_block_transforms(3)
++
++    def test_parametric_nested_block_transforms(self):
++        self._assert_nested_block_transforms(2)
++

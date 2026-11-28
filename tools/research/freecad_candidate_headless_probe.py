@@ -45,6 +45,8 @@ EXTRA_TESTS = {
         "test_block_reference_cycles_and_retry",
         "test_block_annotation_depth_guard_and_retry",
         "test_block_annotation_shared_graph_budget_and_retry",
+        "test_flattened_block_rigid_instances_share_geometry",
+        "test_parametric_nested_block_transforms",
     ),
 }
 
