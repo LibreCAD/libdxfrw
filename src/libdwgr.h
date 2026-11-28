@@ -207,7 +207,9 @@ enum class DwgIntegrityCheckKind : std::uint8_t {
     /// A bounded historical table-control object contains data bits after its
     /// understood count/flags. The read is retained for compatibility, while
     /// strict output remains refused until those bits have a source profile.
-    TableControlUnclaimedData
+    TableControlUnclaimedData,
+    /// Non-null HEADER DIMTXSTY does not resolve to its source STYLE record.
+    HeaderDimensionTextStyleReference
 };
 
 /// Version of the field and enum contract carried by DwgIntegrityDiagnostic.

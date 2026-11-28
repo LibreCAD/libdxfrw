@@ -7759,7 +7759,7 @@ bool dwgReader::readDwgHeader(DRW_Header &hdr, dwgBuffer *buf,
              envelope.expected, envelope.observed, envelope.hasValues);
       return false;
     }
-    std::array<dwgHandle, 5> currentReferences{};
+    std::array<dwgHandle, 6> currentReferences{};
     const bool ret = hdr.parseDwgForReader(
         version, buf, hBuf, appMaintenanceVersion, &currentReferences);
     if (!ret) {
@@ -7924,6 +7924,14 @@ void dwgReader::resolveDwgHeaderCurrentReferences(DRW_Header& hdr) {
   resolve(3u, "DIMSTYLE", 2,
           DwgIntegrityCheckKind::HeaderCurrentDimensionStyleReference,
           dimstylemap);
+  const dwgHandle& dimensionText = m_dwgHeaderCurrentReferences[5];
+  const bool nullPointer = dimensionText.size <= sizeof(dimensionText.ref64)
+      && dimensionText.ref == 0u && dimensionText.ref64 == 0u
+      && (dimensionText.code == DRW::DwgNullReference
+          || dimensionText.code == DRW::DwgHardPointer);
+  if (!nullPointer)
+    resolve(5u, "DIMTXSTY", 7,
+            DwgIntegrityCheckKind::HeaderDimensionTextStyleReference, stylemap);
 }
 
 bool dwgReader::checkSentinel(dwgBuffer *buf, enum secEnum::DWGSection sec,

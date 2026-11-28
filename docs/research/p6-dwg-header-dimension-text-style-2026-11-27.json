@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dwg-header-dimension-text-style-2026-11-27",
+  "supportClaimEffect": "none",
+  "authority": [
+    "ODA Open Design Specification v5.4.1 section 9 defines R13/R14 and R2000+ HEADER DIMTXSTY as hard-pointer handles.",
+    "Autodesk DXF HEADER reference defines $DIMTXSTY as a group-7 STYLE name: https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm"
+  ],
+  "source": {
+    "sha256": "3e2732452a4b669c5b3dce4d145e5249a73548400d80ded8bd8d0a1e98632ff2",
+    "provenance": "Locally authored DXF converted to AC1024 by ODA File Converter 27.10 on Linux.",
+    "reference": "Hard pointer 0x4C (76) to STYLE OpenSansCondensed-Light; independently reported by LibreDWG 0.14."
+  },
+  "change": "Stage the source DIMTXSTY handle with existing HEADER references, resolve it against the same-import STYLE table, and report malformed/nonunique non-null references as integrity errors. Canonical null remains an absent optional name.",
+  "checks": [
+    "PASS focused HEADER version, role, packed flag, current-reference and writer sealing tests; DIMTXSTY wrong role, wrong table, absent target, wide target, duplicate name, and corrected same-reader retry are covered.",
+    "PASS explicit-partial ASCII and binary DXF output: ezdxf 1.4.5 resolves $DIMTXSTY to the existing OpenSansCondensed-Light STYLE with zero audit errors/fixes.",
+    "PASS ODA File Converter 27.1.0 macOS reopened both DXFs with audit disabled; LibreDWG 0.14 resolved each remapped HEADER DIMTXSTY handle to the same STYLE name."
+  ],
+  "outputSha256": {
+    "ascii": "23bdf3ec70567fda132d7de8845e7371f32d5a6a6a48996d0dc142f8cfcad6ef",
+    "binary": "ee8be70330383a73d40a554f623c80055e420833d95a2bfe400b7fa0b64e86d4"
+  },
+  "limits": [
+    "Source is from a related ODA producer; no native AutoCAD or general HEADER parity is claimed.",
+    "$DIMBLK still requires source block reference and name-semantics qualification. The unclassified suffix continues to block strict output.",
+    "No DWG or DXF fixture was committed."
+  ]
+}

@@ -21801,6 +21801,7 @@ public:
             ref.ref = static_cast<std::uint32_t>(0x51u + i);
             ref.ref64 = ref.ref;
         }
+        m_dwgHeaderCurrentReferences[5] = {};
         auto* layer = new DRW_Layer; layer->handle = 0x51u; layer->name = "Layer";
         auto* style = new DRW_Textstyle; style->handle = 0x52u; style->name = "Style";
         auto* type = new DRW_LType; type->handle = 0x53u; type->name = "Type";
@@ -21885,6 +21886,51 @@ void testHeaderSourceCurrentReferenceFailures(TestContext& t) {
                  && *found->second->content.s == "\xc3\xa9"
                  && reader.diagnostics().empty(),
              "single non-ASCII source name is retained without invented collation");
+    reader.m_dwgHeaderCurrentReferences[5].code = DRW::DwgHardPointer;
+    reader.m_dwgHeaderCurrentReferences[5].size = 1u;
+    reader.resolveDwgHeaderCurrentReferences(header);
+    t.expect(header.vars.count("DIMTXSTY") == 0u && reader.diagnostics().empty(),
+             "zero-valued optional DIMTXSTY retains absence without a diagnostic");
+
+    for (int failure = 0; failure != 5; ++failure) {
+        std::vector<std::uint8_t> bytes;
+        HeaderCurrentReaderProbe dimensionReader(bytes);
+        auto* text = new DRW_Textstyle;
+        text->handle = 0x56u; text->name = "DimensionText";
+        dimensionReader.stylemap.emplace(text->handle, text);
+        auto& reference = dimensionReader.m_dwgHeaderCurrentReferences[5];
+        reference.code = DRW::DwgHardPointer; reference.size = 1u;
+        reference.ref = 0x56u; reference.ref64 = 0x56u;
+        if (failure == 0) reference.code = DRW::DwgSoftPointer;
+        if (failure == 1) { reference.ref = 0x51u; reference.ref64 = 0x51u; }
+        if (failure == 2) { reference.ref = 0x99u; reference.ref64 = 0x99u; }
+        if (failure == 3) reference.ref64 = UINT64_C(0x100000056);
+        if (failure == 4) {
+            auto* duplicate = new DRW_Textstyle;
+            duplicate->handle = 0x57u; duplicate->name = "dimensiontext";
+            dimensionReader.stylemap.emplace(duplicate->handle, duplicate);
+        }
+        DRW_Header dimensionHeader;
+        dimensionReader.resolveDwgHeaderCurrentReferences(dimensionHeader);
+        t.expect(dimensionReader.diagnostics().size() == 1u
+                     && dimensionReader.diagnostics().front().kind
+                         == DwgIntegrityCheckKind::HeaderDimensionTextStyleReference,
+                 "unresolved or ambiguous DIMTXSTY is an integrity error");
+        reference.code = DRW::DwgHardPointer;
+        reference.ref = 0x56u; reference.ref64 = 0x56u;
+        const auto duplicate = dimensionReader.stylemap.find(0x57u);
+        if (duplicate != dimensionReader.stylemap.end()) {
+            delete duplicate->second;
+            dimensionReader.stylemap.erase(duplicate);
+        }
+        dimensionReader.resolveDwgHeaderCurrentReferences(dimensionHeader);
+        const auto resolved = dimensionHeader.vars.find("DIMTXSTY");
+        t.expect(resolved != dimensionHeader.vars.end()
+                     && resolved->second->type() == DRW_Variant::STRING
+                     && *resolved->second->content.s == "DimensionText"
+                     && dimensionReader.diagnostics().size() == 1u,
+                 "corrected DIMTXSTY resolves on the same reader and header");
+    }
 }
 
 void testHeaderCurrentReferences(TestContext& t) {
