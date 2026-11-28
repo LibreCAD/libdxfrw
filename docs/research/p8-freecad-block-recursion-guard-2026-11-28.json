@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-block-recursion-guard-2026-11-28",
+  "supportClaimEffect": "none",
+  "freecadBase": "477a7041803823a1fcae528133cb07ee5533b1b2",
+  "candidate": "26 ordered local patches; not submitted upstream",
+  "finding": "The two nested block composers recur before marking a block complete, so self-references or mutually recursive INSERT graphs can recurse without bound.",
+  "change": "Track the active composition path in both composers, skip and report a recursive edge or one exceeding 128 active blocks, and allow already-composed and shared acyclic dependencies to be reused.",
+  "checks": [
+    "Generated self-referencing, mutually recursive and 129-level block drawings terminate with a loss diagnostic in both parametric and fused modes. Selected unaffected line geometry survives; a valid two-reference shared block imported after each refusal has the expected geometry and no recursion diagnostic.",
+    "The patch chain replays exactly against the pinned FreeCAD source archive. The rebuilt macOS ARM64 candidate passes all 21 selected headless tests without skips or failures. No generated fixture was committed."
+  ],
+  "evidenceSha256": {
+    "patch": "69b4184a387d1b967e103ddb2bb756d1b71317675660a57721ac7dcad08db434",
+    "replay": "940861ed4d5cf435a0998e742bf7004562b975e3f4c1ffcd5956a9eb7a2763d8",
+    "probeSummary": "f9cd012118b0c1ea68ea5c5aec6598fafefa01431577e52fc4db7c15258c2d27",
+    "focusedProbe": "f8cf481ef3b3c249e210e499d2e807642b0718b1bb7562d6708d38b2515ade92"
+  },
+  "limits": [
+    "Edges are omitted and reported; output of a cyclic or too-deep block is partial and may depend on traversal order. The 128-level guard is conservative.",
+    "Headless macOS candidate only: Linux, Windows and native GUI need requalification after this source change.",
+    "This does not establish safety for arbitrarily large nonrecursive drawings, layer visibility, or general block interoperability."
+  ]
+}
