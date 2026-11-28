@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-sparse-material-point-defaults-2026-11-27",
+  "supportClaimEffect": "selected profile only",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "5d76a10e8a6ae846370993fac151cd7ce1a93544",
+  "parent": "3c52f0ba74175d6783403c5fedc9c016f2b5c3ba",
+  "authority": [
+    "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-9C6AD32D-769D-4213-85A4-CA9CCB5C5317.htm"
+  ],
+  "scope": "Bounded ordinary ASCII AC1021 sparse-MATERIAL model-space POINT with explicit default thickness 39=0, point-axis angle 50=0, and/or complete default extrusion 210/220/230=(0,0,1). The point can be edited while retaining the selected material graph.",
+  "checks": [
+    "Before the change the explicit-zero-thickness control imported but refused export.",
+    "The focused test passes 57 assertions for each default combination, live point edits, reopen/resave, physical and typed source mutations, incomplete or duplicate groups, nondefault and nonfinite values, destination preservation and corrected retry.",
+    "The selected MATERIAL group passes 3,803 assertions in 22 cases against the refreshed current shared codec; DYLD_PRINT_LIBRARIES confirms the installed codec was loaded.",
+    "The bundled-codec LibreCAD library compiles; its runtime is not claimed.",
+    "ezdxf 1.4.5 independently reads the locally generated resave, confirms edited point (6,7,0), semantic defaults and its PlainMat target, with zero audit errors or fixes."
+  ],
+  "hashes": {
+    "redLog": "6a16c6e4a1f82622a475428daeb584bbba7062ca253d8d63255f28ce32d70e8b",
+    "focusedLog": "35aa83320bf9b2b7be1de5cd257ba147a1e513e8a5919f9a2d43af7dd77a167e",
+    "materialLog": "f76a5f1f771e496c3eabeef7dd8fdaf8283dc87de30a0416afd9b9cd19d9ab1d",
+    "bundledBuildLog": "33b366fa1b796685fcad8ca85434ce908ccf3af7ef470ed601123ba9f7f2e18c",
+    "sharedLibrary": "dc4c9d0c9f396fe49d11e898d44692272e0230f1099213a75e2e58a22c2ea681",
+    "scratchOutput": "4c6193fdb3ed85b9ac307986b9629faa5a68672891054930662814e3e6031f06"
+  },
+  "limits": [
+    "Partial extrusion tuples, nondefault thickness/axis angle/extrusion, duplicate fields and other unqualified material/entity profiles remain guarded.",
+    "Generated ASCII AC1021 and headless macOS ARM64 only; no native GUI, binary, other producer, platform or general parity claim. No drawing fixture was committed."
+  ]
+}
