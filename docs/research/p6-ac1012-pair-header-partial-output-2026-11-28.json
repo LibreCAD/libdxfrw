@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-pair-header-partial-output-2026-11-28",
+  "supportClaimEffect": "none",
+  "candidateCommit": "d0fedb96f",
+  "implementationDigestSha256": "9944e586474c9f22075f2173cffd13588bc0a29d645e3419ea2ff1c57f6f8dda",
+  "scope": "Selected physical AC1012 HEADER values compared with freshly built libdxfrw explicit-partial AC1024 ASCII and binary DXF outputs for the generated pair.",
+  "checks": [
+    "For both drawings and both encodings, 141 selected values match the separately walked source and ezdxf 1.4.5 readback, including the selected DIMFIT-to-DIMATFIT and DIMUNIT-to-DIMLUNIT values. This only proves those sample values.",
+    "The six omitted source settings are BLIPMODE, ATTREQ, ATTDIA, DRAGMODE, OSMODE and COORDS; ODA v5.4.1 section 9 describes these R13/R14 settings as registry-stored from R15. Their omission is recorded rather than treated as general lossless export.",
+    "Each strict conversion rejects the unresolved duplicate-merge semantics and preserves a pre-existing destination; a separate explicit-partial CLI invocation then succeeds. Changed in-memory DXF DIMTIH is rejected by the comparator and restored readback succeeds.",
+    "ezdxf reports zero errors and zero fixes for all four outputs. Source-release inventory check and self-test pass. No generated drawing fixture is committed."
+  ],
+  "hashes": {
+    "tool": "3cec1a6e70e6047b22c0a6baeef3b61a69c41ad70553a8bbc20ea62eafa2ff94",
+    "candidateExecutable": "62314d30418f8055ba0a5ef16496d1a77eedbfbe86e6764c295be07c2f739239",
+    "candidateLibrary": "c69aa4c72c5a2113d73a822be8782f8ccfe53a85473b935acf353bf5ca90aa02",
+    "results": "1d81702c488a1266abca19daedbfad42be95d5bb0a9a74f5d0d4d2ed45ec33cb"
+  },
+  "limits": [
+    "The source producer and peer decoder are LibreDWG. ezdxf independently reads the output but is not a native AutoCAD witness.",
+    "The selected aliases are compared only for the generated values; other values and complete HEADER/dependency/output semantics remain open. Six source settings are omitted, partial conversion is not a full-file success, and strict/partial runs use separate processes."
+  ]
+}

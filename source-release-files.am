@@ -1287,6 +1287,7 @@ EXTRA_DIST = \
     tools/research/audit_ac1012_oda_merge_pair.py \
     tools/research/audit_ac1012_pair_block_entities.py \
     tools/research/audit_ac1012_pair_header.py \
+    tools/research/audit_ac1012_pair_header_output.py \
     tools/research/audit_ac1012_pair_header_prefix.py \
     tools/research/audit_ac1012_pair_object_census.py \
     tools/research/audit_ac1021_field_graph.py \

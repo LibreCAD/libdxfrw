@@ -169,6 +169,9 @@ python3 -B tools/research/audit_ac1012_pair_header.py \
   /private/tmp/ac1012-native-two-element-handoff
 python3 -B tools/research/audit_ac1012_pair_header_prefix.py \
   /private/tmp/ac1012-native-two-element-handoff
+# With ezdxf installed and a built candidate, check selected partial output:
+python3 -B tools/research/audit_ac1012_pair_header_output.py \
+  /private/tmp/ac1012-native-two-element-handoff --dwg2dxf build/dwg2dxf/dwg2dxf
 ```
 
 Before transfer, the bounded source audit can recheck both frames and their
