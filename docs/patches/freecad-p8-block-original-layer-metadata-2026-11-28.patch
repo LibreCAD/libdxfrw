@@ -1,0 +1,80 @@
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.cpp
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+@@ -700,0 +701,4 @@
++                const auto savedAttributes = m_entityAttributes;
++                m_entityAttributes = insertAttrPair.first;
++                _addOriginalLayerProperty(link);
++                m_entityAttributes = savedAttributes;
+@@ -782,0 +787 @@
++                _addOriginalLayerProperty(newObject);
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -988,0 +989,4 @@
++                            if mode == 2 and preserve:
++                                children = links[0].LinkedObject.Links
++                                self.assertEqual(len(children), 1)
++                                self.assertEqual(children[0].OriginalLayer, layer)
+@@ -999,0 +1004,58 @@
++
++    def test_nested_block_original_layer_metadata(self):
++        """Keep declared layers on block children and nested INSERTs."""
++        import sys
++        import types
++        draft = types.ModuleType("Draft")
++
++        def make_layer(name, *args):
++            layer = self.document.addObject("App::FeaturePython", "TestLayer")
++            layer.Label = name
++            layer.addProperty("App::PropertyLinkListHidden", "Group")
++            return layer
++
++        draft.make_layer = make_layer
++        old_draft = sys.modules.get("Draft")
++        sys.modules["Draft"] = draft
++        try:
++            options = FreeCAD.ParamGet(self.option_source)
++            options.SetInt("DxfImportMode", 2)
++            options.SetBool("dxfUseDraftVisGroups", True)
++            tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                    (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"),
++                    (0, "SECTION"), (2, "TABLES"), (0, "TABLE"), (2, "LAYER"), (70, 3)]
++            for name in ("0", "A", "B"):
++                tags.extend([(0, "LAYER"), (2, name), (70, 0), (62, 1), (6, "CONTINUOUS")])
++            tags.extend([(0, "ENDTAB"), (0, "ENDSEC"), (0, "SECTION"), (2, "BLOCKS"),
++                         (0, "BLOCK"), (8, "0"), (2, "INNER"), (70, 0), (10, 0), (20, 0), (30, 0)])
++            for index, layer in enumerate(("0", "A", "B")):
++                tags.extend([(0, "LINE"), (8, layer), (10, index), (20, 0), (30, 0),
++                             (11, index), (21, 2), (31, 0)])
++            tags.extend([(0, "ENDBLK"), (8, "0"), (0, "BLOCK"), (8, "0"), (2, "OUTER"),
++                         (70, 0), (10, 0), (20, 0), (30, 0), (0, "INSERT"), (8, "B"),
++                         (2, "INNER"), (10, 3), (20, 0), (30, 0), (0, "ENDBLK"), (8, "0"),
++                         (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES")])
++            for x in (1, 8):
++                tags.extend([(0, "INSERT"), (8, "A"), (2, "OUTER"), (10, x), (20, 2), (30, 0)])
++            tags.extend([(0, "ENDSEC"), (0, "EOF")])
++            path = os.path.join(self.temp_dir, "nested-block-original-layers.dxf")
++            with open(path, "w", encoding="ascii", newline="\n") as stream:
++                stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++            before = set(self.document.Objects)
++            stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++            objects = [obj for obj in self.document.Objects if obj not in before]
++            outer = [obj for obj in objects if obj.Name.startswith("Link_OUTER")]
++            self.assertEqual(len(outer), 2)
++            self.assertIn("Block geometry nondefault layer", stats["unsupportedFeatures"])
++            self.assertTrue(all(obj.OriginalLayer == "A" for obj in outer))
++            self.assertEqual(outer[0].LinkedObject, outer[1].LinkedObject)
++            nested = outer[0].LinkedObject.Links
++            self.assertEqual(len(nested), 1)
++            self.assertEqual(nested[0].OriginalLayer, "B")
++            children = nested[0].LinkedObject.Links
++            self.assertEqual(sorted(child.OriginalLayer for child in children), ["0", "A", "B"])
++        finally:
++            if old_draft is None:
++                del sys.modules["Draft"]
++            else:
++                sys.modules["Draft"] = old_draft
+@@ -1047,0 +1110,4 @@
++                            if mode == 2 and preserve:
++                                children = links[0].LinkedObject.Links
++                                self.assertEqual(len(children), 1)
++                                self.assertEqual(children[0].OriginalLayer, layer)

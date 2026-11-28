@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-parametric-block-original-layer-2026-11-28",
+  "supportClaimEffect": "none",
+  "freecadBase": "477a7041803823a1fcae528133cb07ee5533b1b2",
+  "candidate": "24 ordered local patches; no FreeCAD commit or submission",
+  "change": "Reuse the existing OriginalLayer metadata helper for parametric block children and nested INSERT links, retaining each declared source layer without changing layer grouping or rendering.",
+  "checks": [
+    "Before the change, imported parametric LINE and CIRCLE children have no OriginalLayer property; their locally generated layer-0 and named-layer controls fail. After adding the existing helper, these and equivalent 3DFACE checks pass when layer retention is enabled.",
+    "A separately generated nested two-insert graph with three child lines on layers 0, A and B verifies the shared block identity, each outer INSERT source layer A, nested INSERT source layer B, and all three child OriginalLayer values. It initially failed because the nested INSERT had no property; saving and restoring its own attributes around the shared helper fixes it.",
+    "The 24-patch chain replays exactly against the hash-checked source archive; the source checkout matches the pinned base and patch outputs. The selected macOS ARM64 headless candidate passes 20 tests, no skips or failures.",
+    "Existing explicit named-block-layer loss reports remain enabled. No generated DXF/DWG fixture was committed."
+  ],
+  "evidenceSha256": {
+    "patch": "4697cad884f128301b787d7198c1fc0522ed6f04181ca6d1953b19b7036dcd0c",
+    "simpleRed": "f22feb00d0cbb8cd13dfd7dc001845d119c82bbfef8e1509199dae20e30f698a",
+    "nestedRed": "2576007310bd927f8f0ecdc71ced418d954ea8fcec5616d0b6cb08cdcddbd035",
+    "green": "def56e3a2f64af086b3f48b6c39832688878f48675079074c19bbbf6c6fc3968",
+    "verifiedReceipt": "0b507fe8390bae64ccb180b1f33cf7005bff7364e9de2665e090c1af5b25f402",
+    "driver": "7e61f9938ba70549c0cb95a4f79332b2f24a21ec25986ebeeba63f6e439bb269",
+    "headlessProbe": "6fa7cb8c16abb914e7baa93601dfb90a348f5766aadd7d73ce1051a118cd1d4d"
+  },
+  "verifiedReceipt": "/private/tmp/freecad-block-layer-metadata-20261128/verified-final/freecad-candidate-probe-q5m1yn9c/receipt.json",
+  "limits": [
+    "This retains declared names in parametric definition metadata, not effective per-instance layer visibility, placement semantics, layer grouping or rendering. Fused shapes do not retain per-child identities.",
+    "Layer-zero inheritance, nested visibility, color, other entity types and native GUI/platform behavior remain unqualified; keep current loss disclosures.",
+    "The downstream FreeCAD candidate is a local draft; submission and contributor attestations are for a human contributor."
+  ]
+}

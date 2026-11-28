@@ -82,7 +82,8 @@ below is still open, and its linked evidence defines the present boundary.
 8. **Integration and FreeCAD.** Recheck affected profiles against final heads
    of LibreCAD PR #3289, LibreCAD_3 PRs #460–#463 and the codec. Finish native
    GUI, Linux/Windows, package and FreeCAD handoff qualification. For the local
-   FreeCAD candidate, preserve named child layers through block composition;
+   FreeCAD candidate, preserve named child layers through block composition; the
+   [parametric metadata slice](docs/research/p8-freecad-parametric-block-original-layer-2026-11-28.json) retains declared child and nested-INSERT layer names, while visibility and fused-mode handling remain open;
    the [3DFACE check](docs/research/p8-freecad-3dface-block-layer-loss-2026-11-27.json)
    reports current loss while retaining geometry; the [block geometry report](docs/research/p8-freecad-block-geometry-layer-loss-2026-11-27.json) extends that disclosure to selected LINE/CIRCLE controls. Review color, other block
    entities and independent producers, split the candidate, and follow
