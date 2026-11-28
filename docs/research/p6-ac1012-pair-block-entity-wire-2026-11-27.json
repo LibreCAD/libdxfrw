@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-pair-block-entity-wire-2026-11-27",
+  "supportClaimEffect": "none",
+  "candidateCommit": "5e577883c",
+  "implementationDigestSha256": "28db82dc790d724524d6c0f6d044d9c17f298effd4191b956f2887f00c8f7bcb",
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1 sections 20.4.1, 20.4.2, 20.4.6, 20.4.7 and 20.4.52",
+    "pdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7"
+  },
+  "scope": "Locally generated two-element AC1012 source/destination pair: model and paper BLOCK/ENDBLK body, exact handle roles, boundaries and corresponding BLOCK_HEADER identities.",
+  "checks": [
+    "A shared-bit-reader observer binds all eight CRC-checked frames, complete common fields, BLOCK names, mode, null extension and neighbor links, hard-pointer LAYER 0x10, exact data/handle boundaries and trailing padding. Every byte-prefix truncation and each handle-role mutation is rejected; the same original frame passes again.",
+    "The existing BLOCK_HEADER source and role observer additionally checks model BLOCK 0x24 and ENDBLK 0x25, paper BLOCK 0x21 and ENDBLK 0x22, and model first/last LINE 0x2C. The two sample checks and the shared relative-handle vector pass.",
+    "Independent cadkit-dwg 0.5.4 decodes the source model BLOCK and ENDBLK with valid CRC, mode 2, layer 0x10, scale 1, visibility and null neighbors; its BLOCK body names *MODEL_SPACE. Cadkit is specification-directed and labels R13 untested.",
+    "The populated-pair packager reuses the observer and records four per-drawing frame hashes. A corrupted source is rejected without publishing a packet; corrected input succeeds at the same destination. The source-release inventory includes the new observer and its check and self-test pass. No drawing fixture was committed."
+  ],
+  "scratchPacket": "/private/tmp/ac1012-native-two-element-block-entities-20261127",
+  "hashes": {
+    "sourceDwg": "3a9dd2858b9d86d226fb4d704a5a396b4af04041bd034473ae7b022524f62173",
+    "destinationDwg": "269e05d515446e240d5165803458fb5330d5f1b5711e9d747a23431e7b061ea0",
+    "observer": "f662903f9db42feb1880a67aef1bb6deb0ef2872c362a1e7964c50eab29acdbb",
+    "observerResults": "b7d9574f98ee9db96b009f21c70b31466751dffe97a41c64b0f803e8178a25ef",
+    "ctestLog": "f5836e11531e8a69794e3ec3436cd066b1ed623ba3c7d9e3da6ad039230a96f9",
+    "cadkitBlockLog": "b7237b3c3ea69a2ee9a92cef4161b7bff8e1d95c117ae1b201ecf48c95d9c3d8",
+    "cadkitEndBlockLog": "cb2ba07e7748afe714fba034f863669c587b51d3727d2d926e15760978bf498f",
+    "packetManifest": "a7a32bce19d0cc394dae70c7daa2909e20218e4c769e9d9d198ec72ed3e39fff"
+  },
+  "limits": [
+    "Only the selected generated R13 source profile is checked. It does not establish whole-file graph closure, AutoCAD normal-open, dictionary cloning behavior, native output or general support."
+  ]
+}
