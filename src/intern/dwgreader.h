@@ -2328,7 +2328,7 @@ public:
   std::unordered_map<std::string, size_t> m_skippedUnsupportedObjects;
   std::vector<DRW_RawDwgSection> m_rawDwgSections;
   std::optional<dwgHandle> m_dwgNodReference;
-  std::array<dwgHandle, 13> m_dwgHeaderCurrentReferences{};
+  std::array<dwgHandle, 19> m_dwgHeaderCurrentReferences{};
   bool m_haveDwgHeaderCurrentReferences{false};
   bool m_ac1027HeaderMaterialCrcValidated{false};
   std::optional<DRW_DwgAc1027LayerSource> m_ac1027DefaultLayerSource;

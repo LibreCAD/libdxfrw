@@ -7759,7 +7759,7 @@ bool dwgReader::readDwgHeader(DRW_Header &hdr, dwgBuffer *buf,
              envelope.expected, envelope.observed, envelope.hasValues);
       return false;
     }
-    std::array<dwgHandle, 13> currentReferences{};
+    std::array<dwgHandle, 19> currentReferences{};
     const bool ret = hdr.parseDwgForReader(
         version, buf, hBuf, appMaintenanceVersion, &currentReferences);
     if (!ret) {
@@ -7967,6 +7967,16 @@ void dwgReader::resolveDwgHeaderCurrentReferences(DRW_Header& hdr) {
         resolve(offset + 10u, names[offset], 6,
                 DwgIntegrityCheckKind::HeaderDimensionLineTypeReference, ltypemap);
     }
+  }
+  const std::array<const char*, 6> ucsNames{{
+      "PUCSNAME", "PUCSORTHOREF", "PUCSBASE", "UCSNAME", "UCSORTHOREF", "UCSBASE"}};
+  for (std::size_t offset = 0; offset < ucsNames.size(); ++offset) {
+    if (version <= DRW::AC1014 && offset != 0u && offset != 3u)
+      continue;
+    const auto& reference = m_dwgHeaderCurrentReferences[offset + 13u];
+    if (!isNullPointer(reference))
+      resolve(offset + 13u, ucsNames[offset], 2,
+              DwgIntegrityCheckKind::HeaderUcsReference, ucsmap);
   }
 }
 

@@ -22134,6 +22134,59 @@ void testHeaderSourceCurrentReferenceFailures(TestContext& t) {
                      "corrected dimension linetype retries without a new diagnostic");
         }
     }
+    for (std::size_t selected = 0; selected < 6u; ++selected) {
+        for (int failure = 0; failure != 5; ++failure) {
+            std::vector<std::uint8_t> bytes;
+            HeaderCurrentReaderProbe ucsReader(bytes);
+            ucsReader.setVersion(DRW::AC1021);
+            const std::array<const char*, 6> keys{{
+                "PUCSNAME", "PUCSORTHOREF", "PUCSBASE", "UCSNAME", "UCSORTHOREF", "UCSBASE"}};
+            const std::array<const char*, 6> values{{
+                "Paper", "PaperOrtho", "PaperBase", "Model", "ModelOrtho", "ModelBase"}};
+            for (std::size_t i = 0; i < keys.size(); ++i) {
+                auto* ucs = new DRW_UCS;
+                ucs->handle = static_cast<std::uint32_t>(0x90u + i);
+                ucs->name = values[i];
+                ucsReader.ucsmap.emplace(ucs->handle, ucs);
+                auto& ref = ucsReader.m_dwgHeaderCurrentReferences[i + 13u];
+                ref.code = DRW::DwgHardPointer; ref.size = 1u;
+                ref.ref = ucs->handle; ref.ref64 = ucs->handle;
+            }
+            auto& ref = ucsReader.m_dwgHeaderCurrentReferences[selected + 13u];
+            if (failure == 0) ref.code = DRW::DwgSoftPointer;
+            if (failure == 1) { ref.ref = 0x52u; ref.ref64 = 0x52u; }
+            if (failure == 2) { ref.ref = 0x99u; ref.ref64 = 0x99u; }
+            if (failure == 3) ref.ref64 = UINT64_C(0x100000090) + selected;
+            if (failure == 4) {
+                auto* duplicate = new DRW_UCS;
+                duplicate->handle = 0xa0u; duplicate->name = values[selected];
+                ucsReader.ucsmap.emplace(duplicate->handle, duplicate);
+            }
+            DRW_Header ucsHeader;
+            ucsReader.resolveDwgHeaderCurrentReferences(ucsHeader);
+            t.expect(ucsReader.diagnostics().size() == 1u
+                         && ucsReader.diagnostics().front().kind
+                             == DwgIntegrityCheckKind::HeaderUcsReference,
+                     "unresolved or ambiguous HEADER UCS is an integrity error");
+            ref.code = DRW::DwgHardPointer;
+            ref.ref = static_cast<std::uint32_t>(0x90u + selected); ref.ref64 = ref.ref;
+            const auto duplicate = ucsReader.ucsmap.find(0xa0u);
+            if (duplicate != ucsReader.ucsmap.end()) {
+                delete duplicate->second;
+                ucsReader.ucsmap.erase(duplicate);
+            }
+            ucsReader.resolveDwgHeaderCurrentReferences(ucsHeader);
+            for (std::size_t i = 0; i < keys.size(); ++i) {
+                const auto found = ucsHeader.vars.find(keys[i]);
+                t.expect(found != ucsHeader.vars.end()
+                             && found->second->type() == DRW_Variant::STRING
+                             && *found->second->content.s == values[i],
+                         "HEADER UCS resolves to its source UCS name");
+            }
+            t.expect(ucsReader.diagnostics().size() == 1u,
+                     "corrected HEADER UCS retries without a new diagnostic");
+        }
+    }
 }
 
 void testHeaderCurrentReferences(TestContext& t) {
