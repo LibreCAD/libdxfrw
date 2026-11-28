@@ -57,8 +57,10 @@ below is still open, and its linked evidence defines the present boundary.
    Use the [staged line-loop graph check](docs/research/p8d-hatch-staged-association-2026-11-28.json)
    as an output prerequisite. The [per-loop source identities](docs/research/p8d-librecad-hatch-source-loops-2026-11-28.json)
    retain input order. Use the [live geometry matcher](docs/research/p8d-hatch-live-geometry-2026-11-28.json)
-   for its one-straight-loop profile; match source identities and owners and
-   handle copies and edits. The [composed entity inspector](docs/research/p8d-entity-inspector-composition-2026-11-28.json)
+   for its one-straight-loop profile. [Decoded owner candidates and geometry snapshots](docs/research/p8d-dxf-owner-candidate-snapshot-2026-11-28.json)
+   reject duplicate identities and overflow; validate the physical source roles,
+   model-space ownership and graph closure, then handle copies and late edits.
+   The [composed entity inspector](docs/research/p8d-entity-inspector-composition-2026-11-28.json)
    provides the common hook for binding the check to consumer finalization.
    Preserve explicit deassociation outside the verified profile;
    the staged check alone does not establish consumer association support.
