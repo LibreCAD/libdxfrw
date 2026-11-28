@@ -84,6 +84,7 @@ EXTRA_PATCHES = {
         "freecad-p8-block-text-scale-loss-2026-11-28.patch",
         "freecad-p8-block-text-shear-control-2026-11-28.patch",
         "freecad-p8-bounded-minsert-2026-11-28.patch",
+        "freecad-p8-array-annotation-budget-2026-11-28.patch",
     ),
 }
 

@@ -60,6 +60,7 @@ EXTRA_TESTS = {
         "test_nested_block_text_shear_is_reported",
         "test_block_insert_arrays_geometry_and_text",
         "test_block_insert_array_invalid_then_valid",
+        "test_insert_array_annotation_budget_and_retry",
     ),
 }
 

@@ -1,0 +1,84 @@
+diff --git a/src/Mod/Import/App/dxf/dxf.h b/src/Mod/Import/App/dxf/dxf.h
+--- a/src/Mod/Import/App/dxf/dxf.h
++++ b/src/Mod/Import/App/dxf/dxf.h
+@@ -741,0 +742 @@
++    bool m_firstInsertArrayInstance = true;  // First instance of the current source INSERT
+diff --git a/src/Mod/Import/App/dxf/dxf.cpp b/src/Mod/Import/App/dxf/dxf.cpp
+--- a/src/Mod/Import/App/dxf/dxf.cpp
++++ b/src/Mod/Import/App/dxf/dxf.cpp
+@@ -2928,0 +2929 @@
++            m_firstInsertArrayInstance = (row == 0 && column == 0);
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.h b/src/Mod/Import/App/dxf/ImpExpDxf.h
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.h
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.h
+@@ -277,0 +278,2 @@
++    std::size_t m_currentInsertAnnotationVisits = 0;
++    bool m_currentInsertAnnotationLimitReported = false;
+@@ -418,2 +420,6 @@
+-                std::size_t annotationVisits = 0;
+-                bool annotationLimitReported = false;
++                if (Reader.m_firstInsertArrayInstance) {
++                    Reader.m_currentInsertAnnotationVisits = 0;
++                    Reader.m_currentInsertAnnotationLimitReported = false;
++                }
++                auto& annotationVisits = Reader.m_currentInsertAnnotationVisits;
++                auto& annotationLimitReported = Reader.m_currentInsertAnnotationLimitReported;
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -1710,0 +1711,55 @@
++    def test_insert_array_annotation_budget_and_retry(self):
++        """One source array shares its annotation budget; the next INSERT starts fresh."""
++        import sys
++        import types
++        draft = types.ModuleType("Draft")
++        calls = []
++        witness = self.document.addObject("App::FeaturePython", "ArrayBudgetText")
++        def make_text(text, placement, *args):
++            calls.append(text)
++            return witness
++        draft.make_text = make_text
++        old_draft = sys.modules.get("Draft")
++        sys.modules["Draft"] = draft
++        try:
++            options = FreeCAD.ParamGet(self.option_source)
++            options.SetBool("dxftext", True)
++            names = [f"D{i:02}" for i in range(14)]
++            tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                    (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"), (2, "BLOCKS")]
++            blocks = [("A", [names[0]], True, None)]
++            blocks += [(name, [names[i + 1], names[i + 1]] if i + 1 < len(names) else [],
++                        False, "MANY" if i + 1 == len(names) else None)
++                       for i, name in enumerate(names)]
++            blocks.append(("SAFE", [], True, "SAFE"))
++            for name, children, line, text in blocks:
++                tags += [(0, "BLOCK"), (8, "0"), (2, name), (70, 0), (10, 0), (20, 0), (30, 0)]
++                if line:
++                    tags += [(0, "LINE"), (8, "0"), (10, 0), (20, 0), (30, 0),
++                             (11, 1), (21, 0), (31, 0)]
++                if text:
++                    tags += [(0, "TEXT"), (8, "0"), (10, 0), (20, 0), (30, 0), (40, 1), (1, text)]
++                for child in children:
++                    tags += [(0, "INSERT"), (8, "0"), (2, child), (10, 0), (20, 0), (30, 0)]
++                tags += [(0, "ENDBLK"), (8, "0")]
++            tags += [(0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES"),
++                     (0, "INSERT"), (8, "0"), (2, "A"), (10, 0), (20, 0), (30, 0), (70, 4), (44, 1),
++                     (0, "INSERT"), (8, "0"), (2, "SAFE"), (10, 0), (20, 0), (30, 0),
++                     (0, "ENDSEC"), (0, "EOF")]
++            path = os.path.join(self.temp_dir, "array-text-budget.dxf")
++            with open(path, "w", encoding="ascii", newline="\n") as stream:
++                stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++            for mode in (2, 3):
++                with self.subTest(mode=mode):
++                    options.SetInt("DxfImportMode", mode)
++                    calls.clear()
++                    stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                    self.assertEqual(calls.count("MANY"), 2 ** 14)
++                    self.assertEqual(calls.count("SAFE"), 1)
++                    self.assertEqual(len(stats["unsupportedFeatures"]["Block annotation expansion limit"]), 1)
++        finally:
++            if old_draft is None:
++                del sys.modules["Draft"]
++            else:
++                sys.modules["Draft"] = old_draft
++
