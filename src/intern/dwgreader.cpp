@@ -7693,6 +7693,8 @@ bool dwgReader::readDwgHeader(DRW_Header &hdr, dwgBuffer *buf,
   m_haveDwgHeaderCurrentReferences = false;
   m_ac1027HeaderMaterialCrcValidated = false;
   m_dwgHeaderCurrentReferences = {};
+  m_dwgHeaderCurrentMLineStyle.reset();
+  mlineStyleNameMap.clear();
   m_dwgNodPublished = false;
   m_dwgNodFailureReported = false;
   hdr.m_dwgNamedObjectDictionaryReference.reset();
@@ -7759,7 +7761,7 @@ bool dwgReader::readDwgHeader(DRW_Header &hdr, dwgBuffer *buf,
              envelope.expected, envelope.observed, envelope.hasValues);
       return false;
     }
-    std::array<dwgHandle, 19> currentReferences{};
+    std::array<dwgHandle, 20> currentReferences{};
     const bool ret = hdr.parseDwgForReader(
         version, buf, hBuf, appMaintenanceVersion, &currentReferences);
     if (!ret) {
@@ -7968,6 +7970,14 @@ void dwgReader::resolveDwgHeaderCurrentReferences(DRW_Header& hdr) {
                 DwgIntegrityCheckKind::HeaderDimensionLineTypeReference, ltypemap);
     }
   }
+  if (!isNullPointer(m_dwgHeaderCurrentReferences[19])) {
+    std::unordered_map<std::uint32_t, DRW_MLineStyle*> selected;
+    if (m_dwgHeaderCurrentMLineStyle != nullptr)
+      selected.emplace(m_dwgHeaderCurrentMLineStyle->handle,
+                       m_dwgHeaderCurrentMLineStyle.get());
+    resolve(19u, "CMLSTYLE", 2,
+            DwgIntegrityCheckKind::HeaderCurrentMLineStyleReference, selected);
+  }
   const std::array<const char*, 6> ucsNames{{
       "PUCSNAME", "PUCSORTHOREF", "PUCSBASE", "UCSNAME", "UCSORTHOREF", "UCSBASE"}};
   for (std::size_t offset = 0; offset < ucsNames.size(); ++offset) {
@@ -7977,6 +7987,43 @@ void dwgReader::resolveDwgHeaderCurrentReferences(DRW_Header& hdr) {
     if (!isNullPointer(reference))
       resolve(offset + 13u, ucsNames[offset], 2,
               DwgIntegrityCheckKind::HeaderUcsReference, ucsmap);
+  }
+}
+
+void dwgReader::validateDwgHeaderMLineStyle() {
+  // The selected record was probed before HEADER publication. Complete the
+  // name-uniqueness check only after the normal object pass, which owns all
+  // MLINESTYLE callbacks and remains authoritative for object failures.
+  if (m_dwgHeaderCurrentMLineStyle != nullptr) {
+    const auto& selected = *m_dwgHeaderCurrentMLineStyle;
+    const auto found = mlineStyleNameMap.find(selected.handle);
+    bool valid = found != mlineStyleNameMap.end() && found->second == selected.name;
+    const auto ascii = [](const std::string& name) {
+      return std::all_of(name.begin(), name.end(), [](unsigned char c) { return c < 0x80u; });
+    };
+    for (const auto& entry : mlineStyleNameMap) {
+      if (entry.first == selected.handle)
+        continue;
+      if (!ascii(selected.name) || !ascii(entry.second)
+          || (entry.second.size() == selected.name.size()
+              && std::equal(entry.second.begin(), entry.second.end(), selected.name.begin(),
+                  [](char a, char b) {
+                    return std::toupper(static_cast<unsigned char>(a))
+                        == std::toupper(static_cast<unsigned char>(b));
+                  }))) {
+        valid = false;
+        break;
+      }
+    }
+    if (!valid) {
+      const auto& source = m_dwgHeaderCurrentReferences[19];
+      recordIntegrityDiagnostic(
+          DwgIntegritySeverity::Error, DwgIntegrityAddressSpace::None,
+          DwgIntegrityPhase::SectionParser,
+          DwgIntegrityCheckKind::HeaderCurrentMLineStyleReference,
+          secEnum::HEADER, -1, "AcDb:Header", 0u, false, 0u, false,
+          source.ref, true, DRW::DwgHardPointer, source.code, false);
+    }
   }
 }
 
@@ -9729,6 +9776,33 @@ bool dwgReader::readDwgTables(DRW_Header &hdr, dwgBuffer *dbuf,
     parseAttribs(item.second);
   for (auto &item : ucsmap)
     parseAttribs(item.second);
+
+  // HEADER is published before OBJECTS. Probe the one referenced MLINESTYLE
+  // using the same bounded, CRC-checked frame and parser as object dispatch,
+  // without consuming its map entry or publishing an early object callback.
+  m_dwgHeaderCurrentMLineStyle.reset();
+  if (ret && m_haveDwgHeaderCurrentReferences && dbuf != nullptr) {
+    const auto& reference = m_dwgHeaderCurrentReferences[19];
+    if (reference.code == DRW::DwgHardPointer && reference.ref != 0u
+        && reference.ref64 == reference.ref) {
+      const auto source = ObjectMap.find(reference.ref);
+      if (source != ObjectMap.end()) {
+        DwgFrameClassification classification;
+        dwgBuffer probe = dbuf->forkIndependent();
+        DwgObjectFrame frame;
+        if (classifyDwgSourceFrame(&probe, source->second, classification)
+            && classification.route == DwgFrameClassification::Route::Object
+            && classification.resolvedType == dwgObjType::MLINESTYLE
+            && frame.readAt(probe, version, source->second.loc)) {
+          auto style = std::make_unique<DRW_MLineStyle>();
+          dwgBuffer body(frame.body().data(), frame.body().size(), &decoder);
+          if (style->parseDwg(version, &body, frame.bodyBitSize())
+              && body.isGood() && style->handle == reference.ref)
+            m_dwgHeaderCurrentMLineStyle = std::move(style);
+        }
+      }
+    }
+  }
 
   if (ret) {
     try {
@@ -14186,6 +14260,7 @@ bool dwgReader::readDwgObjects(DRW_Interface &intfa, dwgBuffer *dbuf,
     }
     DRW_DBG("\n");
   }
+  validateDwgHeaderMLineStyle();
   finalizeDataStorageLinks();
   if (!structuralFailure) {
     structuralFailure = !publishDeferredRawObjects(intfa, deferredRawObjects);

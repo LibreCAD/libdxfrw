@@ -21946,7 +21946,15 @@ public:
         dimstylemap.emplace(dim->handle, dim);
     }
     using dwgReader::resolveDwgHeaderCurrentReferences;
+    using dwgReader::validateDwgHeaderMLineStyle;
+    void noteMLineStyle(std::uint32_t handle, const std::string& name) { mlineStyleNameMap[handle] = name; }
+    void eraseMLineStyle(std::uint32_t handle) { mlineStyleNameMap.erase(handle); }
     void setVersion(DRW::Version v) { version = v; }
+    void setHeaderMLineStyle(std::uint32_t handle, const std::string& name) {
+        m_dwgHeaderCurrentMLineStyle = std::make_unique<DRW_MLineStyle>();
+        m_dwgHeaderCurrentMLineStyle->handle = handle;
+        m_dwgHeaderCurrentMLineStyle->name = name;
+    }
     const std::vector<DwgIntegrityDiagnostic>& diagnostics() const {
         return m_integrityDiagnostics;
     }
@@ -22170,6 +22178,51 @@ void testHeaderSourceCurrentReferenceFailures(TestContext& t) {
             t.expect(lineReader.diagnostics().size() == 1u,
                      "corrected dimension linetype retries without a new diagnostic");
         }
+    }
+    for (int failure = 0; failure != 4; ++failure) {
+        std::vector<std::uint8_t> bytes;
+        HeaderCurrentReaderProbe mlineReader(bytes);
+        mlineReader.setHeaderMLineStyle(failure == 1 ? 0x91u : 0x90u, "SelectedMLine");
+        auto& reference = mlineReader.m_dwgHeaderCurrentReferences[19];
+        reference.code = failure == 0 ? DRW::DwgSoftPointer : DRW::DwgHardPointer;
+        reference.size = 1u;
+        reference.ref = failure == 2 ? 0x99u : 0x90u;
+        reference.ref64 = failure == 3 ? UINT64_C(0x100000090) : reference.ref;
+        DRW_Header mlineHeader;
+        mlineReader.resolveDwgHeaderCurrentReferences(mlineHeader);
+        t.expect(mlineReader.diagnostics().size() == 1u
+                     && mlineReader.diagnostics().front().kind
+                         == DwgIntegrityCheckKind::HeaderCurrentMLineStyleReference,
+                 "invalid HEADER MLINESTYLE target is an integrity error");
+        mlineReader.setHeaderMLineStyle(0x90u, "SelectedMLine");
+        reference.code = DRW::DwgHardPointer;
+        reference.ref = 0x90u; reference.ref64 = 0x90u;
+        mlineReader.resolveDwgHeaderCurrentReferences(mlineHeader);
+        const auto found = mlineHeader.vars.find("CMLSTYLE");
+        t.expect(found != mlineHeader.vars.end() && found->second->type() == DRW_Variant::STRING
+                     && *found->second->content.s == "SelectedMLine"
+                     && mlineReader.diagnostics().size() == 1u,
+                 "corrected HEADER MLINESTYLE resolves on the same reader");
+    }
+    for (int failure = 0; failure != 3; ++failure) {
+        std::vector<std::uint8_t> bytes;
+        HeaderCurrentReaderProbe mlineReader(bytes);
+        mlineReader.setHeaderMLineStyle(0x90u, "SelectedMLine");
+        auto& ref = mlineReader.m_dwgHeaderCurrentReferences[19];
+        ref.code = DRW::DwgHardPointer; ref.size = 1u; ref.ref = 0x90u; ref.ref64 = 0x90u;
+        if (failure != 0) mlineReader.noteMLineStyle(0x90u, "SelectedMLine");
+        if (failure == 1) mlineReader.noteMLineStyle(0x91u, "selectedmline");
+        if (failure == 2) mlineReader.noteMLineStyle(0x91u, "\xc3\xa9");
+        mlineReader.validateDwgHeaderMLineStyle();
+        t.expect(mlineReader.diagnostics().size() == 1u
+                     && mlineReader.diagnostics().front().kind
+                         == DwgIntegrityCheckKind::HeaderCurrentMLineStyleReference,
+                 "missing, duplicate or unqualified MLINESTYLE is diagnostic");
+        mlineReader.noteMLineStyle(0x90u, "SelectedMLine");
+        mlineReader.eraseMLineStyle(0x91u);
+        mlineReader.validateDwgHeaderMLineStyle();
+        t.expect(mlineReader.diagnostics().size() == 1u,
+                 "corrected MLINESTYLE object graph retries without a new diagnostic");
     }
     for (std::size_t selected = 0; selected < 6u; ++selected) {
         for (int failure = 0; failure != 5; ++failure) {

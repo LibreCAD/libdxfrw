@@ -215,7 +215,9 @@ enum class DwgIntegrityCheckKind : std::uint8_t {
     /// A HEADER dimension linetype handle has an invalid role or target.
     HeaderDimensionLineTypeReference,
     /// A HEADER UCS handle has an invalid role or target.
-    HeaderUcsReference
+    HeaderUcsReference,
+    /// HEADER CMLSTYLE has an invalid or ambiguous MLINESTYLE reference.
+    HeaderCurrentMLineStyleReference
 };
 
 /// Version of the field and enum contract carried by DwgIntegrityDiagnostic.

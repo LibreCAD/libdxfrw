@@ -1,0 +1,23 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dwg-header-cmlstyle-reader-2026-11-27",
+  "supportClaimEffect": "none",
+  "authority": [
+    "ODA Open Design Specification v5.4.1 section 9 specifies HEADER CMLSTYLE as a hard pointer."
+  ],
+  "sample": {
+    "provenance": "Locally created ezdxf R2010 source converted by ODA File Converter 27.1 macOS; scratch only.",
+    "dwgSha256": "a9abe2eb38544e7e8849ec1d2eac07b6a160d1945e84b58a09ff8106d2e3424b",
+    "libredwg014": "Source HEADER CMLSTYLE hard pointer targets MLINESTYLE P6_MLINE."
+  },
+  "change": "Before the existing header callback, probe only the referenced object with the shared bounded CRC-checked frame, type classifier, handle identity and MLINESTYLE parser; leave the source map and object callback untouched. Validate object-pass identity and name uniqueness after normal OBJECTS decoding. Invalid and ambiguous references are integrity diagnostics.",
+  "checks": [
+    "Before the fix, the selected source exported CMLSTYLE Standard despite its P6_MLINE target.",
+    "Explicit-partial ASCII and binary output preserve P6_MLINE; ezdxf 1.4.5 reports zero errors and fixes. ODA 27.1 reopens both with audit off and LibreDWG 0.14 resolves their CMLSTYLE pointers to P6_MLINE.",
+    "Focused HEADER controls exercise wrong handle role, missing or mismatched targets, wide values, duplicate or unqualified object names and corrected same-reader retries."
+  ],
+  "limits": [
+    "One ODA-generated AC1024 control and a locally authored source do not establish all producer profiles or native style activation.",
+    "DWG CMLSTYLE writing remains unimplemented; strict AC1024 output remains refused for its unclassified HEADER suffix. No generated fixture was committed."
+  ]
+}

@@ -419,14 +419,14 @@ private:
     /// HEADER layout and the legacy protected parser signature stay intact.
     [[nodiscard]] bool parseDwgForReader(
         DRW::Version version, dwgBuffer* buf, dwgBuffer* hBbuf,
-        std::uint8_t mv, std::array<dwgHandle, 19>* currentReferences);
+        std::uint8_t mv, std::array<dwgHandle, 20>* currentReferences);
     [[nodiscard]] bool parseDwgImplForReader(
         DRW::Version version, dwgBuffer* buf, dwgBuffer* hBbuf,
-        std::uint8_t mv, std::array<dwgHandle, 19>* currentReferences);
+        std::uint8_t mv, std::array<dwgHandle, 20>* currentReferences);
     [[nodiscard]] bool parseDwgBodyForReader(
         DRW::Version version, dwgBuffer* buf, dwgBuffer* hBbuf,
         std::uint8_t mv, bool consumeTrailer,
-        std::array<dwgHandle, 19>* currentReferences);
+        std::array<dwgHandle, 20>* currentReferences);
     /// Writer-only variant supplies the root object identity from the
     /// writer's reserved graph; source HEADER provenance remains separate.
     [[nodiscard]] bool encodeDwgForWriter(

@@ -3331,7 +3331,7 @@ bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf,
 bool DRW_Header::parseDwgForReader(
         DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf,
         std::uint8_t maintenanceVersion,
-        std::array<dwgHandle, 19>* currentReferences) {
+        std::array<dwgHandle, 20>* currentReferences) {
     m_dwgNamedObjectDictionaryReference.reset();
     if (buf == nullptr || hBbuf == nullptr)
         return false;
@@ -3343,7 +3343,7 @@ bool DRW_Header::parseDwgForReader(
     curr = nullptr;
     name.clear();
     try {
-        std::array<dwgHandle, 19> stagedReferences{};
+        std::array<dwgHandle, 20> stagedReferences{};
         const bool parsed = parseDwgImplForReader(
             version, buf, hBbuf, maintenanceVersion, &stagedReferences);
         const bool valid = parsed && buf->isGood() && hBbuf->isGood();
@@ -3375,7 +3375,7 @@ bool DRW_Header::parseDwgImpl(DRW::Version version, dwgBuffer *buf,
 bool DRW_Header::parseDwgImplForReader(
         DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf,
         std::uint8_t maintenanceVersion,
-        std::array<dwgHandle, 19>* currentReferences) {
+        std::array<dwgHandle, 20>* currentReferences) {
     // Preserve existing modern body-only callers. Full sections use the same
     // admitted envelope and upper ceilings on every version, not only R2000.
     if (version != DRW::AC1015 && buf->getPosition() == 0u)
@@ -3417,7 +3417,7 @@ bool DRW_Header::parseDwgBody(DRW::Version version, dwgBuffer *buf,
 bool DRW_Header::parseDwgBodyForReader(
         DRW::Version version, dwgBuffer *buf, dwgBuffer *hBbuf,
         std::uint8_t maintenanceVersion, bool consumeTrailer,
-        std::array<dwgHandle, 19>* currentReferences) {
+        std::array<dwgHandle, 20>* currentReferences) {
     bool result = true;
     const std::uint64_t headerStart = buf->getPosition();
     std::uint32_t size = buf->getRawLong32();
@@ -3676,6 +3676,8 @@ bool DRW_Header::parseDwgBodyForReader(
                                dwgHandle{}, dwgHandle{}}};
     dwgHandle CMLSTYLE = hBbuf->getHandle();
     DRW_DBG("\nCMLSTYLE: "); DRW_DBGHL(CMLSTYLE.code, CMLSTYLE.size, CMLSTYLE.ref);
+    if (currentReferences != nullptr)
+        (*currentReferences)[19] = CMLSTYLE;
     if (version > DRW::AC1014) {//2000+
         storeVar("PSVPSCALE", new DRW_Variant(40, buf->getBitDouble()));
     }
