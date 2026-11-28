@@ -12,6 +12,32 @@ from generate_ac1012_dictionary_merge_samples import read_object_frame
 from generate_ac1012_dictionary_witness import Bits, require, sha
 
 
+def observe_control(frame: bytes) -> dict:
+    """Bind the selected empty-count BLOCK_CONTROL and its two special slots."""
+    bits = Bits(frame)
+    spans = {}
+
+    def field(label, read):
+        start = bits.position
+        value = read()
+        spans[label] = {"startBit": start, "endBit": bits.position, "value": value}
+        return value
+
+    require(field("type", bits.bs) == 48
+            and field("self", lambda: bits.handle(0, own=True))["value"] == 1
+            and field("eedSize", bits.bs) == 0, "unexpected BLOCK_CONTROL prefix")
+    boundary = field("dataEnd", lambda: bits.little(4))
+    require(field("reactorCount", bits.bl) == 0 and field("count", bits.bl) == 0
+            and bits.position == boundary, "unexpected BLOCK_CONTROL body")
+    for label, role, expected in (("owner", 4, 0), ("extension", 3, 0),
+                                  ("model", 3, 0x1f), ("paper", 3, 0x20)):
+        value = field(label, lambda: bits.handle(role, 1))
+        require(value["role"] == role and value["value"] == expected,
+                f"wrong BLOCK_CONTROL {label}")
+    require(len(frame) * 8 - bits.position < 8, "unexpected BLOCK_CONTROL tail")
+    return {"frameSha256": sha(frame), "spans": spans, "paddingBits": len(frame) * 8 - bits.position}
+
+
 def observe(frame: bytes, handle: int, kind: int, mode: int, name: str) -> dict:
     bits = Bits(frame)
     spans = {}
@@ -91,7 +117,29 @@ def audit(path: Path, dwgread: str) -> dict:
         require(observe(raw, handle, kind, mode, name) == proof, "unchanged frame retry differs")
         result[f"{handle:X}"] = {"offset": offset, "proof": proof,
                                   "wrongRoleAndTruncationRejectedWithRetry": True}
-    return {"sourceSha256": sha(path.read_bytes()), "objects": result}
+    offset, raw = read_object_frame(path, dwgread, 1, 48)
+    control = observe_control(raw)
+    for label in ("owner", "extension", "model", "paper"):
+        damaged = bytearray(raw)
+        bit = control["spans"][label]["startBit"]
+        damaged[bit // 8] ^= 0x80 >> (bit % 8)
+        try:
+            observe_control(bytes(damaged))
+        except ValueError:
+            pass
+        else:
+            raise ValueError(f"wrong BLOCK_CONTROL {label} role accepted")
+    for length in range(len(raw)):
+        try:
+            observe_control(raw[:length])
+        except ValueError:
+            pass
+        else:
+            raise ValueError("truncated BLOCK_CONTROL accepted")
+    require(observe_control(raw) == control, "unchanged BLOCK_CONTROL retry differs")
+    return {"sourceSha256": sha(path.read_bytes()), "objects": result,
+            "blockControl": {"offset": offset, "proof": control,
+                             "wrongRoleAndTruncationRejectedWithRetry": True}}
 
 
 def main():

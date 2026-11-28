@@ -1282,8 +1282,13 @@ bool checkLegacyBlockPairWire(const std::string& input) {
     if (!reader.fileImport(input, &data, false) || data.sourceVersion != DRW::AC1012
         || data.blockRecords.size() != 2u) return false;
     const auto source = bytes(input);
-    if (!DxIfaceStandardDwgCaptureTestAccess::legacyBlockFrames(data, source)
+    if (!data.hasCompleteDwgBlockRecordControlMembership()
+        || !DxIfaceStandardDwgCaptureTestAccess::legacyBlockFrames(data, source)
         || !DxIfaceStandardDwgCaptureTestAccess::legacyBlockWire(data)) return false;
+    data.blockRecords.front().parentHandle ^= 1u;
+    const bool rejectedOwner = !data.hasCompleteDwgBlockRecordControlMembership();
+    data.blockRecords.front().parentHandle ^= 1u;
+    if (!rejectedOwner || !data.hasCompleteDwgBlockRecordControlMembership()) return false;
     const auto model = std::find_if(data.blockRecords.begin(), data.blockRecords.end(),
         [](const DRW_Block_Record& record) { return record.name == "*MODEL_SPACE"; });
     const auto paper = std::find_if(data.blockRecords.begin(), data.blockRecords.end(),

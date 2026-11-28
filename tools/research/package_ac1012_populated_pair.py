@@ -123,6 +123,7 @@ def main():
                                  "styleFrameSha256": style_frames}
                 if block_entity_frames:
                     records[side]["blockEntityFrameSha256"] = block_entity_frames
+                    records[side]["blockControlFrameSha256"] = block_entities["blockControl"]["proof"]["frameSha256"]
         shutil.copyfile(guide, packet / "NATIVE_WITNESS.md")
         (packet / "source-receipt.json").write_bytes(receipt_bytes)
         readme = ("Locally generated AC1012 controls screened by ODA; native behavior is unobserved.\n"
