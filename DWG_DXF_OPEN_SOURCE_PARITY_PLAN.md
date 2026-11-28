@@ -114,8 +114,7 @@ below is still open, and its linked evidence defines the present boundary.
    both encodings omit physical BLOCK_RECORD 340 backlinks even though ezdxf
    reconstructs them without an audit fix. A [scratch-only projection](docs/research/p6-ac1012-scratch-projected-layout-links-2026-11-28.json)
    restores the physical reciprocal links in four outputs; it bypasses guards
-   and does not qualify export. The [writer identity preparation](docs/research/p6-legacy-writer-block-layout-projection-2026-11-28.json) now stages those links transactionally after binding the source graph; the legacy export refusal still prevents that path from publishing. Verify
-   the original physical links, source snapshots, staged output, rollback and corrected retry before admitting
+   and does not qualify export. The [writer identity preparation](docs/research/p6-legacy-writer-block-layout-projection-2026-11-28.json) now stages those links transactionally after binding the source graph; the legacy export refusal still prevents that path from publishing. A [repeatable diagnostic](docs/research/p6-legacy-staged-projection-diagnostic-2026-11-28.json) exercises the committed projection, rollback and readback for selected R13/R14 line drawings with explicit scratch-only guard bypasses. Prove the full staged output and its dependencies under the production guards before admitting
    any profile. The [shared association
    identity checks](docs/research/p6-layout-association-identity-guards-2026-11-28.json)
    reject malformed source identities transactionally in both legacy and

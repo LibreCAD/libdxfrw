@@ -1297,6 +1297,7 @@ EXTRA_DIST = \
     tools/research/P5H_VIEWPORT_SHADEPLOT_WITNESS_README.md \
     tools/research/P6A_IMAGEDEF_WITNESS_README.md \
     tools/research/ac1012_acadrust_pair.rs \
+    tools/research/ac1014_acadrust_rooted_line.rs \
     tools/research/ac1021_mtext_field_census.cpp \
     tools/research/ac1032_forum_assocnetwork_spans.py \
     tools/research/ac1032_forum_constraint_group_spans.py \
@@ -1371,7 +1372,9 @@ EXTRA_DIST = \
     tools/research/inventory_cover_peer_body_handles.py \
     tools/research/lc3_spline_builder_removal_asan.cpp \
     tools/research/legacy_dwg_dictionary_wire.py \
+    tools/research/legacy_layout_projection_probe.cpp \
     tools/research/librecad3-point-layer-merge-2026-11-27.patch \
+    tools/research/make_legacy_layout_projection_diagnostic.py \
     tools/research/mutate_ac1024_header_suffix_traced.py \
     tools/research/objectarx_witness.lsp \
     tools/research/objectarx_witness_scan.py \
@@ -1439,6 +1442,7 @@ EXTRA_DIST = \
     tools/research/test_decode_dxf_sat1.py \
     tools/research/test_freecad_candidate_gui_diagnostics.py \
     tools/research/test_legacy_dwg_dictionary_wire.py \
+    tools/research/test_make_legacy_layout_projection_diagnostic.py \
     tools/research/verify_ac1018_mline_source.py \
     tools/research/verify_ac1021_field_oda_resave.py \
     tools/research/verify_ac1021_metric_field_spans.py \

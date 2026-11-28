@@ -1,0 +1,260 @@
+{
+  "baseCommit": "539f33d6f",
+  "checks": [
+    "Regenerate the R14 line source from the pinned clean producer and reproduce its SHA-256; the default R13 generator profile still runs. The independent physical map and LibreDWG agree on 42 frames, including two LAYOUT frames and zero GEODATA, RASTERVARIABLES or WIPEOUTVARIABLES frames.",
+    "On two R13 and one R14 sources, the unmodified production adapter refuses both encodings and preserves existing destination sentinels. The diagnostic build rejects a changed source layout, preserves the sentinel, then succeeds on corrected same-adapter retry in both encodings; fresh library readback checks reciprocal layout links and source record immutability.",
+    "An independent physical walker checks actual BLOCK_RECORD/LAYOUT links and default LAYOUT CLASS fields. ezdxf independently reads all six outputs, reports zero audit errors/fixes and verifies the authored LINE endpoints.",
+    "An unrooted R14 source reaches the plot-style dictionary graph refusal. Adding the rooted entry advances the generated SHAPE source to the intentional missing-SHX-glyph-name refusal, so the separate line-only source isolates the layout projection.",
+    "Diagnostic generator controls reject mismatched source hashes, changed guard anchors, in-repository outputs, shadowing headers and overwrite attempts, then pass a corrected deterministic retry."
+  ],
+  "diagnosticAdapterSha256": "6555535f5e324f9695c1a67f11a22459bc921881820ca3510d7a7e0371a2a37f",
+  "id": "p6-legacy-staged-projection-diagnostic-2026-11-28",
+  "limits": [
+    "All successful legacy outputs came from an explicitly guard-bypassed scratch build; they are not production support, native AutoCAD, class omission or whole-file semantic evidence.",
+    "A source-distinct producer, target CLASS/proxy semantics, staged output inspector, broader object dependencies, native cloning and platform acceptance remain open.",
+    "No generated drawing or external fixture was committed."
+  ],
+  "method": "Separately compile the committed adapter with a scratch-only generator that bypasses the final legacy projection refusal and the three selected zero-frame CLASS guards. The committed writer identity projection itself is unchanged. Run the same reusable transaction probe against production and diagnostic builds.",
+  "outputs": {
+    "r13-destination": {
+      "ascii": {
+        "auditErrors": 0,
+        "auditFixes": 0,
+        "layoutClass": {
+          "app": "ObjectDBX Classes",
+          "class": "AcDbLayout",
+          "entity": 0,
+          "instanceCount": null,
+          "proxyFlag": 0,
+          "record": "LAYOUT",
+          "wasProxy": 0
+        },
+        "layouts": {
+          "Layout1": {
+            "block": "1E",
+            "blockName": "*Paper_Space",
+            "handle": "2F"
+          },
+          "Model": {
+            "block": "1F",
+            "blockName": "*Model_Space",
+            "handle": "2E"
+          }
+        },
+        "lineEnd": [
+          4,
+          5,
+          0
+        ],
+        "lineStart": [
+          1,
+          2,
+          0
+        ],
+        "sha256": "f8240c09e0ff960b7a10fd6fff5b44de41b86d12c98a7acd0638594ea56b8aab"
+      },
+      "binary": {
+        "auditErrors": 0,
+        "auditFixes": 0,
+        "layoutClass": {
+          "app": "ObjectDBX Classes",
+          "class": "AcDbLayout",
+          "entity": 0,
+          "instanceCount": null,
+          "proxyFlag": 0,
+          "record": "LAYOUT",
+          "wasProxy": 0
+        },
+        "layouts": {
+          "Layout1": {
+            "block": "1E",
+            "blockName": "*Paper_Space",
+            "handle": "2F"
+          },
+          "Model": {
+            "block": "1F",
+            "blockName": "*Model_Space",
+            "handle": "2E"
+          }
+        },
+        "lineEnd": [
+          4,
+          5,
+          0
+        ],
+        "lineStart": [
+          1,
+          2,
+          0
+        ],
+        "sha256": "669d5aacbef7e845bf80b81ac50169c61cad552020f4fd7e6af98a9f6fb1ed42"
+      }
+    },
+    "r13-source": {
+      "ascii": {
+        "auditErrors": 0,
+        "auditFixes": 0,
+        "layoutClass": {
+          "app": "ObjectDBX Classes",
+          "class": "AcDbLayout",
+          "entity": 0,
+          "instanceCount": null,
+          "proxyFlag": 0,
+          "record": "LAYOUT",
+          "wasProxy": 0
+        },
+        "layouts": {
+          "Layout1": {
+            "block": "1E",
+            "blockName": "*Paper_Space",
+            "handle": "2F"
+          },
+          "Model": {
+            "block": "1F",
+            "blockName": "*Model_Space",
+            "handle": "2E"
+          }
+        },
+        "lineEnd": [
+          4,
+          5,
+          0
+        ],
+        "lineStart": [
+          1,
+          2,
+          0
+        ],
+        "sha256": "16c5c506d668ca6616d2931e752ba970c26a7fb46a6708ded4790042b6c53cc7"
+      },
+      "binary": {
+        "auditErrors": 0,
+        "auditFixes": 0,
+        "layoutClass": {
+          "app": "ObjectDBX Classes",
+          "class": "AcDbLayout",
+          "entity": 0,
+          "instanceCount": null,
+          "proxyFlag": 0,
+          "record": "LAYOUT",
+          "wasProxy": 0
+        },
+        "layouts": {
+          "Layout1": {
+            "block": "1E",
+            "blockName": "*Paper_Space",
+            "handle": "2F"
+          },
+          "Model": {
+            "block": "1F",
+            "blockName": "*Model_Space",
+            "handle": "2E"
+          }
+        },
+        "lineEnd": [
+          4,
+          5,
+          0
+        ],
+        "lineStart": [
+          1,
+          2,
+          0
+        ],
+        "sha256": "1b74b86b87fa62a7223a815cf626fb40be25891446c47a7c0f2e395d1b7b1941"
+      }
+    },
+    "r14-line": {
+      "ascii": {
+        "auditErrors": 0,
+        "auditFixes": 0,
+        "layoutClass": {
+          "app": "ObjectDBX Classes",
+          "class": "AcDbLayout",
+          "entity": 0,
+          "instanceCount": null,
+          "proxyFlag": 0,
+          "record": "LAYOUT",
+          "wasProxy": 0
+        },
+        "layouts": {
+          "Layout1": {
+            "block": "1E",
+            "blockName": "*Paper_Space",
+            "handle": "2F"
+          },
+          "Model": {
+            "block": "1F",
+            "blockName": "*Model_Space",
+            "handle": "2E"
+          }
+        },
+        "lineEnd": [
+          4,
+          5,
+          0
+        ],
+        "lineStart": [
+          1,
+          2,
+          0
+        ],
+        "sha256": "5ac1bbcafea148a84b599b0aec6172f6814654b3325aedc48b2df0f1b1ba2854"
+      },
+      "binary": {
+        "auditErrors": 0,
+        "auditFixes": 0,
+        "layoutClass": {
+          "app": "ObjectDBX Classes",
+          "class": "AcDbLayout",
+          "entity": 0,
+          "instanceCount": null,
+          "proxyFlag": 0,
+          "record": "LAYOUT",
+          "wasProxy": 0
+        },
+        "layouts": {
+          "Layout1": {
+            "block": "1E",
+            "blockName": "*Paper_Space",
+            "handle": "2F"
+          },
+          "Model": {
+            "block": "1F",
+            "blockName": "*Model_Space",
+            "handle": "2E"
+          }
+        },
+        "lineEnd": [
+          4,
+          5,
+          0
+        ],
+        "lineStart": [
+          1,
+          2,
+          0
+        ],
+        "sha256": "6827d64ee476527cad067b81ffe92cce4d8eaf1cb3ed8ce8bbf353a81682e042"
+      }
+    }
+  },
+  "producerCommit": "d7c71f5032fc2d8844142ad7df7a6f0ee5ac535f",
+  "r14SourceSha256": "a7eb5336d6ae0e0081ec40a89162d0abc4b87cd520e2643af081151c99a73c53",
+  "schema": "libdxfrw.research-receipt.v1",
+  "sourceAdapterSha256": "a229baede6ca5a13e795571b7f6d0abd33ade6fda207640053e9c9e02a201ce0",
+  "supportClaimEffect": "none",
+  "toolSha256": {
+    "tools/research/ac1014_acadrust_rooted_line.rs": "eb8d567f46f8d01e70239498a8c8ae80c6102d0211bdfd861b24a54a3fd6d950",
+    "tools/research/legacy_layout_projection_probe.cpp": "0d3e70591c9f9625f7eda17d678a5fa557ecd21751beea9b578a805f309fcbf1",
+    "tools/research/make_legacy_layout_projection_diagnostic.py": "d3f59384ae9ca63631bc40ef9af11960d013b6dfb12ab42d4ece5ec19318733e"
+  },
+  "tools": {
+    "diagnosticBuilder": "tools/research/make_legacy_layout_projection_diagnostic.py",
+    "diagnosticRefusalTests": "tools/research/test_make_legacy_layout_projection_diagnostic.py",
+    "generator": "tools/research/generate_ac1012_acadrust_pair.py --profile ac1014-rooted-line",
+    "generatorRust": "tools/research/ac1014_acadrust_rooted_line.rs",
+    "physicalAndPeer": "tools/research/check_r2000_layout_projection_peer.py",
+    "transactionProbe": "tools/research/legacy_layout_projection_probe.cpp"
+  }
+}

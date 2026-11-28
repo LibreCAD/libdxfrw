@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate a scratch-only, pinned acadrust AC1012 dictionary witness pair.
+"""Generate scratch-only, pinned acadrust legacy drawing controls.
 
 Requires an existing clean checkout at the pinned revision and Cargo. The tool
 builds a disposable project, never changes the checkout, and records the actual
@@ -28,6 +28,8 @@ def run(args, **kwargs):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--profile", choices=("ac1012-pair", "ac1014-rooted-line"),
+                        default="ac1012-pair")
     parser.add_argument("--acadrust-root", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--cargo-target-dir", type=Path)
@@ -47,7 +49,9 @@ def main():
     output.mkdir(parents=True, exist_ok=True)
     if any(output.iterdir()):
         raise ValueError("output directory must be empty")
-    generator = Path(__file__).with_name("ac1012_acadrust_pair.rs")
+    r14 = args.profile == "ac1014-rooted-line"
+    generator = Path(__file__).with_name(
+        "ac1014_acadrust_rooted_line.rs" if r14 else "ac1012_acadrust_pair.rs")
     with tempfile.TemporaryDirectory(prefix="ac1012-acadrust-build-") as directory:
         project = Path(directory)
         (project / "src").mkdir()
@@ -71,12 +75,15 @@ def main():
         lock_hash = sha(project / "Cargo.lock")
         (output / "Cargo.lock").write_bytes((project / "Cargo.lock").read_bytes())
     samples = {}
-    for name in FILES:
+    files = ("r14-line.dwg", "r14-line-rooted-resaved.dwg") if r14 else FILES
+    magic = b"AC1014" if r14 else b"AC1012"
+    for name in files:
         path = output / name
-        if not path.is_file() or path.read_bytes()[:6] != b"AC1012":
-            raise ValueError("writer did not produce the expected AC1012 sample: " + name)
+        if not path.is_file() or path.read_bytes()[:6] != magic:
+            raise ValueError("writer did not produce the expected " + magic.decode() + " sample: " + name)
         samples[name] = {"sha256": sha(path), "bytes": path.stat().st_size}
-    receipt = {"schema": "libdxfrw.ac1012-acadrust-pair.v1", "ok": True,
+    receipt = {"schema": ("libdxfrw.ac1014-acadrust-rooted-line.v1" if r14
+                          else "libdxfrw.ac1012-acadrust-pair.v1"), "ok": True,
                "producerCommit": PINNED, "generatorSha256": sha(generator),
                "cargoLockSha256": lock_hash, "cargoVersion": run(["cargo", "--version"]).stdout.strip(),
                "rustVersion": run(["rustc", "--version"]).stdout.strip(), "samples": samples,
