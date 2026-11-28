@@ -27,6 +27,11 @@ def observe_control(frame: bytes, profile: str = "block") -> dict:
                 "layer": (2, 50, 1, (("entry", 2, 0x10),)),
                 "style": (3, 52, 1, (("entry", 2, 0x11),)),
                 "appid": (9, 66, 1, (("entry", 2, 0x12),)),
+                "view": (6, 60, 0, ()),
+                "ucs": (7, 62, 0, ()),
+                "vport": (8, 64, 1, (("entry", 2, 0x26),)),
+                "dimstyle": (10, 68, 1, (("entry", 2, 0x2d),)),
+                "viewportEntity": (11, 70, 0, ()),
                 "linetype": (5, 56, 1, (("entry", 2, 0x16),
                                         ("byBlock", 3, 0x14), ("byLayer", 3, 0x15)))}
     handle, kind, count, slots = profiles[profile]
@@ -282,6 +287,11 @@ def audit(path: Path, dwgread: str) -> dict:
             ("style", 0x11, 53, lambda f: observe_style_or_appid(f, True), ("owner", "extension", "xref")),
             ("appidControl", 9, 66, lambda f: observe_control(f, "appid"), ("owner", "extension", "entry")),
             ("appid", 0x12, 67, lambda f: observe_style_or_appid(f, False), ("owner", "extension", "xref")),
+            ("viewControl", 6, 60, lambda f: observe_control(f, "view"), ("owner", "extension")),
+            ("ucsControl", 7, 62, lambda f: observe_control(f, "ucs"), ("owner", "extension")),
+            ("vportControl", 8, 64, lambda f: observe_control(f, "vport"), ("owner", "extension", "entry")),
+            ("dimstyleControl", 10, 68, lambda f: observe_control(f, "dimstyle"), ("owner", "extension", "entry")),
+            ("viewportEntityControl", 11, 70, lambda f: observe_control(f, "viewportEntity"), ("owner", "extension")),
             ("byBlock", 0x14, 57, lambda f: observe_linetype(f, 0x14, "BYBLOCK", ""), ("owner", "extension", "xref")),
             ("byLayer", 0x15, 57, lambda f: observe_linetype(f, 0x15, "BYLAYER", ""), ("owner", "extension", "xref")),
             ("continuous", 0x16, 57, lambda f: observe_linetype(f, 0x16, "CONTINUOUS", "Solid line"), ("owner", "extension", "xref"))):
