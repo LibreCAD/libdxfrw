@@ -1,0 +1,34 @@
+{
+  "kind": "librecad-hatch-source-byte-binding",
+  "date": "2026-11-28",
+  "consumerCommit": "9e4c050472bd5bb86c3db50b92e288add8919301",
+  "codecCommit": "e7e40c6ec",
+  "scope": "A selected <=16 KiB ASCII HATCH/LWPOLYLINE source retains the pre-read bytes, matches every observed entity group and ENDSEC interval and raw value against those bytes, and compares the file again after a successful import before recording source-role evidence.",
+  "checks": {
+    "systemCodec": {
+      "cases": 5,
+      "assertions": 329,
+      "result": "pass",
+      "logSha256": "a9e42b087b887e0b448569c2f45ae43f873d20febea603c4030ffdffb0b398b1"
+    },
+    "bundledCodec": {
+      "cases": 4,
+      "assertions": 225,
+      "result": "pass; optional observer absent",
+      "logSha256": "ec2843d322cf2aa0765010982eac59f22edab0de33d82bd9991f7e0d31b3e690"
+    }
+  },
+  "controls": [
+    "Both typed and raw layer value changed together reject against retained bytes.",
+    "A file appended during the observer callback rejects evidence despite otherwise successful import.",
+    "Malformed owner/reactor roles, altered spans, duplicate delivery and truncated input reject; corrected same-filter retry passes.",
+    "Selected mixed IMAGE/MATERIAL output and existing deassociation behavior pass."
+  ],
+  "limits": [
+    "Binding covers the selected ENTITIES records and ENDSEC; it does not independently bind the decoded HEADER version or establish native producer semantics.",
+    "Source model-space identity, graph closure, finalization and editing remain open.",
+    "Source-role evidence does not enable association replay or promote support claims."
+  ],
+  "fixtures": "Locally authored in-memory DXF; no drawing files committed",
+  "supportClaimsPromoted": false
+}
