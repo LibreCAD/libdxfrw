@@ -52,9 +52,10 @@ below is still open, and its linked evidence defines the present boundary.
    `$PELLIPSE`, `$TEXTQLTY`, field presence and extension semantics using
    [versioned authority](docs/research/p8d-r14-display-header-authority-2026-11-26.json)
    and native evidence. Retain unsupported-field and nonzero PELLIPSE refusals.
-4. **Graph edits and wide identities.** Complete associative HATCH edit,
-   reverse-link, copy and collision handling with explicit deassociation loss.
-   Extend the [wide XRECORD route](docs/research/p7-wide-dxf-cross-encoding-2026-11-27.json)
+4. **Graph edits and wide identities.** Complete associative HATCH edit and
+   graph handling beyond the [selected deassociation, copy and unidentified-boundary guard](docs/research/p8d-librecad-hatch-unidentified-boundaries-2026-11-28.json).
+   Preserve refusal for unresolved reactors and advanced-object graphs until
+   their target identities and output closure are proved. Extend the [wide XRECORD route](docs/research/p7-wide-dxf-cross-encoding-2026-11-27.json)
    beyond its eight chains, selected roles and safe text only after source,
    target, graph and output proof. Qualify other typed-object stand-ins and
    bind original-stream observation before combining it with 32-bit projection.
