@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-sparse-material-curved-defaults-2026-11-27",
+  "supportClaimEffect": "selected profile only",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "1bbbadff8c9a9d4cedb8d41d32dadced4c91430d",
+  "parent": "bbd19ed7cc521b4f7fc5a2ab74bfb24ec6ed6a63",
+  "authority": [
+    "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-8663262B-222C-414D-B133-4A8506A27C18.htm",
+    "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-0B14D8F1-0EBA-44BF-9108-57D8CE614BC8.htm"
+  ],
+  "scope": "Bounded ordinary ASCII AC1021 sparse-MATERIAL model-space CIRCLE and ARC with explicit zero thickness and/or complete default extrusion (0,0,1). ARC extrusion may be entirely in either supported subclass; mixed-subclass tuples and incorrectly placed thickness are rejected.",
+  "checks": [
+    "Before the change the shared test passed POINT/LINE controls but refused both CIRCLE/ARC default controls.",
+    "The shared four-entity test passes 223 assertions including default combinations, live edits, reopen/resave, physical and typed mutations, invalid subclass placements, malformed/nondefault fields, destination preservation and retry.",
+    "The MATERIAL selector passes 3,969 assertions in 22 cases against the current installed shared codec; the bundled-codec library also compiles.",
+    "ezdxf 1.4.5 independently verifies edited centers, radius, arc angles, default thickness/extrusion and PlainMat links with zero audit errors or fixes."
+  ],
+  "hashes": {
+    "redLog": "db13162a1c63b09d71a79a6ee46885ebc48dd20f610fabc42865f4f10737f084",
+    "focusedLog": "e9ac04bdd490496a50c9523b7c603943dc57f4f80bb06ee349f520f7ce1f4475",
+    "materialLog": "b7f07eb2c533ebf9a48ff98f440714d975f76a6e6779739f0386d1496decc75d",
+    "bundledBuildLog": "33b366fa1b796685fcad8ca85434ce908ccf3af7ef470ed601123ba9f7f2e18c",
+    "scratchCircleOutput": "facfcc6acea08575fc95f9019bdc6e4fafd27486e406452ac1c1c5fa2c187388",
+    "scratchArcOutput": "c4babdb0a423d0d2f361cbe59d4d61ad7ac460ab2beeb93df5a9e4ab220cdc34"
+  },
+  "limits": [
+    "Nondefault thickness or extrusion, partial or mixed-subclass axis tuples and other unqualified entity/material profiles remain guarded.",
+    "Generated ASCII AC1021 and headless macOS ARM64 only; no native GUI, binary, other producer or general parity claim. No drawing fixture was committed."
+  ]
+}
