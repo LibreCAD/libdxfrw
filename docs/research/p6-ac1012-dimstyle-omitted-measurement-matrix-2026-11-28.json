@@ -1,0 +1,219 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-dimstyle-omitted-measurement-matrix-2026-11-28",
+  "supportClaimEffect": "none",
+  "scope": "Four scratch-only generated AC1024 ASCII inputs with DIMSTYLE groups 41, 42, 140 and 73 omitted; ODA File Converter 27.10 Linux x86_64 generates AC1012 and reopens AC1024 ASCII DXF. The inputs vary MEASUREMENT and current HEADER dimensions independently.",
+  "references": [
+    "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-Core/files/GUID-43E31690-BA17-4AD6-82D1-E7809BD1298A.htm",
+    "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-Core/files/GUID-60CFA531-80FD-45EF-B529-F4FAF5C758B3.htm",
+    "https://ezdxf.readthedocs.io/en/stable/tables/dimstyle_table_entry.html"
+  ],
+  "results": [
+    "All four physical DWG DIMSTYLE frames store DIMASZ=.18, DIMEXO=.0625, DIMTXT=.18 and DIMTIH=1 regardless of the input $MEASUREMENT and four current HEADER dimension settings. The four reopened DXFs omit those style groups; HEADER and MEASUREMENT match the corresponding inputs.",
+    "For each frame, the versioned physical observer binds all fields and roles, rejects every byte-prefix truncation and wrong selected handle roles, and retries the unchanged frame successfully.",
+    "ezdxf 1.4.5 reports 2.5, .625, 2.5 and 0 as effective values for the same omitted groups; these values are reader defaults, not explicit tags. Autodesk documents initial values for the current system variables; that does not alone establish missing DIMSTYLE group rules for arbitrary producers.",
+    "An isolated red/green experiment identified that current libdxfrw uses 0 for absent DIMTIH and 1 if experimentally initialized to the ODA-observed value. Explicit 0 and 1, multiple records, binary/ASCII reads and write/re-read passed with the experimental change. The global change was not retained: without a verified way to distinguish producer/default policy it would silently alter existing 2D consumer behavior and ezdxf-style inputs.",
+    "Four exact ODA DIMSTYLE records were extracted into minimal DXF wrappers, then parsed by the experimental codec, which returned the four ODA values. The full ODA-converted drawings failed this selected standalone codec import; this is not a whole-file compatibility claim."
+  ],
+  "cases": {
+    "imperial": {
+      "input": {
+        "sha256": "ba44f879335bf00cb50cae59000ccc11b70a5596f98d1e7e2a7efb26d3a2afcd",
+        "measurement": 0,
+        "header": {
+          "DIMASZ": 0.18,
+          "DIMEXO": 0.0625,
+          "DIMTXT": 0.18,
+          "DIMTIH": 1
+        },
+        "explicit": {},
+        "readerEffective": {
+          "DIMASZ": 2.5,
+          "DIMEXO": 0.625,
+          "DIMTXT": 2.5,
+          "DIMTIH": 0
+        }
+      },
+      "reopen": {
+        "sha256": "8ef3c93bc5216621e3d4a9403cebac8b91bb9453052baec008b69c506e6251bb",
+        "measurement": 0,
+        "header": {
+          "DIMASZ": 0.18,
+          "DIMEXO": 0.0625,
+          "DIMTXT": 0.18,
+          "DIMTIH": 1
+        },
+        "explicit": {},
+        "readerEffective": {
+          "DIMASZ": 2.5,
+          "DIMEXO": 0.625,
+          "DIMTXT": 2.5,
+          "DIMTIH": 0
+        }
+      },
+      "dwgSha256": "f33c0739b26301350614ce80d2bed7515e63b9540e6784037c03c6170dd2eb97",
+      "frameOffset": 4463,
+      "frameSha256": "d26960d6c17991a50bfe34866f20098d36a643c83c1ba7e3ef6111c79064c19e",
+      "wireValues": {
+        "DIMASZ": 0.18,
+        "DIMEXO": 0.0625,
+        "DIMTXT": 0.18,
+        "DIMTIH": 1
+      },
+      "wrongRolesAndTruncationRejectedWithRetry": true
+    },
+    "header_distinct": {
+      "input": {
+        "sha256": "1e2d7ba8f6cd15f1208b5ebed4c081ee7b3dbd82e9a8511422418e9996acee1a",
+        "measurement": 0,
+        "header": {
+          "DIMASZ": 7.25,
+          "DIMEXO": 3.5,
+          "DIMTXT": 9.25,
+          "DIMTIH": 0
+        },
+        "explicit": {},
+        "readerEffective": {
+          "DIMASZ": 2.5,
+          "DIMEXO": 0.625,
+          "DIMTXT": 2.5,
+          "DIMTIH": 0
+        }
+      },
+      "reopen": {
+        "sha256": "a2c5465d83be0a5fa4d66d9f6c08222fbdb88a33441f86a87b5b0789f0fbba65",
+        "measurement": 0,
+        "header": {
+          "DIMASZ": 7.25,
+          "DIMEXO": 3.5,
+          "DIMTXT": 9.25,
+          "DIMTIH": 0
+        },
+        "explicit": {},
+        "readerEffective": {
+          "DIMASZ": 2.5,
+          "DIMEXO": 0.625,
+          "DIMTXT": 2.5,
+          "DIMTIH": 0
+        }
+      },
+      "dwgSha256": "5d785398d03b24c262cebd6b05837a3a782c99e2cc894ffd6b44a1085063eb0b",
+      "frameOffset": 4463,
+      "frameSha256": "d26960d6c17991a50bfe34866f20098d36a643c83c1ba7e3ef6111c79064c19e",
+      "wireValues": {
+        "DIMASZ": 0.18,
+        "DIMEXO": 0.0625,
+        "DIMTXT": 0.18,
+        "DIMTIH": 1
+      },
+      "wrongRolesAndTruncationRejectedWithRetry": true
+    },
+    "metric": {
+      "input": {
+        "sha256": "1889439b821584a6dca2f57a6443c176de505bbc7bf1f6029c01d6f0e851c2b7",
+        "measurement": 1,
+        "header": {
+          "DIMASZ": 2.5,
+          "DIMEXO": 0.625,
+          "DIMTXT": 2.5,
+          "DIMTIH": 0
+        },
+        "explicit": {},
+        "readerEffective": {
+          "DIMASZ": 2.5,
+          "DIMEXO": 0.625,
+          "DIMTXT": 2.5,
+          "DIMTIH": 0
+        }
+      },
+      "reopen": {
+        "sha256": "89864d7d0d0e9c29631b1f4f650433ecb0bb2888e2b94f953da0c2cb65165f4c",
+        "measurement": 1,
+        "header": {
+          "DIMASZ": 2.5,
+          "DIMEXO": 0.625,
+          "DIMTXT": 2.5,
+          "DIMTIH": 0
+        },
+        "explicit": {},
+        "readerEffective": {
+          "DIMASZ": 2.5,
+          "DIMEXO": 0.625,
+          "DIMTXT": 2.5,
+          "DIMTIH": 0
+        }
+      },
+      "dwgSha256": "d845709f2de2be03659b9d5482496dcb180effdd6f0da47e0c3ba4ec4918c2fb",
+      "frameOffset": 4463,
+      "frameSha256": "d26960d6c17991a50bfe34866f20098d36a643c83c1ba7e3ef6111c79064c19e",
+      "wireValues": {
+        "DIMASZ": 0.18,
+        "DIMEXO": 0.0625,
+        "DIMTXT": 0.18,
+        "DIMTIH": 1
+      },
+      "wrongRolesAndTruncationRejectedWithRetry": true
+    },
+    "metric_header_imperial": {
+      "input": {
+        "sha256": "ba9415ae4431fb79e00f65bcf82223fa7128454bc7314ab53a7220bd94be2067",
+        "measurement": 1,
+        "header": {
+          "DIMASZ": 0.18,
+          "DIMEXO": 0.0625,
+          "DIMTXT": 0.18,
+          "DIMTIH": 1
+        },
+        "explicit": {},
+        "readerEffective": {
+          "DIMASZ": 2.5,
+          "DIMEXO": 0.625,
+          "DIMTXT": 2.5,
+          "DIMTIH": 0
+        }
+      },
+      "reopen": {
+        "sha256": "f39ab1fb61ff69f3da81f8211cddc632ac59a632472c41ccdf05555fb8de9b5a",
+        "measurement": 1,
+        "header": {
+          "DIMASZ": 0.18,
+          "DIMEXO": 0.0625,
+          "DIMTXT": 0.18,
+          "DIMTIH": 1
+        },
+        "explicit": {},
+        "readerEffective": {
+          "DIMASZ": 2.5,
+          "DIMEXO": 0.625,
+          "DIMTXT": 2.5,
+          "DIMTIH": 0
+        }
+      },
+      "dwgSha256": "7aeef63c28c27fdde95e3842c2df071593e0832f1c9c0f3f3c6bfca357ce7a13",
+      "frameOffset": 4463,
+      "frameSha256": "d26960d6c17991a50bfe34866f20098d36a643c83c1ba7e3ef6111c79064c19e",
+      "wireValues": {
+        "DIMASZ": 0.18,
+        "DIMEXO": 0.0625,
+        "DIMTXT": 0.18,
+        "DIMTIH": 1
+      },
+      "wrongRolesAndTruncationRejectedWithRetry": true
+    }
+  },
+  "evidenceSha256": {
+    "audit.json": "8381dbaeaa2ae344d2bd38ad9ece439c1d28dc3614e5ea88855363a74a8f1335",
+    "conversion.log": "3fc8dfb5bbc008a99195604ec9e68bc2d2b5f9b5166505646d23f2a14b6e2252",
+    "reopen.log": "3fc8dfb5bbc008a99195604ec9e68bc2d2b5f9b5166505646d23f2a14b6e2252",
+    "red-test.log": "dee11ad20cc5792a766af11cdc1b43eaf0168bf784ded218a76fd130ed6714b4",
+    "green-test.log": "b1af12b53d099e54df105cbaa500937d374d68976d593435833bc42d0582790c",
+    "focused-ctest.log": "9e93617da38267978915990d12f4b108a57210179dec0b27491be6ee83f7f9c2",
+    "codec-minimal-probe.log": "740fd8dd712162554ebfbcfb12ef58cd608b351a18a90adcdc710bb97ba4c283"
+  },
+  "scratchDirectory": "/private/tmp/ac1012-dimstyle-measurement-20261128",
+  "limits": [
+    "Producer behavior is ODA-only and the source profile is synthetic; native AutoCAD and other independent interpretation are required to settle default policy.",
+    "No generated DWG/DXF fixtures or experimental source change were committed.",
+    "Do not equate $MEASUREMENT or initial HEADER values with universal DIMSTYLE defaults without evidence."
+  ]
+}
