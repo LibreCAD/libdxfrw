@@ -25061,6 +25061,27 @@ bool sameAsciiName(const std::string& left,
     return true;
 }
 
+// Count source frames by family name or by the published CLASS number. A
+// partially resolved frame must not disappear from a family's census merely
+// because one of its names is missing or inconsistent.
+template<class Frames, class Match>
+std::size_t countDwgClassFamilyFrames(const Frames& frames,
+                                      std::uint64_t generation,
+                                      const DRW_DwgClassCoverageEntry* sourceClass,
+                                      Match matches) {
+    std::size_t count = 0u;
+    for (const auto& source : frames) {
+        if (source.first.first != generation)
+            continue;
+        const auto& frame = source.second;
+        if (matches(frame.m_className, frame.m_recordName)
+            || (sourceClass != nullptr && sourceClass->m_classNumber >= 500u
+                && frame.m_objectType == sourceClass->m_classNumber))
+            ++count;
+    }
+    return count;
+}
+
 bool scanAssociativeOwnerChains(const dx_data& data,
                                 std::size_t typedBegin,
                                 std::size_t typedCount,
@@ -86943,18 +86964,25 @@ bool dx_iface::prepareDwgGeoDataOutput(bool debug) {
          ++current)
         ++typedCount;
 
+    const auto matchesFamily = [](const std::string& className,
+                                  const std::string& recordName) noexcept {
+        return asciiIdentifierEquals(className, "ACDBGEODATA")
+            || asciiIdentifierEquals(recordName, "GEODATA")
+            || asciiIdentifierEquals(recordName, "ACDBGEODATA");
+    };
     const bool completeClassReport = cData->dwgClassCoverage.m_complete
         && cData->dwgClassCoverage.m_status
             == DRW_DwgClassCoverageStatus::FinalizedComplete
         && cData->hasUnchangedDwgClassEvidence();
-    if (!completeClassReport)
-        return typedCount == 0u ? true
-            : fail("complete unchanged DWG CLASS evidence unavailable");
+    if (!completeClassReport) {
+        if (typedCount != 0u || countDwgClassFamilyFrames(
+                cData->m_opaqueDwgSourceFrames, generation, nullptr, matchesFamily) != 0u)
+            return fail("complete unchanged DWG CLASS evidence unavailable");
+        return true;
+    }
 
-    const auto isGeoDataClass = [](const DRW_DwgClassCoverageEntry& entry) {
-        return sameAsciiName(entry.m_className, "AcDbGeoData")
-            || sameAsciiName(entry.m_recordName, "GEODATA")
-            || sameAsciiName(entry.m_recordName, "ACDBGEODATA");
+    const auto isGeoDataClass = [&matchesFamily](const DRW_DwgClassCoverageEntry& entry) {
+        return matchesFamily(entry.m_className, entry.m_recordName);
     };
     const DRW_DwgClassCoverageEntry* sourceClass = nullptr;
     for (const DRW_DwgClassCoverageEntry& entry :
@@ -86966,18 +86994,8 @@ bool dx_iface::prepareDwgGeoDataOutput(bool debug) {
         sourceClass = &entry;
     }
 
-    std::size_t sourceFrameCount = 0u;
-    if (sourceClass != nullptr) {
-        for (const auto& source : cData->m_opaqueDwgSourceFrames) {
-            if (source.first.first != generation)
-                continue;
-            const DRW_UnsupportedObject& frame = source.second;
-            if (sameAsciiName(frame.m_className, sourceClass->m_className)
-                && sameAsciiName(frame.m_recordName,
-                                 sourceClass->m_recordName))
-                ++sourceFrameCount;
-        }
-    }
+    const std::size_t sourceFrameCount = countDwgClassFamilyFrames(
+        cData->m_opaqueDwgSourceFrames, generation, sourceClass, matchesFamily);
 
     if (sourceClass == nullptr) {
         return typedCount == 0u && sourceFrameCount == 0u
@@ -88519,19 +88537,26 @@ bool dx_iface::prepareDwgRasterVariablesOutput(DRW::Version targetVersion,
         return fail(
             "output requires a qualified same-revision source and target");
 
+    const auto matchesFamily = [](const std::string& className,
+                                  const std::string& recordName) noexcept {
+        return asciiIdentifierEquals(className, "ACDBRASTERVARIABLES")
+            || asciiIdentifierEquals(recordName, "RASTERVARIABLES")
+            || asciiIdentifierEquals(recordName, "ACDBRASTERVARIABLES");
+    };
     const bool completeClassReport = cData->dwgClassCoverage.m_complete
         && cData->dwgClassCoverage.m_status
             == DRW_DwgClassCoverageStatus::FinalizedComplete
         && cData->hasUnchangedDwgClassEvidence();
-    if (!completeClassReport)
-        return typedCount == 0u ? true
-            : fail("complete unchanged DWG CLASS evidence unavailable");
+    if (!completeClassReport) {
+        if (typedCount != 0u || countDwgClassFamilyFrames(
+                cData->m_opaqueDwgSourceFrames, generation, nullptr, matchesFamily) != 0u)
+            return fail("complete unchanged DWG CLASS evidence unavailable");
+        return true;
+    }
 
-    const auto isRasterVariablesClass = [](
+    const auto isRasterVariablesClass = [&matchesFamily](
             const DRW_DwgClassCoverageEntry& entry) {
-        return sameAsciiName(entry.m_className, "AcDbRasterVariables")
-            || sameAsciiName(entry.m_recordName, "RASTERVARIABLES")
-            || sameAsciiName(entry.m_recordName, "ACDBRASTERVARIABLES");
+        return matchesFamily(entry.m_className, entry.m_recordName);
     };
     const DRW_DwgClassCoverageEntry* sourceClass = nullptr;
     for (const DRW_DwgClassCoverageEntry& entry :
@@ -88543,18 +88568,8 @@ bool dx_iface::prepareDwgRasterVariablesOutput(DRW::Version targetVersion,
         sourceClass = &entry;
     }
 
-    std::size_t sourceFrameCount = 0u;
-    if (sourceClass != nullptr) {
-        for (const auto& source : cData->m_opaqueDwgSourceFrames) {
-            if (source.first.first != generation)
-                continue;
-            const DRW_UnsupportedObject& frame = source.second;
-            if (sameAsciiName(frame.m_className, sourceClass->m_className)
-                && sameAsciiName(frame.m_recordName,
-                                 sourceClass->m_recordName))
-                ++sourceFrameCount;
-        }
-    }
+    const std::size_t sourceFrameCount = countDwgClassFamilyFrames(
+        cData->m_opaqueDwgSourceFrames, generation, sourceClass, matchesFamily);
 
     if (sourceClass == nullptr) {
         return typedCount == 0u && sourceFrameCount == 0u
@@ -88853,19 +88868,26 @@ bool dx_iface::prepareDwgWipeoutVariablesOutput(DRW::Version targetVersion,
             || targetVersion != cData->sourceVersion))
         return fail("output requires same-revision AC1018, AC1021, AC1024, AC1027 or AC1032 source and target");
 
+    const auto matchesFamily = [](const std::string& className,
+                                  const std::string& recordName) noexcept {
+        return asciiIdentifierEquals(className, "ACDBWIPEOUTVARIABLES")
+            || asciiIdentifierEquals(recordName, "WIPEOUTVARIABLES")
+            || asciiIdentifierEquals(recordName, "ACDBWIPEOUTVARIABLES");
+    };
     const bool completeClassReport = cData->dwgClassCoverage.m_complete
         && cData->dwgClassCoverage.m_status
             == DRW_DwgClassCoverageStatus::FinalizedComplete
         && cData->hasUnchangedDwgClassEvidence();
-    if (!completeClassReport)
-        return typedCount == 0u ? true
-            : fail("complete unchanged DWG CLASS evidence unavailable");
+    if (!completeClassReport) {
+        if (typedCount != 0u || countDwgClassFamilyFrames(
+                cData->m_opaqueDwgSourceFrames, generation, nullptr, matchesFamily) != 0u)
+            return fail("complete unchanged DWG CLASS evidence unavailable");
+        return true;
+    }
 
-    const auto isWipeoutVariablesClass = [](
+    const auto isWipeoutVariablesClass = [&matchesFamily](
             const DRW_DwgClassCoverageEntry& entry) {
-        return sameAsciiName(entry.m_className, "AcDbWipeoutVariables")
-            || sameAsciiName(entry.m_recordName, "WIPEOUTVARIABLES")
-            || sameAsciiName(entry.m_recordName, "ACDBWIPEOUTVARIABLES");
+        return matchesFamily(entry.m_className, entry.m_recordName);
     };
     const DRW_DwgClassCoverageEntry* sourceClass = nullptr;
     for (const DRW_DwgClassCoverageEntry& entry :
@@ -88877,18 +88899,8 @@ bool dx_iface::prepareDwgWipeoutVariablesOutput(DRW::Version targetVersion,
         sourceClass = &entry;
     }
 
-    std::size_t sourceFrameCount = 0u;
-    if (sourceClass != nullptr) {
-        for (const auto& source : cData->m_opaqueDwgSourceFrames) {
-            if (source.first.first != generation)
-                continue;
-            const DRW_UnsupportedObject& frame = source.second;
-            if (sameAsciiName(frame.m_className, sourceClass->m_className)
-                && sameAsciiName(frame.m_recordName,
-                                 sourceClass->m_recordName))
-                ++sourceFrameCount;
-        }
-    }
+    const std::size_t sourceFrameCount = countDwgClassFamilyFrames(
+        cData->m_opaqueDwgSourceFrames, generation, sourceClass, matchesFamily);
     if (sourceClass == nullptr) {
         return typedCount == 0u && sourceFrameCount == 0u
             ? true : fail("typed or source frames lack a matching CLASS row");

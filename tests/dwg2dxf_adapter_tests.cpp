@@ -94,6 +94,28 @@ public:
         interface_.cData = &data;
         return interface_.prepareDwgGeoDataOutput(false);
     }
+    static bool prepareRasterVariables(dx_iface& interface_, dx_data& data) {
+        interface_.cData = &data;
+        return interface_.prepareDwgRasterVariablesOutput(DRW::AC1018, false);
+    }
+    static bool prepareWipeoutVariables(dx_iface& interface_, dx_data& data) {
+        interface_.cData = &data;
+        return interface_.prepareDwgWipeoutVariablesOutput(DRW::AC1018, false);
+    }
+    static void setOpaqueClassFrame(dx_data& data, std::uint64_t generation,
+                                    std::uint32_t handle, int type,
+                                    const char* className, const char* recordName) {
+        DRW_UnsupportedObject frame;
+        frame.m_handle = handle;
+        frame.m_objectType = type;
+        frame.m_className = className;
+        frame.m_recordName = recordName;
+        data.m_opaqueDwgSourceFrames[{generation, handle}] = std::move(frame);
+    }
+    static void eraseOpaqueClassFrame(dx_data& data, std::uint64_t generation,
+                                      std::uint32_t handle) {
+        data.m_opaqueDwgSourceFrames.erase({generation, handle});
+    }
     static bool unchangedGeoData(dx_iface& interface_) {
         return interface_.hasUnchangedDwgGeoDataGraphs();
     }
@@ -90856,7 +90878,45 @@ bool leaderDimstyleReferenceBinding() {
     return outputReadbacks == 2u && refusals == 2u && retries == 2u;
 }
 
-bool geodataDwgAdapterTransport() {
+bool classFamilyRawFrameGuards() {
+    {
+        using Prepare = bool (*)(dx_iface&, dx_data&);
+        struct Family {
+            const char* className;
+            const char* recordName;
+            Prepare prepare;
+        };
+        const Family families[] = {
+            {"acdbgeodata", "ACDBGEODATA", &DxIfaceExtensionGraphTestAccess::prepareGeoData},
+            {"acdbRasterVariables", "ACDBRASTERVARIABLES", &DxIfaceExtensionGraphTestAccess::prepareRasterVariables},
+            {"acdbWipeoutVariables", "ACDBWIPEOUTVARIABLES", &DxIfaceExtensionGraphTestAccess::prepareWipeoutVariables},
+        };
+        for (const Family& family : families) {
+            dx_data data;
+            dx_iface proof;
+            data.sourceFormat = dx_source_format::DWG;
+            data.importGeneration = 2u;
+            DxIfaceExtensionGraphTestAccess::setOpaqueClassFrame(
+                data, 1u, 0xF001u, 600, family.className, "OTHER");
+            if (!family.prepare(proof, data))
+                return fail("prior-generation class frame contaminated current preflight");
+            DxIfaceExtensionGraphTestAccess::setOpaqueClassFrame(
+                data, 2u, 0xF002u, 600, family.className, "OTHER");
+            if (family.prepare(proof, data))
+                return fail("named raw frame was ignored without complete CLASS evidence");
+            DxIfaceExtensionGraphTestAccess::setOpaqueClassFrame(
+                data, 2u, 0xF002u, 600, "OtherClass", family.recordName);
+            if (family.prepare(proof, data))
+                return fail("raw record alias was ignored without complete CLASS evidence");
+            DxIfaceExtensionGraphTestAccess::eraseOpaqueClassFrame(data, 2u, 0xF002u);
+            if (!family.prepare(proof, data))
+                return fail("corrected empty class family did not retry");
+        }
+    }
+    return true;
+}
+
+bool geodataDwgAdapterTransport(bool preflightOnly = false) {
     {
         dx_data captured;
         dx_iface sink;
@@ -91021,6 +91081,22 @@ bool geodataDwgAdapterTransport() {
         if (!DxIfaceExtensionGraphTestAccess::prepareGeoData(proof, imported)
             || !DxIfaceExtensionGraphTestAccess::unchangedGeoData(proof))
             return fail("generated direct-owner source binding did not prepare");
+        const auto classRow = std::find_if(imported.dwgClassCoverage.m_entries.begin(),
+            imported.dwgClassCoverage.m_entries.end(), [](const auto& entry) {
+                return entry.m_recordName == "GEODATA";
+            });
+        if (classRow == imported.dwgClassCoverage.m_entries.end())
+            return fail("generated GEODATA CLASS row missing");
+        DxIfaceExtensionGraphTestAccess::setOpaqueClassFrame(
+            imported, imported.importGeneration, 0xF003u,
+            classRow->m_classNumber, "OtherClass", "OTHER");
+        const bool rejectedSameClassNumber =
+            !DxIfaceExtensionGraphTestAccess::prepareGeoData(proof, imported);
+        DxIfaceExtensionGraphTestAccess::eraseOpaqueClassFrame(
+            imported, imported.importGeneration, 0xF003u);
+        if (!rejectedSameClassNumber
+            || !DxIfaceExtensionGraphTestAccess::prepareGeoData(proof, imported))
+            return fail("class-number collision was ignored or did not retry");
         DRW_GeoData& current = imported.geoDataObjects.find(key)->second;
         const DRW_GeoData saved = current;
         current.m_version = 1;
@@ -91035,6 +91111,8 @@ bool geodataDwgAdapterTransport() {
             || !DxIfaceExtensionGraphTestAccess::unchangedGeoData(proof))
             return fail("direct-owner version or common source binding changed after preparation");
     }
+    if (preflightOnly)
+        return true;
 
     class Readback final : public dx_iface {
     public:
@@ -95040,6 +95118,9 @@ int main(int argc, char** argv) {
     if (argc == 2
         && std::string(argv[1]) == "--geodata-dwg-adapter-transport")
         return geodataDwgAdapterTransport() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1]) == "--geodata-dwg-adapter-preflight")
+        return geodataDwgAdapterTransport(true) ? 0 : 1;
     if ((argc == 3 || argc == 4)
         && std::string(argv[1]) == "--physical-geodata-dictionary-graph")
         return physicalGeoDataDictionaryGraph(argv[2], argc == 4 ? argv[3] : "") ? 0 : 1;
@@ -95158,7 +95239,8 @@ int main(int argc, char** argv) {
     if (argc == 2
         && std::string(argv[1])
             == "--wipeoutvariables-empty-class-gate")
-        return wipeoutVariablesEmptyClassGate() ? 0 : 1;
+        return classFamilyRawFrameGuards() && geodataDwgAdapterTransport(true)
+            && wipeoutVariablesEmptyClassGate() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--wipeoutvariables-dwg-direct-nod")
         return wipeoutVariablesDwgAdapterTransport(true) ? 0 : 1;

@@ -15,8 +15,8 @@ advisory, and excluded. Completed slice history and validation remain in
 `docs/research/` and Git history.
 
 The current test-inclusive implementation digest is
-`49459a9c2903c722bf7770b093581ddd4db82a1a2aef1ceb44fe83f8d04192f1`
-(785 inputs, including the shared layout identity checks and their focused tests). Earlier hosted runs bind prior digests; current-head hosted results are pending. The [latest source-release inventory repair](docs/research/p8-freecad-3dface-source-release-inventory-repair-2026-11-27.json) adds the tracked FreeCAD report patch omitted from the manifest; the local inventory and self-test pass and a new hosted run is pending. The [current CI repair and focused requalification](docs/research/p8-ci-repair-3e681e-2026-11-27.json) tracks completed and pending platform jobs at commit 3e681e694. The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
+`828f6264b5faffecf64c84a01e748bf48e78f2268bb57fa2cd14879d166cdf4a`
+(785 inputs, including the shared layout and class-family identity checks). Earlier hosted runs bind prior digests; current-head hosted results are pending. The [latest source-release inventory repair](docs/research/p8-freecad-3dface-source-release-inventory-repair-2026-11-27.json) adds the tracked FreeCAD report patch omitted from the manifest; the local inventory and self-test pass and a new hosted run is pending. The [current CI repair and focused requalification](docs/research/p8-ci-repair-3e681e-2026-11-27.json) tracks completed and pending platform jobs at commit 3e681e694. The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
 and the [FreeCAD handoff matrix](docs/research/p8-native-freecad-2e4ae17b-2026-11-27.json) passed on earlier production inputs. The current [FreeCAD recheck](docs/research/p8-ci-repair-3e681e-2026-11-27.json) passes 16 Linux and 17 Windows tests, covering specified CLI and legacy importer profiles, not GUI or general 3D parity; hosted focused native and installed shared/static package checks also pass on Linux, Windows and macOS for matching production inputs.
 The fast CI inventory now includes the legacy dictionary wire audit; verify the
 new hosted run. After registering a CTest, refresh the frozen inventory from a
@@ -100,7 +100,10 @@ below is still open, and its linked evidence defines the present boundary.
    RASTERVARIABLES or WIPEOUTVARIABLES frames in the destination. A second
    diagnostic-only bypass reaches the RASTERVARIABLES class guard. Bind shared
    complete source-frame and class-number evidence for all three in the adapter,
-   then inspect target CLASS emission and refusal/retry before changing guards. Neither
+   then inspect target CLASS emission and refusal/retry before changing guards.
+   The [shared raw-frame family counter](docs/research/p6-dwg-class-family-raw-census-2026-11-28.json)
+   already prevents incomplete names or matching class numbers from hiding a
+   retained frame; it does not prove absence from the whole object map. Neither
    scratch variant proves valid native
    semantics. Qualify each source and its target mapping separately; peer repair
    is not source-graph evidence. In the [unsafe bypass experiment](docs/research/p6-ac1012-unsafe-projection-link-loss-2026-11-28.json),
@@ -124,7 +127,10 @@ below is still open, and its linked evidence defines the present boundary.
 8. **Integration and FreeCAD.** Recheck affected profiles against final heads
    of LibreCAD PR #3289, LibreCAD_3 PRs #460–#463 and the codec. The [current
    LibreCAD consumer CI](docs/research/p8-librecad-3289-ci-7d175ccf-2026-11-28.json)
-   passes its selected hosted builds and focused lanes. Finish the native GUI,
+   passes its selected hosted builds and focused lanes. Reconcile the existing
+   GEODATA adapter round-trip test with the strict AC1027 refusal; it also fails
+   on the unchanged base. Preserve the guard and separately test an eligible
+   source profile. Finish the native GUI,
    Linux/Windows, package and FreeCAD handoff gates. The [selected
    AC1024 array partial handoff](docs/research/p8-freecad-ac1024-minsert-partial-handoff-2026-11-28.json)
    checks six lines in both FreeCAD modes; strict conversion remains blocked by

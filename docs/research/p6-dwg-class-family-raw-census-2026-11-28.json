@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dwg-class-family-raw-census-2026-11-28",
+  "date": "2026-11-28",
+  "supportClaimEffect": "none",
+  "scope": "Fail-closed retained-frame accounting for GEODATA, RASTERVARIABLES and WIPEOUTVARIABLES; no legacy source admission.",
+  "baseCommit": "899ce300dd5b90275226a148bedd6d12936344c6",
+  "change": "A shared generation-filtered frame counter recognizes a family by either class name, record alias or matching published numeric CLASS id. An incomplete CLASS report can no longer be treated as an empty family when a retained frame identifies the family. Existing proxy and source-profile refusals are retained.",
+  "validation": {
+    "fastCTest": "six selected raster/wipeout adapter and CLI tests pass, including named-class/record-alias refusal, previous-generation isolation and corrected retry",
+    "classNumber": "a generated typed GEODATA source tests an extra differently named raw frame with the same CLASS id; preflight rejects it and succeeds after removal",
+    "negativeBaseline": "the new family-name and CLASS-number controls fail against unchanged baseline production code as expected",
+    "baselineGeodataIssue": "the full GEODATA round-trip test fails later at the strict AC1027 source-reference guard on both the unchanged base and this branch; the focused preflight selector isolates the new check",
+    "digest": "828f6264b5faffecf64c84a01e748bf48e78f2268bb57fa2cd14879d166cdf4a",
+    "inputCount": 785,
+    "sanitizers": "AddressSanitizer and UndefinedBehaviorSanitizer: three selected raster/wipeout adapter tests passed, including the shared family and GEODATA preflight controls"
+  },
+  "sourceSha256": {
+    "dwg2dxf/dx_iface.cpp": "56b7359e20bdbe666b534a8e314f2e603a4aa14f6d99e64db04d7c49cdf1d633",
+    "tests/dwg2dxf_adapter_tests.cpp": "cc3d858bf3be0ed9a69927765bb2206ff5f18d14aa831829f01761e4630cfe83"
+  },
+  "limitations": [
+    "This counter covers retained opaque callbacks, not a complete physical class-number census for every object-map frame.",
+    "It does not authorize an unused proxy CLASS, legacy layout projection, or claim native AutoCAD compatibility.",
+    "The unchanged strict AC1027 test conflict remains a separate plan item.",
+    "No generated drawing is committed."
+  ]
+}
