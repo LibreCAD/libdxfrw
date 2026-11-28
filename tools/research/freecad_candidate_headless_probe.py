@@ -38,6 +38,8 @@ EXTRA_TESTS = {
     "477a7041803823a1fcae528133cb07ee5533b1b2": (
         "test_polyface_display_invalid_then_valid_same_file",
         "test_3dface_block_layer_loss_is_reported",
+        "test_block_line_named_layer_loss_is_reported",
+        "test_block_circle_named_layer_loss_is_reported",
     ),
 }
 

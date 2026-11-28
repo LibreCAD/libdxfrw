@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-block-geometry-layer-loss-2026-11-27",
+  "supportClaimEffect": "none",
+  "freecadBase": "477a7041803823a1fcae528133cb07ee5533b1b2",
+  "candidate": "23 ordered local patches; no FreeCAD commit or submission",
+  "finding": "The candidate imports a LINE on a named layer inside a block, but the instance is grouped on its INSERT layer in both individual-shape and fused-shape modes without reporting the named-layer loss.",
+  "change": "The existing block-definition geometry collector reports a nondefault named child layer when layer preservation is enabled, while retaining the geometry. This extends a loss disclosure; it does not preserve the child layer.",
+  "checks": [
+    "Before the change, the locally generated LINE control retained length 4 but left DETAIL empty and reported no loss in both modes; the new focused test failed in both named-layer cases.",
+    "After the change, locally generated LINE and CIRCLE controls pass both modes, layer zero/named and layer import enabled/disabled; linked geometry lengths are retained.",
+    "The rebuilt macOS ARM64 headless candidate passes 19 focused tests with no skips, errors or failures. The 23-patch replay matches the five local candidate files at the pinned FreeCAD base.",
+    "Source-release inventory check passes with the new patch. No generated DXF/DWG fixture was committed."
+  ],
+  "evidenceSha256": {
+    "patch": "a7a68a9c7cf6a3071c851055001f5b1b9d73be6dad95d49c2d0293cc5b460696",
+    "before": "4b2bd4ad143b1bb4a0ec5a3eeb6230eadefb9ea1a76bdf475d30dd8d5fbd97b4",
+    "red": "98f3ae3e8ffc664d9434d87eed372f49cc5ff1902508467e8299a1692f832a09",
+    "headless": "9c8d19d56b02160ac760867b7bcd30d9c838a6c21f591cfd87727768886a91f7",
+    "replay": "0e7729cec340224918585c392dde4b26856db03fc4d50030510c798042533e26"
+  },
+  "limits": [
+    "This remains a loss report, not a layer-preserving implementation or a GUI, visibility, color, nested-block or broad primitive qualification.",
+    "The downstream FreeCAD candidate is a local draft; its project policy reserves submission and contributor attestations for a human contributor."
+  ]
+}
