@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit block, layer and linetype frames of the generated AC1012 witness pair.
+"""Audit selected table and block frames of the generated AC1012 witness pair.
 
 This is a bounded source-wire observer, not native cloning evidence.
 """
@@ -13,7 +13,7 @@ from generate_ac1012_dictionary_witness import Bits, require, sha
 
 
 def observe_control(frame: bytes, profile: str = "block") -> dict:
-    """Bind the selected BLOCK, LAYER or LTYPE control table frame."""
+    """Bind a selected control table frame."""
     bits = Bits(frame)
     spans = {}
 
@@ -25,6 +25,8 @@ def observe_control(frame: bytes, profile: str = "block") -> dict:
 
     profiles = {"block": (1, 48, 0, (("model", 3, 0x1f), ("paper", 3, 0x20))),
                 "layer": (2, 50, 1, (("entry", 2, 0x10),)),
+                "style": (3, 52, 1, (("entry", 2, 0x11),)),
+                "appid": (9, 66, 1, (("entry", 2, 0x12),)),
                 "linetype": (5, 56, 1, (("entry", 2, 0x16),
                                         ("byBlock", 3, 0x14), ("byLayer", 3, 0x15)))}
     handle, kind, count, slots = profiles[profile]
@@ -39,6 +41,62 @@ def observe_control(frame: bytes, profile: str = "block") -> dict:
         require(value["role"] == role and value["value"] == expected,
                 f"wrong control {label}")
     require(len(frame) * 8 - bits.position < 8, "unexpected control tail")
+    return {"frameSha256": sha(frame), "spans": spans, "paddingBits": len(frame) * 8 - bits.position}
+
+
+def observe_style_or_appid(frame: bytes, style: bool) -> dict:
+    """Bind the generated R13 Standard STYLE or ACAD APPID body."""
+    bits = Bits(frame)
+    spans = {}
+    handle, control = (0x11, 3) if style else (0x12, 9)
+
+    def field(label, read):
+        start = bits.position
+        value = read()
+        spans[label] = {"startBit": start, "endBit": bits.position, "value": value}
+        return value
+
+    def text_value():
+        length = bits.bs()
+        require(length <= 128, "table text exceeds profile")
+        return bytes(bits.take(8) for _ in range(length)).decode("ascii")
+
+    def bit_double():
+        tag = bits.take(2)
+        if tag == 0:
+            return struct.unpack("<d", bytes(bits.take(8) for _ in range(8)))[0]
+        require(tag in (1, 2), "invalid bit-double")
+        return 1.0 if tag == 1 else 0.0
+
+    require(field("type", bits.bs) == (53 if style else 67)
+            and field("self", lambda: bits.handle(0, own=True))["value"] == handle
+            and field("eedSize", bits.bs) == 0, "unexpected table entry prefix")
+    boundary = field("dataEnd", lambda: bits.little(4))
+    require(field("reactorCount", bits.bl) == 0
+            and field("name", text_value) == ("Standard" if style else "ACAD")
+            and field("xref64", lambda: bits.take(1)) == 1
+            and field("xrefIndexPlusOne", bits.bs) == 0
+            and field("xrefDependent", lambda: bits.take(1)) == 0,
+            "unexpected table entry common body")
+    if style:
+        require(field("vertical", lambda: bits.take(1)) == 0
+                and field("shape", lambda: bits.take(1)) == 0
+                and field("height", bit_double) == 0.0
+                and field("width", bit_double) == 1.0
+                and field("oblique", bit_double) == 0.0
+                and field("generation", lambda: bits.take(8)) == 0
+                and field("lastHeight", bit_double) == 0.2
+                and field("font", text_value) == "txt"
+                and field("bigFont", text_value) == "", "unexpected STYLE body")
+    else:
+        require(field("unknown71", lambda: bits.take(8)) == 0, "unexpected APPID body")
+    require(bits.position == boundary, "unexpected table entry boundary")
+    for label, role, expected, raw_role in (("owner", 4, control, 12), ("extension", 3, 0, 3),
+                                             ("xref", 5, 0, 5)):
+        value = field(label, lambda: bits.handle(role, handle))
+        require(value["role"] == raw_role and value["value"] == expected,
+                f"wrong table entry {label}")
+    require(len(frame) * 8 - bits.position < 8, "unexpected table entry tail")
     return {"frameSha256": sha(frame), "spans": spans, "paddingBits": len(frame) * 8 - bits.position}
 
 
@@ -220,6 +278,10 @@ def audit(path: Path, dwgread: str) -> dict:
             ("layer", 0x10, 51, observe_layer, ("owner", "extension", "xref", "linetype")),
             ("linetypeControl", 5, 56, lambda f: observe_control(f, "linetype"),
              ("owner", "extension", "entry", "byBlock", "byLayer")),
+            ("styleControl", 3, 52, lambda f: observe_control(f, "style"), ("owner", "extension", "entry")),
+            ("style", 0x11, 53, lambda f: observe_style_or_appid(f, True), ("owner", "extension", "xref")),
+            ("appidControl", 9, 66, lambda f: observe_control(f, "appid"), ("owner", "extension", "entry")),
+            ("appid", 0x12, 67, lambda f: observe_style_or_appid(f, False), ("owner", "extension", "xref")),
             ("byBlock", 0x14, 57, lambda f: observe_linetype(f, 0x14, "BYBLOCK", ""), ("owner", "extension", "xref")),
             ("byLayer", 0x15, 57, lambda f: observe_linetype(f, 0x15, "BYLAYER", ""), ("owner", "extension", "xref")),
             ("continuous", 0x16, 57, lambda f: observe_linetype(f, 0x16, "CONTINUOUS", "Solid line"), ("owner", "extension", "xref"))):
