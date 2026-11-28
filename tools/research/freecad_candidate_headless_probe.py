@@ -54,6 +54,7 @@ EXTRA_TESTS = {
         "test_parametric_nested_insert_ocs",
         "test_nested_insert_ocs_annotation",
         "test_insert_direction_units_and_invalid_retry",
+        "test_nested_text_own_ocs",
     ),
 }
 

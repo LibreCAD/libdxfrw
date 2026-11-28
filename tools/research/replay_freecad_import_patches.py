@@ -78,6 +78,7 @@ EXTRA_PATCHES = {
         "freecad-p8-block-base-points-2026-11-28.patch",
         "freecad-p8-insert-ocs-2026-11-28.patch",
         "freecad-p8-insert-normal-units-2026-11-28.patch",
+        "freecad-p8-block-text-ocs-2026-11-28.patch",
     ),
 }
 
