@@ -171,6 +171,69 @@ def observe_dimstyle(frame: bytes, handle: int = 0x2d, name: str = "Standard",
     return {"frameSha256": sha(frame), "spans": spans, "paddingBits": len(frame) * 8 - bits.position}
 
 
+def observe_vport(frame: bytes) -> dict:
+    """Bind the generated R13 *Active VPORT body and control references."""
+    bits = Bits(frame)
+    spans = {}
+
+    def field(label, read):
+        start = bits.position
+        value = read()
+        spans[label] = {"startBit": start, "endBit": bits.position, "value": value}
+        return value
+
+    def raw_double():
+        return struct.unpack("<d", bytes(bits.take(8) for _ in range(8)))[0]
+
+    def bit_double():
+        tag = bits.take(2)
+        if tag == 0:
+            return raw_double()
+        require(tag in (1, 2), "invalid bit-double")
+        return 1.0 if tag == 1 else 0.0
+
+    def text_value():
+        length = bits.bs()
+        require(length <= 128, "VPORT text exceeds profile")
+        return bytes(bits.take(8) for _ in range(length)).decode("ascii")
+
+    require(field("type", bits.bs) == 65
+            and field("self", lambda: bits.handle(0, own=True))["value"] == 0x26
+            and field("eedSize", bits.bs) == 0, "unexpected VPORT prefix")
+    boundary = field("dataEnd", lambda: bits.little(4))
+    require(field("reactorCount", bits.bl) == 0 and field("name", text_value) == "*Active"
+            and field("xref64", lambda: bits.take(1)) == 1
+            and field("xrefIndexPlusOne", bits.bs) == 0
+            and field("xrefDependent", lambda: bits.take(1)) == 0,
+            "unexpected VPORT common body")
+    fields = (
+        ("height", bit_double, 13314.951254), ("viewWidth", bit_double, 19003.498504),
+        ("center", lambda: [raw_double(), raw_double()], [5771.99757, 789.325613]),
+        ("target", lambda: [bit_double() for _ in range(3)], [0.0, 0.0, 0.0]),
+        ("direction", lambda: [bit_double() for _ in range(3)], [0.0, 0.0, 1.0]),
+        ("twist", bit_double, 0.0), ("lens", bit_double, 50.0),
+        ("frontClip", bit_double, 0.0), ("backClip", bit_double, 0.0),
+        ("viewModeBits", lambda: bits.take(4), 1),
+        ("lowerLeft", lambda: [raw_double(), raw_double()], [0.0, 0.0]),
+        ("upperRight", lambda: [raw_double(), raw_double()], [1.0, 1.0]),
+        ("ucsFollow", lambda: bits.take(1), 0), ("circleZoom", bits.bs, 1000),
+        ("fastZoom", lambda: bits.take(1), 1), ("ucsIcon", lambda: bits.take(2), 3),
+        ("grid", lambda: bits.take(1), 0), ("gridSpacing", lambda: [raw_double(), raw_double()], [10.0, 10.0]),
+        ("snap", lambda: bits.take(1), 0), ("snapStyle", lambda: bits.take(1), 0),
+        ("snapIsopair", bits.bs, 0), ("snapAngle", bit_double, 0.0),
+        ("snapBase", lambda: [raw_double(), raw_double()], [0.0, 0.0]),
+        ("snapSpacing", lambda: [raw_double(), raw_double()], [10.0, 10.0]))
+    for name, reader, expected in fields:
+        require(field(name, reader) == expected, f"unexpected VPORT {name}")
+    require(bits.position == boundary, "unexpected VPORT data boundary")
+    for label, role, expected, raw_role in (("owner", 4, 8, 12), ("extension", 3, 0, 3),
+                                             ("xref", 5, 0, 5)):
+        value = field(label, lambda: bits.handle(role, 0x26))
+        require(value["role"] == raw_role and value["value"] == expected, f"wrong VPORT {label}")
+    require(len(frame) * 8 - bits.position < 8, "unexpected VPORT tail")
+    return {"frameSha256": sha(frame), "spans": spans, "paddingBits": len(frame) * 8 - bits.position}
+
+
 def observe_layer(frame: bytes) -> dict:
     """Bind the exact generated R13 LAYER 0 body and its reference roles."""
     bits = Bits(frame)
@@ -356,6 +419,7 @@ def audit(path: Path, dwgread: str) -> dict:
             ("viewControl", 6, 60, lambda f: observe_control(f, "view"), ("owner", "extension")),
             ("ucsControl", 7, 62, lambda f: observe_control(f, "ucs"), ("owner", "extension")),
             ("vportControl", 8, 64, lambda f: observe_control(f, "vport"), ("owner", "extension", "entry")),
+            ("vport", 0x26, 65, observe_vport, ("owner", "extension", "xref")),
             ("dimstyleControl", 10, 68, lambda f: observe_control(f, "dimstyle"), ("owner", "extension", "entry")),
             ("dimstyle", 0x2d, 69, observe_dimstyle, ("owner", "extension", "xref", "textStyle")),
             ("viewportEntityControl", 11, 70, lambda f: observe_control(f, "viewportEntity"), ("owner", "extension")),

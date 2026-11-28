@@ -7,6 +7,7 @@
 #include "test_scratch.h"
 #include <algorithm>
 #include <charconv>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -1317,6 +1318,10 @@ bool checkLegacyBlockPairWire(const std::string& input) {
     const auto& dimension = data.dimStyles.front();
     if (dimension.dimscale != 1.0 || dimension.dimasz != 0.18 || dimension.dimtxt != 0.18
         || dimension.dimtxstyH.ref != 0x11u) return false;
+    const auto& viewport = data.VPorts.front();
+    if (viewport.height != 13314.951254 || std::abs(viewport.ratio - 1.42723004699631) > 1e-12
+        || viewport.center.x != 5771.99757 || viewport.center.y != 789.325613
+        || viewport.circleZoom != 1000 || viewport.viewMode != 0) return false;
     const auto model = std::find_if(data.blockRecords.begin(), data.blockRecords.end(),
         [](const DRW_Block_Record& record) { return record.name == "*MODEL_SPACE"; });
     const auto paper = std::find_if(data.blockRecords.begin(), data.blockRecords.end(),

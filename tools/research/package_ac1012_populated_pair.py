@@ -137,6 +137,7 @@ def main():
                         for name in ("viewControl", "ucsControl", "vportControl",
                                      "dimstyleControl", "viewportEntityControl")}
                     records[side]["dimstyleFrameSha256"] = block_entities["dimstyle"]["proof"]["frameSha256"]
+                    records[side]["vportFrameSha256"] = block_entities["vport"]["proof"]["frameSha256"]
         shutil.copyfile(guide, packet / "NATIVE_WITNESS.md")
         (packet / "source-receipt.json").write_bytes(receipt_bytes)
         readme = ("Locally generated AC1012 controls screened by ODA; native behavior is unobserved.\n"
