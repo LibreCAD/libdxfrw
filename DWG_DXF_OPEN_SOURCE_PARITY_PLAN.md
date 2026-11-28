@@ -56,8 +56,9 @@ below is still open, and its linked evidence defines the present boundary.
    graph handling beyond the [selected deassociation, copy and unidentified-boundary guard](docs/research/p8d-librecad-hatch-unidentified-boundaries-2026-11-28.json).
    Use the [staged line-loop graph check](docs/research/p8d-hatch-staged-association-2026-11-28.json)
    as an output prerequisite. The [per-loop source identities](docs/research/p8d-librecad-hatch-source-loops-2026-11-28.json)
-   retain input order, but reconstructed loops may differ; match live geometry
-   and owners and handle copies and edits. The [composed entity inspector](docs/research/p8d-entity-inspector-composition-2026-11-28.json)
+   retain input order. Use the [live geometry matcher](docs/research/p8d-hatch-live-geometry-2026-11-28.json)
+   for its one-straight-loop profile; match source identities and owners and
+   handle copies and edits. The [composed entity inspector](docs/research/p8d-entity-inspector-composition-2026-11-28.json)
    provides the common hook for binding the check to consumer finalization.
    Preserve explicit deassociation outside the verified profile;
    the staged check alone does not establish consumer association support.
