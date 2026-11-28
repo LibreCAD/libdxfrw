@@ -89,6 +89,7 @@ EXTRA_PATCHES = {
         "freecad-p8-minsert-ocs-overflow-2026-11-28.patch",
         "freecad-p8-circle-arc-ocs-2026-11-28.patch",
         "freecad-p8-lwpolyline-ocs-2026-11-28.patch",
+        "freecad-p8-lwpolyline-closed-ocs-control-2026-11-28.patch",
     ),
 }
 

@@ -95,7 +95,7 @@ below is still open, and its linked evidence defines the present boundary.
    AC1024 array partial handoff](docs/research/p8-freecad-ac1024-minsert-partial-handoff-2026-11-28.json)
    checks six lines in both FreeCAD modes; strict conversion remains blocked by
    the HEADER suffix and partial output is not whole-file proof. For the local
-   [45-patch FreeCAD draft](docs/research/p8-freecad-lwpolyline-ocs-2026-11-28.json),
+   [46-patch FreeCAD draft](docs/research/p8-freecad-lwpolyline-closed-ocs-control-2026-11-28.json),
    preserve named child-layer visibility and color through block composition;
    qualify additional geometry, polyline/arc OCS and unit profiles, malformed
    numeric extremes, real producer drawings and actual Draft rendering. TEXT under
@@ -108,7 +108,8 @@ below is still open, and its linked evidence defines the present boundary.
    then freeze it before broad suites and release claims. The [36-patch
    platform run](docs/research/p8-freecad-36-platforms-2026-11-28.json) passes
    selected Linux/Windows headless checks; the current 45-patch [platform run](https://github.com/dxli/libdxfrw/actions/runs/46160971025)
-   is in progress. Do not carry earlier results across changed importer code.
+   is in progress. The additional closed-polyline patch is test-only and needs
+   its own platform check; do not carry earlier results across changed importer code.
 
 The remote ObjectARX host's release, OS, SDK and access route remain unknown.
 Use the [profile intake](tools/research/OBJECTARX_HOST_PROFILE_INTAKE.md) when

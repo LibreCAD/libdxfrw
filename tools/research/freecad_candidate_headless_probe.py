@@ -66,6 +66,7 @@ EXTRA_TESTS = {
         "test_circle_arc_invalid_normal_then_valid",
         "test_lwpolyline_bulge_elevation_ocs",
         "test_lwpolyline_invalid_normal_then_valid",
+        "test_lwpolyline_closed_bulge_ocs",
     ),
 }
 
