@@ -73,6 +73,7 @@ EXTRA_PATCHES = {
         "freecad-p8-block-recursion-shared-boundary-2026-11-28.patch",
         "freecad-p8-nested-insert-layer-report-2026-11-28.patch",
         "freecad-p8-block-annotation-depth-2026-11-28.patch",
+        "freecad-p8-block-annotation-budget-2026-11-28.patch",
     ),
 }
 

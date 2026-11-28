@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-block-annotation-budget-2026-11-28",
+  "supportClaimEffect": "none",
+  "freecadBase": "477a7041803823a1fcae528133cb07ee5533b1b2",
+  "candidate": "30 ordered local patches; no FreeCAD commit or submission",
+  "change": "Bound annotation expansion to 32768 block visits per top-level INSERT, stop walking remaining branches after the limit, and report the omitted annotation path once per affected INSERT. The next independent top-level INSERT receives a fresh budget.",
+  "checks": [
+    "Before the fix, a locally generated shallow shared-block DAG expanded all 32768 repeated leaf annotations in each block composition mode. The bounded candidate visits fewer paths, reports exactly one expansion-limit loss, and still processes an independent SAFE INSERT.",
+    "A subsequent smaller four-leaf DAG in the same document imports all annotations without a limit report. Existing 128/129 depth, cycles, shared-geometry, layer and mesh tests remain green.",
+    "The ordered 30-patch chain replays byte-for-byte against the verified source archive and candidate checkout. The selected native macOS ARM64 headless probe passes 24 tests with zero skips; its source base and built Import module were checked.",
+    "The source-release inventory and its self-test pass with the added patch. No generated drawing is committed."
+  ],
+  "evidenceSha256": {
+    "patch": "63201dded9ab7f53268e62d80aa1e745081018cf0a79ba53d83c45f5371819b3",
+    "red": "8ac52d3a31278699040e14e5bef787816ff79e865dcd96cc4d000e671bcd2c0d",
+    "verifiedReceipt": "9f5b747ddfcdea6e8aec71901700ea0c16eb6388fae0ee37a66ecd31903a4705",
+    "headlessProbe": "1204f267f5a74119df083b449883de0da6020642aa6d101fdacd8d9db1c4087f",
+    "importModule": "79a9ac9fec470aff2e2171b550988682351506ee0fb33b9efc6fe7540c280f44"
+  },
+  "verifiedReceipt": "/private/tmp/freecad-annotation-budget-verified2-20261128/freecad-candidate-probe-qxnbdzto/receipt.json",
+  "limits": [
+    "The budget counts visited block instances, not text objects or total document memory. Valid drawings exceeding the per-INSERT threshold can lose annotations and receive an explicit diagnostic; qualify and refine the bound with real large producer examples.",
+    "The test reuses a mock text object to isolate traversal cost, so it does not qualify native Draft object rendering or the memory cost of thousands of separate annotation objects.",
+    "This is a downstream local FreeCAD candidate, not an upstream FreeCAD commit, GUI qualification or general DWG/DXF support claim."
+  ]
+}
