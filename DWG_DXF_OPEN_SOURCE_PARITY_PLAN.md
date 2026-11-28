@@ -44,7 +44,7 @@ below is still open, and its linked evidence defines the present boundary.
    independent readback are proved. Current capture uses a shared 4 MiB logical
    raster-source budget, 512 IMAGEDEF groups, 542 IMAGE groups and a 256 KiB source-file gate;
    raise limits only with aggregate accounting. Qualify rendering and platforms
-   separately; one native skewed-image save/reopen and [selected normal, inverse and skewed pointer picks](docs/research/p8d-librecad-native-image-picking-2026-11-28.json) are checked after the affine change. Clipping beyond 256 vertices, broader GUI picking and printing remain open.
+   separately; one native skewed-image save/reopen, [selected pointer picks](docs/research/p8d-librecad-native-image-picking-2026-11-28.json), and [one macOS print-to-PDF check](docs/research/p8d-librecad-image-skew-print-pdf-2026-11-28.json) are checked after the affine change. Clipping beyond 256 vertices, broader GUI picking and printing remain open.
 3. **Legacy HEADER and versions.** Resolve R12/R14 `$FACETRES`, `$ISOLINES`,
    `$PELLIPSE`, `$TEXTQLTY`, field presence and extension semantics using
    [versioned authority](docs/research/p8d-r14-display-header-authority-2026-11-26.json)
