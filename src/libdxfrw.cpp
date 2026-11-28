@@ -4830,7 +4830,8 @@ bool dxfRW::inspectDxfHatchOutputLinks(
     if (!m_dxfWriteAttemptActive || !m_dxfWriteInspecting || !writer
         || m_writeError || writer->hasWriteError() || view.version != version
         || view.version < DRW::AC1015 || view.binary != binFile
-        || view.compatibilityProfile != dxfCompatibilityProfile()
+        || view.compatibilityProfile != (writer->classifierProfile() == DxfClassifierProfile::StandaloneSafe
+            ? DxfCompatibilityProfile::StandaloneSafe : DxfCompatibilityProfile::LibreCadMasterLegacy)
         || expected.size() > 4096u)
         return false;
     try {
@@ -5042,7 +5043,8 @@ bool dxfRW::inspectDxfHatchOutputIsolation(
     if (!m_dxfWriteAttemptActive || !m_dxfWriteInspecting || !writer
         || m_writeError || writer->hasWriteError() || view.version != version
         || view.version < DRW::AC1015 || view.binary != binFile
-        || view.compatibilityProfile != dxfCompatibilityProfile()
+        || view.compatibilityProfile != (writer->classifierProfile() == DxfClassifierProfile::StandaloneSafe
+            ? DxfCompatibilityProfile::StandaloneSafe : DxfCompatibilityProfile::LibreCadMasterLegacy)
         || expected.empty() || expected.size() > 4096u)
         return false;
     try {
@@ -5100,7 +5102,8 @@ bool dxfRW::inspectDxfOutputHandleIsolation(
     if (!m_dxfWriteAttemptActive || !m_dxfWriteInspecting || !writer
         || m_writeError || writer->hasWriteError() || view.version != version
         || view.version < DRW::AC1015 || view.binary != binFile
-        || view.compatibilityProfile != dxfCompatibilityProfile()
+        || view.compatibilityProfile != (writer->classifierProfile() == DxfClassifierProfile::StandaloneSafe
+            ? DxfCompatibilityProfile::StandaloneSafe : DxfCompatibilityProfile::LibreCadMasterLegacy)
         || view.bytes.size() > 256u * 1024u * 1024u
         || targets.empty() || targets.size() > 8192u) return false;
     try {
@@ -5135,13 +5138,18 @@ bool dxfRW::inspectDxfOutputHandleIsolation(
                         return false;
                     variable.assign(token.text.data(), token.text.size());
                     if (variable.empty() || variable.front() != '$'
-                        || !DRW_Header::isDxfCanonicalVariableName(variable)
+                        || (variable != "$SNAPISOPAIR" && !DRW_Header::isDxfCanonicalVariableName(variable))
                         || variable == "$CUSTOMPROPERTY" || variable == "$CUSTOMPROPERTYTAG"
                         || !variables.insert(variable).second) return false;
                     codes.clear();
                     continue;
                 }
                 if (variable.empty() || !codes.insert(token.code).second) return false;
+                // A documented legacy VPORT HEADER value retained through the
+                // unknown-variable path, not part of the writer-owned inventory.
+                if (variable == "$SNAPISOPAIR" &&
+                    (token.code != 70 || token.type != dx_raster_output::Kind::Integer ||
+                     token.number < 0 || token.number > 2)) return false;
                 const int referenceCode = variable == "$INTERFEREOBJVS" ? 345
                     : variable == "$INTERFEREVPVS" ? 346 : variable == "$CMATERIAL" ? 347
                     : variable == "$DRAGVS" ? 349 : variable == "$CEPSNID" ? 390
@@ -5171,7 +5179,7 @@ bool dxfRW::inspectDxfOutputHandleIsolation(
                 90,100,105,140,141,142,143,144,145,146,147,148,170,171,172,173,174,175,176,
                 177,178,179,271,272,273,274,275,276,277,278,279,280,281,282,283,284,285,286,
                 288,289,295,330,340,371,372}},
-            {"LAYER", {2,5,6,62,70,100,290,330,370,390}}, {"LTYPE", {2,3,5,40,70,72,73,100,330}},
+            {"LAYER", {2,5,6,62,70,100,290,330,370,390}}, {"LTYPE", {2,3,5,40,49,70,72,73,74,100,330}},
             {"STYLE", {2,3,4,5,40,41,42,50,70,71,100,330}},
             {"VPORT", {2,5,10,11,12,13,14,15,16,17,20,21,22,23,24,25,26,27,36,37,40,41,42,43,44,
                 50,51,60,61,63,65,70,71,72,73,74,75,76,77,78,79,100,110,111,112,120,121,122,
@@ -5179,7 +5187,9 @@ bool dxfRW::inspectDxfOutputHandleIsolation(
         static const std::map<std::string_view, std::set<int>> objects{
             {"DICTIONARY", {3,5,100,280,281,330,350}},
             {"ACDBDICTIONARYWDFLT", {3,5,100,280,281,330,340,350}},
-            {"ACDBPLACEHOLDER", {5,100,330}}};
+            {"ACDBPLACEHOLDER", {5,100,330}},
+            {"PLOTSETTINGS", {1,2,4,5,6,7,40,41,42,43,44,45,46,47,48,49,70,72,73,74,75,76,77,78,
+                              100,140,141,142,143,147,148,149,330}}};
         const auto& allowed = section == DxfIsolationSection::Tables ? tables : objects;
         static const std::map<std::string_view, std::set<std::string_view>> subclasses{
             {"TABLE", {"AcDbSymbolTable", "AcDbDimStyleTable"}},
@@ -5192,7 +5202,7 @@ bool dxfRW::inspectDxfOutputHandleIsolation(
             {"VPORT", {"AcDbSymbolTableRecord", "AcDbViewportTableRecord"}},
             {"DICTIONARY", {"AcDbDictionary"}},
             {"ACDBDICTIONARYWDFLT", {"AcDbDictionary", "AcDbDictionaryWithDefault"}},
-            {"ACDBPLACEHOLDER", {"AcDbPlaceHolder"}}};
+            {"ACDBPLACEHOLDER", {"AcDbPlaceHolder"}}, {"PLOTSETTINGS", {"AcDbPlotSettings"}}};
         return dx_raster_output::inspect(view.bytes, view.binary,
             [&](std::string_view name, std::uint32_t, std::string_view body) {
                 const auto fields = allowed.find(name);
@@ -5201,6 +5211,7 @@ bool dxfRW::inspectDxfOutputHandleIsolation(
                 dx_raster_output::Token token;
                 while (!cursor.done()) {
                     if (!cursor.next(token) || !fields->second.count(token.code)) return false;
+                    if (name == "LTYPE" && token.code == 74 && token.number != 0) return false;
                     if (token.code == 100) {
                         const auto classes = subclasses.find(name);
                         if (classes == subclasses.end() || !classes->second.count(token.text)) return false;

@@ -1,0 +1,23 @@
+{
+  "kind": "libdxfrw-hatch-isolation-librecad-defaults",
+  "date": "2026-11-28",
+  "implementationDigestSha256": "f259172378eba47756686902cd0d0cff5e62c6fe6ddd8ac2762959b2c07376d4",
+  "scope": "Allow the documented legacy SNAPISOPAIR integer 0..2, simple LTYPE dash/space fields with element flag 0, and scalar PLOTSETTINGS fields with checked owner identity in staged foreign-handle isolation. Optional PLOTSETTINGS shade handles and complex LTYPE elements remain refused. Inspectors compare the active admitted writer profile rather than a callback policy setting for the next write.",
+  "authorities": [
+    "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-ED26E626-BC45-4256-9914-87E5FFE934B8.htm",
+    "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm",
+    "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-1113675E-AB07-4567-801A-310CDE0D56E9.htm"
+  ],
+  "checks": {
+    "focused": "PASS: 16 ASCII/binary/version/profile/order combinations, failure preserves destination and corrected same-writer retry",
+    "sanitizers": "PASS: ASan and UBSan; leak detection disabled",
+    "futureProfile": "A HEADER callback switches the next operation policy; current staged checks still use the writer-admitted profile.",
+    "independentReadback": "ezdxf 1.4.5: 16 outputs, reciprocal selected links, zero errors or fixes",
+    "independentReceiptSha256": "790697a87df75f9a9d812146c0bbb9686467fc9800bd15d97dc5e914489610e6"
+  },
+  "limits": [
+    "These checks establish explicit handle isolation for a selected output shape, not complete PLOTSETTINGS, linetype or whole-drawing semantics.",
+    "Native HATCH editing and wider profiles remain open. No drawing files committed."
+  ],
+  "supportClaimsPromoted": false
+}

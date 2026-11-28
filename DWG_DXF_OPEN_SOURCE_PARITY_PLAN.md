@@ -15,7 +15,7 @@ advisory, and excluded. Completed slice history and validation remain in
 `docs/research/` and Git history.
 
 The current test-inclusive implementation digest is
-`e2f7ff04e0c099ddfaa444979cd057d2c0c492e3dac5930fb0d2ca19652462cc`
+`f259172378eba47756686902cd0d0cff5e62c6fe6ddd8ac2762959b2c07376d4`
 (785 inputs, including the staged HATCH graph inspector and its focused tests). Earlier hosted runs bind prior digests; current-head hosted results are pending. The [latest source-release inventory repair](docs/research/p8-freecad-3dface-source-release-inventory-repair-2026-11-27.json) adds the tracked FreeCAD report patch omitted from the manifest; the local inventory and self-test pass and a new hosted run is pending. The [current CI repair and focused requalification](docs/research/p8-ci-repair-3e681e-2026-11-27.json) tracks completed and pending platform jobs at commit 3e681e694. The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
 and the [FreeCAD handoff matrix](docs/research/p8-native-freecad-2e4ae17b-2026-11-27.json) passed on earlier production inputs. The current [FreeCAD recheck](docs/research/p8-ci-repair-3e681e-2026-11-27.json) passes 16 Linux and 17 Windows tests, covering specified CLI and legacy importer profiles, not GUI or general 3D parity; hosted focused native and installed shared/static package checks also pass on Linux, Windows and macOS for matching production inputs.
 Recheck affected profiles against the frozen candidate.
@@ -60,7 +60,8 @@ below is still open, and its linked evidence defines the present boundary.
    as an output prerequisite. The [staged entity isolation check](docs/research/p8d-hatch-staged-entity-isolation-2026-11-28.json)
    also rejects unexpected selected-handle references in its narrow BLOCKS/ENTITIES profile.
    The [HEADER/TABLES/OBJECTS isolation check](docs/research/p8d-hatch-staged-other-section-isolation-2026-11-28.json)
-   covers selected fields in those staged sections. Bind emitted identities
+   covers selected fields in those staged sections. [Documented SNAPISOPAIR, simple linetypes and scalar PLOTSETTINGS](docs/research/p8d-hatch-isolation-librecad-defaults-2026-11-28.json)
+   cover the observed LibreCAD defaults. Bind emitted identities
    early, compose all section observers and revalidate live state at finalization.
    [HEADER and TABLES hooks are composable](docs/research/p8d-hatch-header-table-inspector-composition-2026-11-28.json);
    connect the HATCH checks without replacing existing material or image checks.

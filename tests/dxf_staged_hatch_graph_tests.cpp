@@ -18,8 +18,16 @@ struct Exporter : LC3CompatCheck {
     dxfRW& output;
     bool reverse;
     unsigned extraReference = 0;
+    bool changeFutureProfile = false;
     Links links;
     bool ok = false;
+
+    void writeHeader(DRW_Header&) override {
+        if (changeFutureProfile)
+            output.setDxfCompatibilityProfile(output.dxfCompatibilityProfile() == dxfRW::DxfCompatibilityProfile::StandaloneSafe
+                ? dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy
+                : dxfRW::DxfCompatibilityProfile::StandaloneSafe);
+    }
 
     void writeEntities() override {
         const std::uint32_t hatchSource = 0xA1u, boundarySource = 0xB1u;
@@ -90,6 +98,27 @@ void appendText(std::string& bytes, bool binary, int code, std::string_view valu
     } else {
         bytes += std::to_string(code); bytes += '\n';
         bytes.append(value.data(), value.size()); bytes += '\n';
+    }
+}
+void appendInt16(std::string& bytes, bool binary, int code, std::uint16_t value) {
+    if (binary) {
+        bytes.push_back(static_cast<char>(code & 0xff));
+        bytes.push_back(static_cast<char>((code >> 8) & 0xff));
+        bytes.push_back(static_cast<char>(value & 0xff));
+        bytes.push_back(static_cast<char>((value >> 8) & 0xff));
+    } else {
+        bytes += std::to_string(code); bytes += '\n'; bytes += std::to_string(value); bytes += '\n';
+    }
+}
+void appendDouble(std::string& bytes, bool binary, int code, double value) {
+    if (binary) {
+        bytes.push_back(static_cast<char>(code & 0xff));
+        bytes.push_back(static_cast<char>((code >> 8) & 0xff));
+        std::uint64_t raw = 0;
+        std::memcpy(&raw, &value, sizeof(raw));
+        for (unsigned i = 0; i < 8u; ++i) bytes.push_back(static_cast<char>((raw >> (8u * i)) & 0xffu));
+    } else {
+        bytes += std::to_string(code); bytes += '\n'; bytes += std::to_string(value); bytes += '\n';
     }
 }
 
@@ -186,6 +215,31 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
     const std::vector<std::uint32_t> otherTargets{0xFFF001u, 0xFFF002u};
     const auto otherSection = [&](const auto& view, dxfRW::DxfIsolationSection section, unsigned fault) {
         if (!writer.inspectDxfOutputHandleIsolation(view, section, otherTargets)) return false;
+        if (section == dxfRW::DxfIsolationSection::Tables && (mode == 0 || mode == 32)) {
+            auto patterned = std::string(view.bytes);
+            appendText(patterned, binary, 0, "LTYPE");
+            appendText(patterned, binary, 5, "F00");
+            appendDouble(patterned, binary, 49, 1.25);
+            appendInt16(patterned, binary, 74, mode == 32 ? 2u : 0u);
+            auto candidate = view;
+            candidate.bytes = patterned;
+            const bool result = writer.inspectDxfOutputHandleIsolation(candidate, section, otherTargets);
+            if (mode == 32) { mutationApplied = true; return result; }
+            if (!result) return false;
+        }
+        if (section == dxfRW::DxfIsolationSection::Objects && (mode == 0 || mode == 33 || mode == 34)) {
+            auto plotted = std::string(view.bytes);
+            appendText(plotted, binary, 0, "PLOTSETTINGS");
+            appendText(plotted, binary, 5, "F00");
+            appendText(plotted, binary, 330, mode == 33 ? "FFF001" : "FFF004");
+            appendText(plotted, binary, 100, "AcDbPlotSettings");
+            if (mode == 34) appendText(plotted, binary, 333, "FFF004");
+            auto candidate = view;
+            candidate.bytes = plotted;
+            const bool result = writer.inspectDxfOutputHandleIsolation(candidate, section, otherTargets);
+            if (mode == 33 || mode == 34) { mutationApplied = true; return result; }
+            if (!result) return false;
+        }
         if (mode != 0 && mode != fault) return true;
         if (mode == 0 && section == dxfRW::DxfIsolationSection::Header) {
             for (const auto name : {"$CUSTOMPROPERTY", "CUSTOMPROPERTY", "$VENDOR_DATA"}) {
@@ -207,6 +261,15 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
             auto wrongShapeView = view;
             wrongShapeView.bytes = wrongShape;
             if (writer.inspectDxfOutputHandleIsolation(wrongShapeView, section, otherTargets)) return false;
+            for (const unsigned value : {1u, 3u}) {
+                auto legacy = std::string(view.bytes);
+                appendText(legacy, binary, 9, "$SNAPISOPAIR");
+                appendInt16(legacy, binary, 70, static_cast<std::uint16_t>(value));
+                auto legacyView = view;
+                legacyView.bytes = legacy;
+                if (writer.inspectDxfOutputHandleIsolation(legacyView, section, otherTargets) != (value == 1u))
+                    return false;
+            }
             if (writer.inspectDxfOutputHandleIsolation(view, section, {otherTargets.front(), otherTargets.front()}))
                 return false;
             if (writer.inspectDxfOutputHandleIsolation(view, static_cast<dxfRW::DxfIsolationSection>(255), otherTargets))
@@ -295,7 +358,7 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
         return writer.inspectDxfHatchOutputIsolation(view, links, true);
     })) return false;
     const std::string sentinel = "preserve destination";
-    for (unsigned fault = 1; fault <= 31; ++fault) {
+    for (unsigned fault = 1; fault <= 34; ++fault) {
         if (fault == 27 && version < DRW::AC1018) continue; // true color is not written before R2004
         mode = fault;
         adapter.extraReference = fault >= 24 && fault <= 27 ? fault - 23u : 0u;
@@ -313,6 +376,11 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
             return false;
         }
     }
+    // A callback policy setter applies to the next write, not the writer's
+    // admitted profile or its active staged observers.
+    adapter.changeFutureProfile = true;
+    if (!writer.write(&adapter, version, binary)) return false;
+    adapter.changeFutureProfile = false;
     struct Reader : LC3CompatCheck {
         std::vector<DRW_Hatch> hatches;
         std::vector<DRW_LWPolyline> boundaries;
