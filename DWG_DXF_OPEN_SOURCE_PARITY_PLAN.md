@@ -92,7 +92,7 @@ below is still open, and its linked evidence defines the present boundary.
 8. **Integration and FreeCAD.** Recheck affected profiles against final heads
    of LibreCAD PR #3289, LibreCAD_3 PRs #460–#463 and the codec. Finish the
    native GUI, Linux/Windows, package and FreeCAD handoff gates. For the local
-   [41-patch FreeCAD draft](docs/research/p8-freecad-array-annotation-budget-2026-11-28.json),
+   [42-patch FreeCAD draft](docs/research/p8-freecad-minsert-inch-negative-control-2026-11-28.json),
    preserve named child-layer visibility and color through block composition;
    qualify additional geometry, INSERT/OCS and unit profiles, malformed numeric
    extremes, real producer drawings and actual Draft rendering. TEXT under
