@@ -60,7 +60,9 @@ below is still open, and its linked evidence defines the present boundary.
    for its one-straight-loop profile. [Decoded owner candidates and geometry snapshots](docs/research/p8d-dxf-owner-candidate-snapshot-2026-11-28.json)
    reject duplicate identities and overflow. The selected [source-role observer](docs/research/p8d-hatch-observed-source-roles-2026-11-28.json)
    checks one ASCII HATCH/polyline pair; its entity groups are [bound to retained source bytes](docs/research/p8d-hatch-source-byte-binding-2026-11-28.json).
-   Establish HEADER/version and model-space ownership, graph closure, copies and late edits.
+   One [local model-space drawing and ODA peer](docs/research/p8d-hatch-local-model-space-peer-2026-11-28.json)
+   audit clean; establish source HEADER/version and model-space ownership in
+   the consumer, graph closure, copies and late edits.
    The [composed entity inspector](docs/research/p8d-entity-inspector-composition-2026-11-28.json)
    provides the common hook for binding the check to consumer finalization.
    Preserve explicit deassociation outside the verified profile;

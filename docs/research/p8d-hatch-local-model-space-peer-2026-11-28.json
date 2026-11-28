@@ -1,0 +1,32 @@
+{
+  "kind": "librecad-hatch-local-model-space-peer",
+  "date": "2026-11-28",
+  "consumerCommit": "354e3eece139e8e8e194a320ea8823b359ceeb45",
+  "codecCommit": "e7e40c6ec",
+  "scope": "Locally authored AC1024 drawing with one HATCH/polyline association and default source appearance; HATCH polyline path created from the prior scratch-generated libdxfrw line-edge sample. Explicit BYLAYER, color 256 and lineweight -1 are accepted in the source common frame; nondefault color remains rejected.",
+  "sources": [
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+    "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-A1FD1934-7EF5-4D35-A4B0-F8AE54A9A20A.htm"
+  ],
+  "checks": {
+    "systemCodec": {
+      "cases": 5,
+      "assertions": 337,
+      "result": "pass including opt-in locally authored complete drawing",
+      "logSha256": "b72ec0e4412c3ce87a7db8159a59d07741643cd6a853b064433cfdfb402cbcfb"
+    },
+    "peerAudit": {
+      "tool": "ezdxf 1.4.5",
+      "inputSha256": "1e24eac2a25d4bf21c1ba1cefa7f81bd3fde4fdd91e8337d5db62d4d95c08f55",
+      "outputSha256": "e5060cf2cb9ffe01c2ade5d1abdcadd314576e2049e6d27da3f023f2d26307dc",
+      "outputProducer": "ODA File Converter 27.1.0 macOS ARM64",
+      "result": "Both files zero audit errors/fixes; HATCH and boundary share model-space owner 1F and retain reciprocal A1/B1 links."
+    }
+  },
+  "limits": [
+    "One local generated source and one ODA conversion do not establish native AutoCAD edit or clone semantics.",
+    "Consumer source-space and HEADER physical proof, graph closure and association replay remain open.",
+    "Sample and peer output remain in local scratch, not committed."
+  ],
+  "supportClaimsPromoted": false
+}
