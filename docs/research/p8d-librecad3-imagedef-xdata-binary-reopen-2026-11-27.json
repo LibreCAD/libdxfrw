@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-imagedef-xdata-binary-reopen-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "cbc7f12e745d5c6e4993041056c41488ca233a1e",
+  "implementation": "Extend the checked source IMAGE dictionary path to selected binary inputs with a physically checked root, empty ACAD_GROUP dictionary, and existing validated Normal plot-style pair. Reuse generated-dictionary source bindings and source-handle remapping; preserve unsupported metadata loss reporting.",
+  "validation": [
+    "The binary-to-ASCII 1005 test failed before the change. Fifteen focused IMAGE, dictionary and paper tests and eighteen layout tests pass after it.",
+    "Selected authored R2000 ASCII-to-binary input reopens and resaves as ASCII and binary; the binary source can be removed from and restored to the same writer, falling back with reported loss when the target is absent. A second binary reopen and ASCII save retains the same selected target.",
+    "Independent ezdxf 1.4.5 resolves the binary-source reference to 85 and both resaved outputs to remapped target AE, the distinct width-8 IMAGEDEF; all audit without errors or repairs.",
+    "The adapter syntax-checks against older bundled codec headers; runtime behavior with them is not qualified."
+  ],
+  "redLogSha256": "8ea238a2bd71fa7786a0921e4c01da3b0a0e77b0c863eaedd5f2386801a274d7",
+  "testLogSha256": "6e9a651b8b8882ade3ad8f6e6f87ed36888867c997dab2c95c86c4298edecf34",
+  "layoutLogSha256": "a2ad550f872077ab59ae35729546128576d5d793264afd0375e00e80e1627052",
+  "olderHeaderLogSha256": "2e5337aa3727300050bff86e123a74795a101b0d6340efcff45f863ee7963b99",
+  "peerOutput": {
+    "binary": {
+      "sha256": "f6c523a7f7a979addc8de8d23e3aee74bf889a2325a1ea3cb73e31a82942a861",
+      "definition": "84",
+      "xdata_target": "85",
+      "target_width": 8.0,
+      "errors": 0,
+      "fixes": 0
+    },
+    "ascii": {
+      "sha256": "18a38defa5eaae3654602bb797ed536482bee3d4738e4997299f7d4719fbd945",
+      "definition": "AD",
+      "xdata_target": "AE",
+      "target_width": 8.0,
+      "errors": 0,
+      "fixes": 0
+    },
+    "retry": {
+      "sha256": "d78ab9ce7ca3307a4708ae28badef2795cb500c80184c8fd1a193a02cba00c89",
+      "definition": "AD",
+      "xdata_target": "AE",
+      "target_width": 8.0,
+      "errors": 0,
+      "fixes": 0
+    }
+  },
+  "limits": [
+    "The binary source must have the checked image/group/Normal-plot root, empty group and selected image definitions; other roots, unknown metadata, producer profiles and native semantics remain open.",
+    "Regenerated source reactor identity and other IMAGEDEF metadata remain reported as loss. No generated fixture files are committed."
+  ]
+}
