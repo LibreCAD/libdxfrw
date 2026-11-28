@@ -46,6 +46,11 @@ public:
     static bool boundLegacyLayout(const dx_iface& adapter) {
         return adapter.hasBoundLegacyLayoutSources();
     }
+    static std::string layoutGraphFailure(dx_iface& adapter) {
+        std::string failure;
+        return adapter.validateOutputLayoutGraph(DRW::AC1015, failure)
+            ? std::string{} : failure;
+    }
     static bool legacyBlockFrames(const dx_data& data, const std::string& input) {
         if (data.m_legacyBlockRecordSourceFailed || data.blockRecords.empty()
             || data.m_legacyBlockRecordSources.size() != data.blockRecords.size()) return false;
@@ -1383,6 +1388,44 @@ bool checkLegacyLayoutGraph(const std::string& input) {
     if (!adapter.fileImport(input, &data, false)
         || !DxIfaceStandardDwgCaptureTestAccess::boundLegacyLayout(adapter)
         || adapter.wantsLegacyBlockRecordSource(DRW::AC1015)) return false;
+    const auto modelLayout = std::find_if(data.layouts.begin(), data.layouts.end(),
+        [](const DRW_Layout& layout) { return layout.name == "Model"; });
+    if (modelLayout == data.layouts.end() || data.VPorts.empty()) return false;
+    const auto originalViewport = modelLayout->lastActiveViewportHandle.ref;
+    modelLayout->lastActiveViewportHandle.ref = data.VPorts.front().handle;
+    const auto validFailure = DxIfaceStandardDwgCaptureTestAccess::layoutGraphFailure(adapter);
+    modelLayout->lastActiveViewportHandle.ref = 0xFFFFFFFEu;
+    const auto invalidFailure = DxIfaceStandardDwgCaptureTestAccess::layoutGraphFailure(adapter);
+    modelLayout->lastActiveViewportHandle.ref = originalViewport;
+    if (validFailure.find("need a qualified target projection") == std::string::npos
+        || invalidFailure.find("last-active viewport is invalid") == std::string::npos
+        || !DxIfaceStandardDwgCaptureTestAccess::boundLegacyLayout(adapter)) {
+        std::cerr << "legacy model viewport validation: valid=" << validFailure
+                  << "; invalid=" << invalidFailure << '\n';
+        return false;
+    }
+    const auto paperLayout = std::find_if(data.layouts.begin(), data.layouts.end(),
+        [](const DRW_Layout& layout) { return layout.name == "Layout1"; });
+    if (paperLayout == data.layouts.end() || data.mBlock == nullptr) return false;
+    const auto originalPaperViewport = paperLayout->lastActiveViewportHandle.ref;
+    std::unique_ptr<DRW_Viewport> viewport(new DRW_Viewport());
+    viewport->handle = 0xF00Du;
+    viewport->space = DRW::PaperSpace;
+    viewport->parentHandle = 0u;
+    data.mBlock->ent.push_back(viewport.get());
+    paperLayout->lastActiveViewportHandle.ref = viewport->handle;
+    const auto validPaper = DxIfaceStandardDwgCaptureTestAccess::layoutGraphFailure(adapter);
+    viewport->parentHandle = 0xFFFFFFFEu;
+    const auto invalidPaper = DxIfaceStandardDwgCaptureTestAccess::layoutGraphFailure(adapter);
+    paperLayout->lastActiveViewportHandle.ref = originalPaperViewport;
+    data.mBlock->ent.pop_back();
+    if (validPaper.find("need a qualified target projection") == std::string::npos
+        || invalidPaper.find("last-active viewport is invalid") == std::string::npos
+        || !DxIfaceStandardDwgCaptureTestAccess::boundLegacyLayout(adapter)) {
+        std::cerr << "legacy paper viewport validation: valid=" << validPaper
+                  << "; invalid=" << invalidPaper << '\n';
+        return false;
+    }
     const auto source = bytes(input);
     if (!DxIfaceStandardDwgCaptureTestAccess::legacyBlockFrames(data, source)
         || !DxIfaceStandardDwgCaptureTestAccess::legacyBlockWire(data)) return false;

@@ -4193,6 +4193,7 @@ private:
         const DRW_Block& block, bool includeContainerStorage,
         std::size_t& estimatedBytes) const noexcept;
     bool prepareDwgViewportProjection(std::string& failure);
+    bool validateOutputLayoutGraph(DRW::Version version, std::string& failure);
     bool inspectDwgViewportXrecords(
         const dxfRW::DxfObjectsWriteView& view) noexcept;
     bool finalizeDwgViewportOutputQualifications() noexcept;

@@ -83331,16 +83331,19 @@ bool validateLayoutGraph(const dx_data& data, DRW::Version targetVersion,
     }
     const auto associationMode = dx_layout_associations::sourceMode(
         data.sourceFormat == dx_source_format::DWG, data.sourceVersion);
-    if (associationMode == dx_layout_associations::Mode::LegacyDwgForwardOnly) {
+    const bool legacyForward = associationMode
+        == dx_layout_associations::Mode::LegacyDwgForwardOnly;
+    std::map<std::uint32_t, std::uint32_t> sourceAssociations;
+    if (legacyForward) {
         std::vector<dx_layout_associations::BlockRecordProjection> projection;
         if (!dx_layout_associations::projectLegacyToR2000(
                 layoutsByHandle, recordsByHandle, targetVersion,
                 projection, failure))
             return false;
-        return reject("R13/R14 DWG LAYOUT forward references need a qualified target projection");
-    }
-    std::map<std::uint32_t, std::uint32_t> sourceAssociations;
-    if (!dx_layout_associations::resolve(layoutsByHandle, recordsByHandle,
+        for (const auto& record : projection)
+            if (record.layoutHandle != 0u)
+                sourceAssociations.emplace(record.handle, record.layoutHandle);
+    } else if (!dx_layout_associations::resolve(layoutsByHandle, recordsByHandle,
                                          associationMode, sourceAssociations,
                                          failure))
         return false;
@@ -83351,19 +83354,22 @@ bool validateLayoutGraph(const dx_data& data, DRW::Version targetVersion,
     // Active paperspace entities arrive through ENTITIES (mBlock); inactive
     // paperspaces arrive in their *Paper_Spacennnn block containers.
     const auto hasValidLastActiveViewport = [
-            &data, &recordsByHandle, &recordsByName, &vportsByHandle](
+            &data, &recordsByHandle, &recordsByName, &vportsByHandle,
+            &sourceAssociations](
                 std::uint32_t handle, const DRW_Layout& layout,
                 std::string& reason) {
         const std::uint32_t blockRecordHandle =
             layout.paperSpaceBlockRecordHandle.ref;
         const auto associatedRecord = recordsByHandle.find(blockRecordHandle);
+        const auto association = sourceAssociations.find(blockRecordHandle);
         const auto modelSpaceRecord = recordsByName.find("*MODEL_SPACE");
         const bool isModelSpaceLayout =
             layoutSymbolKey(layout.name) == "MODEL"
             && associatedRecord != recordsByHandle.end()
             && layoutSymbolKey(associatedRecord->second->name)
                 == "*MODEL_SPACE"
-            && associatedRecord->second->layoutHandle == layout.handle
+            && association != sourceAssociations.end()
+            && association->second == layout.handle
             && modelSpaceRecord != recordsByName.end()
             && modelSpaceRecord->second == blockRecordHandle;
         if (isModelSpaceLayout) {
@@ -83457,7 +83463,8 @@ bool validateLayoutGraph(const dx_data& data, DRW::Version targetVersion,
         const auto owner = recordsByHandle.find(blockRecordHandle);
         const auto currentPaperSpace = recordsByName.find("*PAPER_SPACE");
         const bool canonicalOwner = owner != recordsByHandle.end()
-            && owner->second->layoutHandle == layout.handle
+            && association != sourceAssociations.end()
+            && association->second == layout.handle
             && currentPaperSpace != recordsByName.end()
             && currentPaperSpace->second == blockRecordHandle;
         if (!canonicalOwner) {
@@ -83487,11 +83494,23 @@ bool validateLayoutGraph(const dx_data& data, DRW::Version targetVersion,
             }
         }
     }
-    return layoutsByHandle.size() == data.layouts.size()
-        || reject("not every LAYOUT has a unique paper-space BLOCK_RECORD");
+    if (layoutsByHandle.size() != data.layouts.size())
+        return reject("not every LAYOUT has a unique paper-space BLOCK_RECORD");
+    if (legacyForward)
+        return reject("R13/R14 DWG LAYOUT forward references need a qualified target projection");
+    return true;
 }
 
 } // namespace
+
+bool dx_iface::validateOutputLayoutGraph(DRW::Version version, std::string& failure) {
+    if (cData == nullptr) {
+        failure = "missing adapter data";
+        return false;
+    }
+    return validateLayoutGraph(*cData, version, m_sunHandlesToWrite,
+                               m_liveSectionHandlesToWrite, failure);
+}
 
 bool dx_iface::prepareDwgViewportProjection(std::string& failure) {
     m_dwgViewportProjections.clear();
@@ -91268,9 +91287,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         return false;
     }
     std::string layoutGraphFailure;
-    if (!validateLayoutGraph(*cData, v, m_sunHandlesToWrite,
-                              m_liveSectionHandlesToWrite,
-                              layoutGraphFailure)) {
+    if (!validateOutputLayoutGraph(v, layoutGraphFailure)) {
         reportPreflightFailure(layoutGraphFailure);
         return false;
     }
