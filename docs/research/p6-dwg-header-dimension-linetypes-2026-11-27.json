@@ -1,0 +1,23 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dwg-header-dimension-linetypes-2026-11-27",
+  "supportClaimEffect": "none",
+  "authority": [
+    "Open Design Specification for .dwg files v5.4.1 section 9 declares DIMLTYPE, DIMLTEX1, DIMLTEX2 as R2007+ hard pointers."
+  ],
+  "sample": {
+    "provenance": "Locally created ezdxf R2010 source converted by ODA File Converter 27.1 macOS; scratch only.",
+    "dwgSha256": "cc5dfc5ea9ef4423ec91f37c995c5d626d7f7e0b23335a865b3424dc21d22e18",
+    "libredwg014": "Three source HEADER pointers resolve to LTYPE names P6_DASH, P6_DOT and P6_DASHDOT."
+  },
+  "change": "Retain R2007+ dimension linetype handles and resolve each against the same-import LTYPE table, diagnosing invalid roles, missing, wrong-kind, wide, or ambiguous targets. Earlier versions retain existing behavior.",
+  "checks": [
+    "Five focused HEADER test groups pass, including per-field invalid role/target/name and same-reader retry.",
+    "Explicit-partial ASCII and binary output retain all three names; ezdxf 1.4.5 audits both with zero errors and fixes.",
+    "ODA 27.1 reopens both outputs with audit off; LibreDWG 0.14 resolves reopened HEADER pointers to the original three LTYPE names."
+  ],
+  "limits": [
+    "One locally generated AC1024 producer profile is not a general interoperability or native rendering qualification.",
+    "The unclassified AC1024 HEADER suffix continues to block strict output; no generated drawing was committed."
+  ]
+}

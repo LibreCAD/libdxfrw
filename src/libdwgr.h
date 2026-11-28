@@ -211,7 +211,9 @@ enum class DwgIntegrityCheckKind : std::uint8_t {
     /// Non-null HEADER DIMTXSTY does not resolve to its source STYLE record.
     HeaderDimensionTextStyleReference,
     /// A HEADER dimension arrow handle has an invalid role or target.
-    HeaderDimensionArrowBlockReference
+    HeaderDimensionArrowBlockReference,
+    /// A HEADER dimension linetype handle has an invalid role or target.
+    HeaderDimensionLineTypeReference
 };
 
 /// Version of the field and enum contract carried by DwgIntegrityDiagnostic.

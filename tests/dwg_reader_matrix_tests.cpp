@@ -21869,6 +21869,7 @@ public:
         dimstylemap.emplace(dim->handle, dim);
     }
     using dwgReader::resolveDwgHeaderCurrentReferences;
+    void setVersion(DRW::Version v) { version = v; }
     const std::vector<DwgIntegrityDiagnostic>& diagnostics() const {
         return m_integrityDiagnostics;
     }
@@ -22040,6 +22041,58 @@ void testHeaderSourceCurrentReferenceFailures(TestContext& t) {
         }
         t.expect(arrowReader.diagnostics().size() == 1u,
                  "corrected dimension arrow retries without a new diagnostic");
+    }
+    for (std::size_t selected = 0; selected < 3u; ++selected) {
+        for (int failure = 0; failure != 5; ++failure) {
+            std::vector<std::uint8_t> bytes;
+            HeaderCurrentReaderProbe lineReader(bytes);
+            lineReader.setVersion(DRW::AC1021);
+            const std::array<const char*, 3> keys{{"DIMLTYPE", "DIMLTEX1", "DIMLTEX2"}};
+            const std::array<const char*, 3> values{{"DimLine", "ExtOne", "ExtTwo"}};
+            for (std::size_t i = 0; i < keys.size(); ++i) {
+                auto* type = new DRW_LType;
+                type->handle = static_cast<std::uint32_t>(0x71u + i);
+                type->name = values[i];
+                lineReader.ltypemap.emplace(type->handle, type);
+                auto& ref = lineReader.m_dwgHeaderCurrentReferences[i + 10u];
+                ref.code = DRW::DwgHardPointer; ref.size = 1u;
+                ref.ref = type->handle; ref.ref64 = type->handle;
+            }
+            auto& reference = lineReader.m_dwgHeaderCurrentReferences[selected + 10u];
+            if (failure == 0) reference.code = DRW::DwgSoftPointer;
+            if (failure == 1) { reference.ref = 0x52u; reference.ref64 = 0x52u; }
+            if (failure == 2) { reference.ref = 0x99u; reference.ref64 = 0x99u; }
+            if (failure == 3) reference.ref64 = UINT64_C(0x100000071) + selected;
+            if (failure == 4) {
+                auto* duplicate = new DRW_LType;
+                duplicate->handle = 0x80u; duplicate->name = values[selected];
+                lineReader.ltypemap.emplace(duplicate->handle, duplicate);
+            }
+            DRW_Header lineHeader;
+            lineReader.resolveDwgHeaderCurrentReferences(lineHeader);
+            t.expect(lineReader.diagnostics().size() == 1u
+                         && lineReader.diagnostics().front().kind
+                             == DwgIntegrityCheckKind::HeaderDimensionLineTypeReference,
+                     "unresolved or ambiguous dimension linetype is an integrity error");
+            reference.code = DRW::DwgHardPointer;
+            reference.ref = static_cast<std::uint32_t>(0x71u + selected);
+            reference.ref64 = reference.ref;
+            const auto duplicate = lineReader.ltypemap.find(0x80u);
+            if (duplicate != lineReader.ltypemap.end()) {
+                delete duplicate->second;
+                lineReader.ltypemap.erase(duplicate);
+            }
+            lineReader.resolveDwgHeaderCurrentReferences(lineHeader);
+            for (std::size_t i = 0; i < keys.size(); ++i) {
+                const auto found = lineHeader.vars.find(keys[i]);
+                t.expect(found != lineHeader.vars.end()
+                             && found->second->type() == DRW_Variant::STRING
+                             && *found->second->content.s == values[i],
+                         "dimension linetype resolves to its source LTYPE name");
+            }
+            t.expect(lineReader.diagnostics().size() == 1u,
+                     "corrected dimension linetype retries without a new diagnostic");
+        }
     }
 }
 
