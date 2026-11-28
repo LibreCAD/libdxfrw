@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-checked-hatch-boundary-fixed14-2026-11-28",
+  "supportClaimEffect": "none",
+  "consumerCommit": "54ee1cce",
+  "codecCommit": "f5eba6d44",
+  "implementationDigestSha256": "9944e586474c9f22075f2173cffd13588bc0a29d645e3419ea2ff1c57f6f8dda",
+  "scope": "One physically isolated AC1024 ASCII model-space straight HATCH boundary with source handle 0x14, colliding with a generated structural output handle.",
+  "checks": [
+    "Bind the selected unique source boundary to an allocated handle during block-record planning, before HEADER and section inspection; retain reciprocal HATCH/boundary references and staged isolation.",
+    "Fault a late geometry change, preserve the existing destination, restore the source and retry with the same filter; reject a duplicated source claim and an unqualified HATCH self-handle collision.",
+    "The focused shared-codec suite passes 975 assertions in 7 cases, including image/material compatibility.",
+    "ezdxf 1.4.5 checks the locally authored output and ODA File Converter 27.1.0 output: boundary 0x30, reciprocal HATCH 0xB1, model-space owner 0x1F, zero audit errors or fixes. No fixture is committed."
+  ],
+  "hashes": {
+    "systemTestLog": "887430b88ca9ff6ba4b1c21c42e508fea06ba2d4ae2aea4fda90d92de36945db",
+    "dxf": "9e32988832075988c0a569b00853946f17e36c2c3ede56786f9cbc0d66b129d2",
+    "peerAudit": "7cefa7ca1b5e8f8330ece6a03dd7480dfb77738cf5efe0401590a7c1aeca7402"
+  },
+  "limits": [
+    "Only the selected 0x14 boundary collision is admitted; other fixed identities, other entity roles and unqualified graphs remain subject to their existing refusal or deassociation.",
+    "This does not qualify native GUI editing or establish a general support claim."
+  ]
+}
