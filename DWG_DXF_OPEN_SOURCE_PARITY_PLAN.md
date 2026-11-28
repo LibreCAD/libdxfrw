@@ -36,9 +36,9 @@ below is still open, and its linked evidence defines the present boundary.
    evidence rather than weakening refusals. Extend the 256 KiB source capture
    only with aggregate memory accounting. Recheck native LibreCAD and FreeCAD.
 2. **LibreCAD IMAGE and plot graphs.** Extend the checked
-   [256-image mixed-space profile](docs/research/p8d-librecad-256-mixed-space-images-2026-11-27.json)
+   [384-image profile](docs/research/p8d-librecad-384-image-graphs-2026-11-28.json)
    to larger drawings, more graph shapes, layers, versions, clipping and
-   references. Preserve the 257-image, legacy MATERIAL, orphan and
+   references. Preserve the 385-image, legacy MATERIAL, orphan and
    cross-version refusals until their respective bounds, output closure and
    independent readback are proved. Current capture uses a shared 4 MiB logical
    raster-source budget, 512 IMAGEDEF groups and a 256 KiB source-file gate;

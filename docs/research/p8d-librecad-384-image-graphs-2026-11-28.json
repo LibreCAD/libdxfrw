@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-384-image-graphs-2026-11-28",
+  "supportClaimEffect": "selected profiles only",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "b6df0ae7b557fef05fa2ea17a5e31edf403f0fb6",
+  "parent": "ee40253827787b4c6501f92f006f84da140d8da7",
+  "change": "Raise the shared-codec per-kind retained raster source and graph audit bound from 256 to 384 while retaining the 4 MiB aggregate logical-source budget, 512 IMAGEDEF-group limit and 256 KiB source-file gate.",
+  "checks": [
+    "A temporary focused 257-image reproduction failed before the change. The existing six-version graph selector now passes 2250 assertions including 257 and 384 images, one shared or 384 distinct definitions, wrong reactor owner, late edits, destination preservation, 385-image refusal and corrected retry.",
+    "The mixed model/block selector passes 90 assertions across AC1021 and AC1032, including 384 images, changed block state, destination preservation and corrected retry. The shared source-budget test passes 779 assertions, including the 384/385 boundary and existing aggregate-budget failures.",
+    "The affected IMAGE/MATERIAL selector passes 16010 assertions across six versions, including 384 images and three definitions, 3D IMAGE coordinates, legacy MATERIAL refusal, graph mutation refusal and retry. The bundled-codec library builds.",
+    "ezdxf 1.4.5 independently checks 24 same-version source/output graph pairs at 257 or 384 images, two 384-image mixed-space pairs and four 384-image MATERIAL pairs, including definition/reactor ownership, reciprocal links, geometry and paths; all audits report zero errors or fixes.",
+    "The graph and MATERIAL selectors ran with a separate temporary reproduction test still present; that redundant case was then removed, the exact final test target rebuilt and the budget selector rerun. Retained test bodies and library code were unchanged. No drawing fixture was committed."
+  ],
+  "hashes": {
+    "redLog": "25ce4ca74be3541cae9d8bc44d04009df4a5acc830b420e0bc8df6f0a64bd3c9",
+    "graphsLog": "6a9d21d0d01920d12bc2a4117a4772690146520628e0fe8c40580ec13d9675b8",
+    "mixedBlockLog": "971db04e1cd4edec6498a68b477bddef35d1ad70d9173de1643e33d65901a608",
+    "materialLog": "00490758bee5695c29988805f20aed9465661215e2c229f3a6d4d89a8bdc7784",
+    "finalBudgetLog": "e1054ff58876b64f19ad5dd3dbcf4ab2a96a705dc7dee5355429cc7462b5adb5",
+    "bundledBuildLog": "deaa24e10d45f8123415daf7c5dcb1cd8aadbd32a94af75bd5b238217987525b",
+    "graphPeer": "ae534d94b063ce257c58d2e29765735d8a13883a999c761d58a8954bed75dfed",
+    "mixedBlockPeer": "ab35f36a2a44b2d7a7a645641f5cb9d429c76a1f4c33eb42e71bc48f196f9ef7",
+    "materialPeer": "257de50a318c091ada83ca0ed271743a12c8212327c7c12c8e6df6c1e07d03cb"
+  },
+  "limits": [
+    "This is bounded locally generated ASCII DXF coverage on headless macOS ARM64, not native rendering, arbitrary graphs, cross-version replay or broad producer/platform qualification.",
+    "Images beyond the cap, sources exceeding size or logical budget, legacy MATERIAL combinations, unsupported layouts, clipping and orphan references remain guarded."
+  ]
+}
