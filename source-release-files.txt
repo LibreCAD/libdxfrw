@@ -744,6 +744,7 @@ tests/dxf_sectionobject_411_tests.cpp
 tests/dxf_sectionobject_vertices_tests.cpp
 tests/dxf_sparse_material_raw_tests.cpp
 tests/dxf_spline_helix_dispatch_tests.cpp
+tests/dxf_staged_hatch_graph_tests.cpp
 tests/dxf_staged_image_reference_tests.cpp
 tests/dxf_sun_color_order_tests.cpp
 tests/dxf_symbol_output_tests.cpp

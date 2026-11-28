@@ -7693,3 +7693,11 @@ add_test(NAME libdxfrw_dwg_eed_layer_write
     COMMAND libdxfrw_dwg_eed_layer_write_tests)
 set_tests_properties(libdxfrw_dwg_eed_layer_write PROPERTIES
     LABELS "fast;dwg;xdata;transaction;generated" TIMEOUT 20)
+
+add_executable(libdxfrw_dxf_staged_hatch_graph_tests ${CMAKE_CURRENT_SOURCE_DIR}/dxf_staged_hatch_graph_tests.cpp)
+target_compile_features(libdxfrw_dxf_staged_hatch_graph_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_dxf_staged_hatch_graph_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_dxf_staged_hatch_graph_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_dxf_staged_hatch_graph_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_dxf_staged_hatch_graph COMMAND libdxfrw_dxf_staged_hatch_graph_tests)
+set_tests_properties(libdxfrw_dxf_staged_hatch_graph PROPERTIES LABELS "dxf;fast;hatch;transaction;generated" TIMEOUT 30)

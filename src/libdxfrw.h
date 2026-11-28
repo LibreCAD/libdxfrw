@@ -113,6 +113,7 @@ public:
 #define LIBDXFRW_HAS_DXF_STAGED_MATERIAL_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_RAW_OBJECT_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_ENTITY_MATERIAL_INSPECTOR 1
+#define LIBDXFRW_HAS_DXF_STAGED_HATCH_GRAPH_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_PHYSICAL_ENTITY_SOURCE_HANDLERS 1
 #define LIBDXFRW_HAS_DXF_PHYSICAL_IDENTITY_SOURCE_HANDLER 1
 #define LIBDXFRW_HAS_DXF_DEFAULT_PLOT_PLACEHOLDER_HANDLE 1
@@ -361,6 +362,21 @@ public:
     bool inspectDxfEntityMaterialReferences(
         const DxfObjectsWriteView& view,
         const std::vector<DxfEntityMaterialReference>& expected) const noexcept;
+    struct DxfHatchOutputLinks {
+        std::uint32_t hatch{0u};     //!< Emitted HATCH handle.
+        std::uint32_t boundary{0u};  //!< Emitted LWPOLYLINE handle.
+        std::uint32_t owner{0u};     //!< Nonzero shared emitted owner.
+    };
+    /** Inspect selected HATCH/LWPOLYLINE pairs in one staged entity section.
+     * Call only from the active entity-section inspector with its borrowed view.
+     * This bounded profile accepts a solid HATCH with one line-edge loop,
+     * one source boundary and exactly one reciprocal boundary reactor. It
+     * checks a continuous straight 2D edge loop against the closed polyline.
+     * Handles are emitted identities. It does not prove a simple polygon,
+     * establish source provenance, inspect other records, or authorize publication. */
+    bool inspectDxfHatchOutputLinks(
+        const DxfObjectsWriteView& view,
+        const std::vector<DxfHatchOutputLinks>& expected) const noexcept;
     struct DxfImageOutputReferences {
         std::uint32_t image{0u};
         std::uint32_t owner{0u};

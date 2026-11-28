@@ -1,0 +1,48 @@
+{
+  "kind": "libdxfrw-staged-hatch-association-evidence",
+  "date": "2026-11-28",
+  "implementationDigestSha256": "d549f79da2f29f565385e09aeeb1e1547d6924baab72055ab8d36dab55bd161e",
+  "scope": "Selected HATCH/LWPOLYLINE pairs in a borrowed staged DXF entity section; solid HATCH, one continuous straight line-edge loop, one source, default planar coordinates, closed unbulged polyline, reciprocal reactor, matching emitted owner and identities. No claim for other entities or whole drawing.",
+  "authorities": [
+    "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-DC5215D6-E73F-4DFF-8BE9-01CA9610FAEE.htm",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm"
+  ],
+  "focusedTests": {
+    "test": "libdxfrw_dxf_staged_hatch_graph",
+    "profiles": 16,
+    "dimensions": [
+      "AC1015 and AC1024",
+      "ASCII and binary",
+      "StandaloneSafe and LibreCadMasterLegacy",
+      "rotated and reversed boundary ordering"
+    ],
+    "rejectionsAndRetriesPerProfile": 23,
+    "result": "pass; staged mutations rejected, destination sentinel retained, same writer retry and fresh readback succeed"
+  },
+  "sanitizers": {
+    "address": "pass",
+    "undefinedBehavior": "pass",
+    "leakDetection": "disabled"
+  },
+  "independentReadback": {
+    "tool": "ezdxf 1.4.5",
+    "generatedDrawings": 16,
+    "result": "reciprocal identities and matching geometry, zero audit errors and fixes",
+    "receiptSha256": "db84306f97cdf4ad2ddab86f6df4cb84df86070a4da61cfc33d25fa0bbfafafd"
+  },
+  "peerConversion": {
+    "tool": "ODA File Converter 27.1.0 macOS ARM64",
+    "drawings": 4,
+    "result": "reopened converted DXF graph and geometry match, zero ezdxf audit errors and fixes",
+    "receiptSha256": "a07e7b98642ac051ba9a898fe88129f5238b77b5775f51418e89d9bae2138664"
+  },
+  "compatibility": "LibreCAD_3 compatibility target and 3D consumer probe build; related staged IMAGE and HATCH payload tests pass. No native edit or rendered behavior is established.",
+  "ci": "Previous Windows focused run failed because matrix test kept readback files open across destination replacement. Streams now close after readback; local matrix passes, hosted Windows recheck required.",
+  "limits": [
+    "Only selected pairs are inspected; caller must establish complete source and output graph closure.",
+    "Does not prove polygon simplicity, native AutoCAD edit behavior, or producer provenance.",
+    "No DWG or DXF files committed; generated peer files and detailed receipts remain local scratch.",
+    "LibreCAD still deassociates unsupported HATCH profiles; consumer preservation and native edit/save qualification remain open."
+  ],
+  "supportClaimsPromoted": false
+}

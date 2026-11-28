@@ -15,8 +15,8 @@ advisory, and excluded. Completed slice history and validation remain in
 `docs/research/` and Git history.
 
 The current test-inclusive implementation digest is
-`af2d9e8a1f4866db44def162e69f1c974fc3b08dbd0f263a4100431460e473ea`
-(784 inputs; test harness through `db2aa5f0f`; production implementation through `1a1e502af`). Earlier hosted runs bind prior digests; current-head hosted results are pending. The [latest source-release inventory repair](docs/research/p8-freecad-3dface-source-release-inventory-repair-2026-11-27.json) adds the tracked FreeCAD report patch omitted from the manifest; the local inventory and self-test pass and a new hosted run is pending. The [current CI repair and focused requalification](docs/research/p8-ci-repair-3e681e-2026-11-27.json) tracks completed and pending platform jobs at commit 3e681e694. The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
+`d549f79da2f29f565385e09aeeb1e1547d6924baab72055ab8d36dab55bd161e`
+(785 inputs, including the staged HATCH graph inspector and its focused tests). Earlier hosted runs bind prior digests; current-head hosted results are pending. The [latest source-release inventory repair](docs/research/p8-freecad-3dface-source-release-inventory-repair-2026-11-27.json) adds the tracked FreeCAD report patch omitted from the manifest; the local inventory and self-test pass and a new hosted run is pending. The [current CI repair and focused requalification](docs/research/p8-ci-repair-3e681e-2026-11-27.json) tracks completed and pending platform jobs at commit 3e681e694. The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
 and the [FreeCAD handoff matrix](docs/research/p8-native-freecad-2e4ae17b-2026-11-27.json) passed on earlier production inputs. The current [FreeCAD recheck](docs/research/p8-ci-repair-3e681e-2026-11-27.json) passes 16 Linux and 17 Windows tests, covering specified CLI and legacy importer profiles, not GUI or general 3D parity; hosted focused native and installed shared/static package checks also pass on Linux, Windows and macOS for matching production inputs.
 Recheck affected profiles against the frozen candidate.
 All support claims remain experimental.
@@ -54,6 +54,11 @@ below is still open, and its linked evidence defines the present boundary.
    and native evidence. Retain unsupported-field and nonzero PELLIPSE refusals.
 4. **Graph edits and wide identities.** Complete associative HATCH edit and
    graph handling beyond the [selected deassociation, copy and unidentified-boundary guard](docs/research/p8d-librecad-hatch-unidentified-boundaries-2026-11-28.json).
+   Use the [staged line-loop graph check](docs/research/p8d-hatch-staged-association-2026-11-28.json)
+   as an output prerequisite: retain per-loop source identities, match live
+   geometry and owners, handle copies and edits, then bind the check to consumer
+   finalization. Preserve explicit deassociation outside the verified profile;
+   the staged check alone does not establish consumer association support.
    Preserve refusal for unresolved reactors and advanced-object graphs until
    their target identities and output closure are proved. Extend the [wide XRECORD route](docs/research/p7-wide-dxf-cross-encoding-2026-11-27.json)
    beyond its eight chains, selected roles and safe text only after source,

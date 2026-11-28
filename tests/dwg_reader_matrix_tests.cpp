@@ -22490,6 +22490,7 @@ void testHeaderCurrentReferences(TestContext& t) {
              "adding the missing layer lets the same DWG writer retry");
     std::ifstream published(path, std::ios::binary);
     const std::vector<std::uint8_t> file((std::istreambuf_iterator<char>(published)), {});
+    published.close();
     HeaderPublicationSink sink;
     dwgRW reader("");
     t.expect(!file.empty() && reader.readBuffer(file.data(), file.size(), &sink, false)
@@ -22515,6 +22516,7 @@ void testHeaderCurrentReferences(TestContext& t) {
              "adding dimension text style lets the same DWG writer retry");
     std::ifstream publishedStyle(path, std::ios::binary);
     const std::vector<std::uint8_t> styleFile((std::istreambuf_iterator<char>(publishedStyle)), {});
+    publishedStyle.close();
     HeaderPublicationSink styleSink;
     dwgRW styleReader("");
     t.expect(!styleFile.empty()
@@ -22540,6 +22542,7 @@ void testHeaderCurrentReferences(TestContext& t) {
              "adding the dimension arrow block lets the same DWG writer retry");
     std::ifstream publishedArrow(path, std::ios::binary);
     const std::vector<std::uint8_t> arrowFile((std::istreambuf_iterator<char>(publishedArrow)), {});
+    publishedArrow.close();
     HeaderPublicationSink arrowSink;
     dwgRW arrowReader("");
     t.expect(!arrowFile.empty()
@@ -22565,6 +22568,7 @@ void testHeaderCurrentReferences(TestContext& t) {
              "adding the dimension linetype lets the same DWG writer retry");
     std::ifstream publishedType(path, std::ios::binary);
     const std::vector<std::uint8_t> typeFile((std::istreambuf_iterator<char>(publishedType)), {});
+    publishedType.close();
     HeaderPublicationSink typeSink;
     dwgRW typeReader("");
     t.expect(!typeFile.empty()
@@ -22590,6 +22594,7 @@ void testHeaderCurrentReferences(TestContext& t) {
              "adding the HEADER UCS lets the same DWG writer retry");
     std::ifstream publishedUcs(path, std::ios::binary);
     const std::vector<std::uint8_t> ucsFile((std::istreambuf_iterator<char>(publishedUcs)), {});
+    publishedUcs.close();
     HeaderPublicationSink ucsSink;
     dwgRW ucsReader("");
     t.expect(!ucsFile.empty()

@@ -22,6 +22,7 @@
 #include <fstream>
 #include <functional>
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
@@ -4820,6 +4821,216 @@ bool dxfRW::inspectDxfEntityMaterialReferences(
                     && seen.insert(handle).second;
             }, profile);
         return valid && seen.size() == references.size();
+    } catch (...) { return false; }
+}
+
+bool dxfRW::inspectDxfHatchOutputLinks(
+        const DxfObjectsWriteView& view,
+        const std::vector<DxfHatchOutputLinks>& expected) const noexcept {
+    if (!m_dxfWriteAttemptActive || !m_dxfWriteInspecting || !writer
+        || m_writeError || writer->hasWriteError() || view.version != version
+        || view.version < DRW::AC1015 || view.binary != binFile
+        || expected.size() > 4096u)
+        return false;
+    try {
+        const auto profile = view.compatibilityProfile == DxfCompatibilityProfile::StandaloneSafe
+            ? dx_raster_output::Profile::StandaloneSafe
+            : view.compatibilityProfile == DxfCompatibilityProfile::LibreCadMasterLegacy
+                ? dx_raster_output::Profile::LibreCadMasterLegacy
+                : dx_raster_output::Profile::Invalid;
+        if (!dx_raster_output::valid(profile)) return false;
+        std::map<std::uint32_t, DxfHatchOutputLinks> hatches, boundaries;
+        for (const auto& item : expected) {
+            if (!item.hatch || !item.boundary || !item.owner
+                || item.hatch == DRW::NoHandle || item.boundary == DRW::NoHandle
+                || item.owner == DRW::NoHandle || item.hatch == item.boundary
+                || !hatches.emplace(item.hatch, item).second
+                || !boundaries.emplace(item.boundary, item).second)
+                return false;
+        }
+        for (const auto& item : hatches)
+            if (boundaries.count(item.first) || hatches.count(item.second.owner)
+                || boundaries.count(item.second.owner)) return false;
+        using Point = std::pair<double, double>;
+        using Edge = std::array<double, 4>;
+        const auto edge = [](Point a, Point b) {
+            if (b < a) std::swap(a, b);
+            return Edge{{a.first, a.second, b.first, b.second}};
+        };
+        std::map<std::uint32_t, std::vector<Edge>> hatchEdges;
+        std::map<std::uint32_t, std::vector<Point>> boundaryPoints;
+        std::size_t totalEdges = 0u, totalVertices = 0u;
+        std::set<std::uint32_t> seenHatches, seenBoundaries;
+        const bool valid = dx_raster_output::inspect(view.bytes, view.binary,
+            [&](std::string_view name, std::uint32_t handle, std::string_view body) {
+                const auto hatch = hatches.find(handle);
+                const auto boundary = boundaries.find(handle);
+                if (hatch == hatches.end() && boundary == boundaries.end()) return true;
+                const bool isHatch = hatch != hatches.end();
+                const auto& links = isHatch ? hatch->second : boundary->second;
+                auto& seen = isHatch ? seenHatches : seenBoundaries;
+                if (name != (isHatch ? "HATCH" : "LWPOLYLINE") || !seen.insert(handle).second)
+                    return false;
+                dx_raster_output::Cursor cursor(body, view.binary, profile);
+                dx_raster_output::Token token;
+                unsigned self = 0u, owner = 0u, common = 0u, subclass = 0u;
+                unsigned solid = 0u, associative = 0u, loopCount = 0u, path = 0u;
+                unsigned hatchStyle = 0u, patternType = 0u, patternLines = 0u, seeds = 0u;
+                unsigned originMask = 0u, normalMask = 0u, hatchName = 0u;
+                unsigned reactorBlocks = 0u, reactors = 0u, vertexCount = 0u, polyFlags = 0u, width = 0u;
+                std::size_t declaredVertices = 0u;
+                std::vector<Edge> edges;
+                std::vector<Point> points;
+                bool insideReactors = false, bodySubclass = false;
+                const auto next = [&](int code, dx_raster_output::Kind kind) {
+                    return cursor.next(token) && token.code == code && token.type == kind;
+                };
+                while (!cursor.done()) {
+                    if (!cursor.next(token)) return false;
+                    if (token.code == 102) {
+                        if (isHatch || common || bodySubclass) return false;
+                        if (!insideReactors && token.text == "{ACAD_REACTORS" && reactorBlocks == 0u) {
+                            insideReactors = true; ++reactorBlocks;
+                        } else if (insideReactors && token.text == "}") insideReactors = false;
+                        else return false;
+                    } else if (insideReactors) {
+                        std::uint32_t value = 0u;
+                        if (token.code != 330 || ++reactors != 1u
+                            || !dx_raster_output::integer(token.text, value, 16)
+                            || value != links.hatch) return false;
+                    } else if (token.code == 5) {
+                        std::uint32_t value = 0u;
+                        if (common || ++self != 1u
+                            || !dx_raster_output::integer(token.text, value, 16)
+                            || value != handle) return false;
+                    } else if (token.code == 330) {
+                        std::uint32_t value = 0u;
+                        if (common || ++owner != 1u
+                            || !dx_raster_output::integer(token.text, value, 16)
+                            || value != links.owner) return false;
+                    } else if (token.code == 100) {
+                        if (token.text == "AcDbEntity") {
+                            if (++common != 1u || subclass) return false;
+                        } else if (token.text == (isHatch ? "AcDbHatch" : "AcDbPolyline")) {
+                            if (common != 1u || ++subclass != 1u) return false;
+                            bodySubclass = true;
+                        } else return false;
+                    } else if (token.code >= 1000 || (token.code >= 320 && token.code <= 369)
+                               || token.code == 390 || token.code == 480 || token.code == 481) {
+                        return false;
+                    } else if (isHatch && bodySubclass) {
+                        if (token.code == 70) {
+                            if (++solid != 1u || token.number != 1) return false;
+                        } else if (token.code == 71) {
+                            if (++associative != 1u || token.number != 1) return false;
+                        } else if (token.code == 91) {
+                            if (++loopCount != 1u || token.number != 1) return false;
+                        } else if (token.code == 92) {
+                            if (++path != 1u || solid != 1u || associative != 1u || loopCount != 1u
+                                || token.number < 0 || token.number > 17 || (token.number & ~17) != 0)
+                                return false;
+                            if (!next(93, dx_raster_output::Kind::Integer)
+                                || token.number < 3 || token.number > 4096
+                                || static_cast<std::size_t>(token.number) > 65536u - totalEdges) return false;
+                            const auto count = static_cast<std::size_t>(token.number);
+                            totalEdges += count;
+                            edges.reserve(count);
+                            Point firstStart, previousEnd;
+                            for (std::size_t i = 0; i < count; ++i) {
+                                if (!next(72, dx_raster_output::Kind::Integer) || token.number != 1
+                                    || !next(10, dx_raster_output::Kind::Double)) return false;
+                                const double x1 = token.real;
+                                if (!next(20, dx_raster_output::Kind::Double)) return false;
+                                const double y1 = token.real;
+                                if (!next(11, dx_raster_output::Kind::Double)) return false;
+                                const double x2 = token.real;
+                                if (!next(21, dx_raster_output::Kind::Double)) return false;
+                                const double y2 = token.real;
+                                const Point start{x1, y1}, end{x2, y2};
+                                if (start == end || (i != 0u && start != previousEnd)) return false;
+                                if (i == 0u) firstStart = start;
+                                previousEnd = end;
+                                edges.push_back(edge(start, end));
+                            }
+                            if (previousEnd != firstStart) return false;
+                            std::uint32_t target = 0u;
+                            if (!next(97, dx_raster_output::Kind::Integer) || token.number != 1
+                                || !next(330, dx_raster_output::Kind::Text)
+                                || !dx_raster_output::integer(token.text, target, 16)
+                                || target != links.boundary) return false;
+                        } else if (path) {
+                            if (token.code == 75) {
+                                if (++hatchStyle != 1u || token.number < 0 || token.number > 2) return false;
+                            } else if (token.code == 76) {
+                                if (++patternType != 1u || token.number < 0 || token.number > 2) return false;
+                            } else if (token.code == 78) {
+                                if (++patternLines != 1u || token.number != 0) return false;
+                            } else if (token.code == 98) {
+                                if (++seeds != 1u || token.number != 0) return false;
+                            } else return false;
+                        } else if (token.code == 2) {
+                            if (++hatchName != 1u || token.text != "SOLID") return false;
+                        } else if (token.code == 10 || token.code == 20 || token.code == 30) {
+                            const unsigned bit = token.code == 10 ? 1u : token.code == 20 ? 2u : 4u;
+                            if ((originMask & bit) || token.real != 0.0) return false;
+                            originMask |= bit;
+                        } else if (token.code == 210 || token.code == 220 || token.code == 230) {
+                            const unsigned bit = token.code == 210 ? 1u : token.code == 220 ? 2u : 4u;
+                            if ((normalMask & bit) || token.real != (token.code == 230 ? 1.0 : 0.0)) return false;
+                            normalMask |= bit;
+                        } else return false;
+                    } else if (!isHatch && bodySubclass) {
+                        if (token.code == 90) {
+                            if (++vertexCount != 1u || token.number < 3 || token.number > 4096
+                                || static_cast<std::size_t>(token.number) > 65536u - totalVertices) return false;
+                            declaredVertices = static_cast<std::size_t>(token.number);
+                            totalVertices += declaredVertices;
+                            points.reserve(declaredVertices);
+                        } else if (token.code == 70) {
+                            if (++polyFlags != 1u || token.number != 1) return false;
+                        } else if (token.code == 43) {
+                            if (++width != 1u || token.real != 0.0) return false;
+                        } else if (token.code == 10) {
+                            if (vertexCount != 1u || points.size() >= declaredVertices) return false;
+                            const double x = token.real;
+                            if (!next(20, dx_raster_output::Kind::Double)) return false;
+                            points.emplace_back(x, token.real);
+                        } else return false;
+                    }
+                }
+                if (insideReactors || self != 1u || owner != 1u || common != 1u || subclass != 1u)
+                    return false;
+                if (isHatch) {
+                    if (solid != 1u || associative != 1u || loopCount != 1u || path != 1u
+                        || hatchStyle != 1u || patternType != 1u || patternLines != 1u || seeds != 1u
+                        || originMask != 7u || normalMask != 7u || hatchName != 1u) return false;
+                    return hatchEdges.emplace(handle, std::move(edges)).second;
+                }
+                if (reactorBlocks != 1u || reactors != 1u || vertexCount != 1u || polyFlags != 1u
+                    || width != 1u || points.size() != declaredVertices
+                    || std::set<Point>(points.begin(), points.end()).size() != points.size()) return false;
+                return boundaryPoints.emplace(handle, std::move(points)).second;
+            }, profile);
+        if (!valid || seenHatches.size() != hatches.size() || seenBoundaries.size() != boundaries.size())
+            return false;
+        for (const auto& item : hatches) {
+            auto foundEdges = hatchEdges.find(item.first);
+            const auto foundPoints = boundaryPoints.find(item.second.boundary);
+            if (foundEdges == hatchEdges.end() || foundPoints == boundaryPoints.end()
+                || foundEdges->second.size() != foundPoints->second.size()) return false;
+            std::vector<Edge> polyEdges;
+            polyEdges.reserve(foundPoints->second.size());
+            for (std::size_t i = 0; i < foundPoints->second.size(); ++i) {
+                const auto& a = foundPoints->second[i];
+                const auto& b = foundPoints->second[(i + 1u) % foundPoints->second.size()];
+                if (a == b) return false;
+                polyEdges.push_back(edge(a, b));
+            }
+            std::sort(foundEdges->second.begin(), foundEdges->second.end());
+            std::sort(polyEdges.begin(), polyEdges.end());
+            if (foundEdges->second != polyEdges) return false;
+        }
+        return true;
     } catch (...) { return false; }
 }
 
