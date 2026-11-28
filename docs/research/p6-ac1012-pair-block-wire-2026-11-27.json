@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-pair-block-wire-2026-11-27",
+  "supportClaimEffect": "none",
+  "candidateCommit": "d1adf1326",
+  "implementationDigestSha256": "546b8889fdf47f051639782dd399b927caa7e3a2bf32bb44ba3be1a4f9c0d97f",
+  "authority": "ODA Open Design Specification v5.4.1 sections 2.13, 20.1 and 20.4.52",
+  "scope": "Apply the existing version-aware BLOCK_HEADER wire and frame observers to the model and paper blocks in each locally generated two-element AC1012 dictionary collision pair.",
+  "samples": {
+    "sourceSha256": "3a9dd2858b9d86d226fb4d704a5a396b4af04041bd034473ae7b022524f62173",
+    "destinationSha256": "269e05d515446e240d5165803458fb5330d5f1b5711e9d747a23431e7b061ea0"
+  },
+  "checks": [
+    "Both drawings' two block frames bind to their physical file, CRC-checked framing, source version, handle and import generation. Their complete observed bodies and control, extension, xref, block, first, last and end handle spans match the parsed records.",
+    "The model block first and last entity both resolve to LINE 0x2C; the paper block has null endpoints. Body edits, parent edits, each present handle-role mutation, changed frame bytes and changed generation are rejected; the unchanged source passes again.",
+    "Three focused CTests pass in 0.25 seconds: shared relative-handle vectors and the two optional generated-sample checks. No drawing fixture was committed."
+  ],
+  "hashes": {
+    "ctestLog": "a0b87093ecf08b6f3da89e68c1b9f96be7e74bab7b44c3e3a0262fec571e27a8",
+    "sourceObserverLog": "a584e3f3d9daefa134ff2ea95ea3a40c108e760007d4703683d45d64f1e7414c",
+    "destinationObserverLog": "d6bfb60ef20a82b6b73a7ef44e9466c2eea69f770307f2d3a9a3c51aa635543a"
+  },
+  "limits": [
+    "These are selected source-wire and local parser consistency checks. They do not establish whole-file graph closure, AutoCAD normal-open, clone semantics, native DXF output or general support."
+  ]
+}
