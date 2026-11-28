@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-hatch-independent-lines-2026-11-28",
+  "supportClaimEffect": "none",
+  "consumerCommit": "3280ab1109b706f8b6f7294fc1c2148798487ccb",
+  "codecImplementationDigestSha256": "ad5b209a8d7087b49f00070533616bfd91628ea6a80be07f7156bbe4d0ef0640",
+  "scope": "Selected isolated AC1024 ASCII HATCH/polyline graph with up to 32 independent model-space LINE entities and existing source/output restrictions.",
+  "checks": [
+    "The source capture verifies contiguous physical records, LINE identity and model-space owner, permitted fields and the absence of incoming references to the selected graph. The existing staged section inspector checks output isolation and reciprocal HATCH links.",
+    "One imported LINE and one newly added LINE retain their geometry and the association through two fresh readbacks and repeat saves. A late reactor mutation preserves the destination; a corrected same-filter retry succeeds. A source LINE carrying a foreign reactor is excluded.",
+    "The 32-line boundary retains the association and is eligible for another save; at 33 lines the output falls back to deassociation. The source capture remains bounded to 64 KiB.",
+    "The selected shared-codec suite passes 1118 assertions in seven cases and the bundled suite passes 236 assertions in five cases. The checked replay is gated on both physical source capture and all required staged inspector APIs.",
+    "ezdxf independently checks the two LINE coordinates, HATCH/boundary identities, owner and reciprocal references with zero audit errors or fixes, both before and after an ODA File Converter 27.1.0 AC1024 DXF conversion."
+  ],
+  "sha256": {
+    "sharedTestLog": "7656c0fec54dd3feb490ef941ddcb87e8aaa95ed8a5398448eb5a2c05c0094bb",
+    "bundledTestLog": "72f122ed918f71cf6d7728fd4875a4e164c65b0075a246e2d1939598059a0eb8",
+    "dxf": "e8788a58589df67376946c09c41d1cc5ad23312d88d1760b6cef56d632ed9083",
+    "odaDxf": "2217ae73a3225cd245315f8c3af59631764f31ddfdf88489527612816b2339a9"
+  },
+  "limits": [
+    "This does not admit other extra entity types, foreign object graphs, binary sources, other DXF versions, native GUI editing or general producer/platform interoperability.",
+    "No drawing fixture is committed."
+  ]
+}
