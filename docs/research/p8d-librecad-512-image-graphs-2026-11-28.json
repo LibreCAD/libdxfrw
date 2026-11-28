@@ -1,0 +1,148 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-512-image-graphs-2026-11-28",
+  "supportClaimEffect": "none",
+  "consumerCommit": "006879f2c6625a3454d5779aef55cb2aeafab8ef",
+  "codecTestInclusiveDigest": "af2d9e8a1f4866db44def162e69f1c974fc3b08dbd0f263a4100431460e473ea",
+  "change": "Raise the per-kind IMAGE/IMAGEDEF source count from 384 to 512 and retain 128 group slots beyond that count for IMAGEDEF fixed fields. Keep the 64 KiB per-record payload, 4 MiB shared logical-retention budget and 256 KiB source-file gate.",
+  "checks": [
+    "Locally generated 385 and 512 image sources with one shared or four definitions pass selected AC1021 and AC1024 graph audit, source-to-output independent readback, wrong-reactor-owner refusal with destination preservation, corrected retry and fresh library import. At 512, late entity mutation during staged output is also refused atomically and a corrected same-filter retry succeeds. The focused case passes 188 assertions.",
+    "A 513-image source is refused with its existing destination preserved; removing one image, exporting and importing the corrected source, then retrying with the same filter succeeds. The six-version existing boundary test, including 513 refusal and 512 corrected retry, passes 2250 assertions.",
+    "A shared IMAGEDEF with 512 reactors has 525 source groups. The former 512-group guard refused that graph; the new 640-group cap permits the checked source without relaxing either byte limit. The shared logical-budget and record-bound tests pass 1036 assertions.",
+    "A 512-definition source above the 256 KiB file gate remains refused with its destination intact; a corrected 384-definition source succeeds on retry (269 assertions). This is not admission of 512 distinct-definition files above that gate.",
+    "The 512-image mixed graph with 256 model-space and 256 named-block images, two definitions and late-mutation rollback passes in AC1021 and AC1032; independent ezdxf confirms source/output owners, definition and reactor closure and clean audits (120 assertions across all selected counts).",
+    "The AC1024 512-image graph with one 18- or 256-vertex polygon and one shared definition passes strict output, mutation refusal, corrected retry and fresh readback; 257 vertices remain refused. Independent ezdxf matches all selected image fields, vertices, IMAGEDEF scalar fields and graph links (4562 assertions across selected counts).",
+    "The bundled-codec LibreCAD library builds. No generated DWG or DXF fixture was committed."
+  ],
+  "evidenceSha256": {
+    "peer": "e554ed8c87f73db6c024ab598ecf5da348d957a51d033b484b6ffa4426ea62a0",
+    "blockPeer": "89193a7a6eb52f2e4fd3756b8e6a554c49df2dcc48ba61116503b103e03f221e",
+    "polygonPeer": "910c78786706b1555bd776bd37302845f7a4c0e02e53528482affd7f1c72d8c5",
+    "focused": "eb6770d67ce826159d429729919259ea669f003cf9a325f089e8ba4520f8f706",
+    "budget": "475a1ad2e74182e482105f8947b324115972b4d31a71c35732e1005614e8803a",
+    "fileGuard": "269e2d6a7f667ca8814ddf2f0af0e8112195d1e7a3c1f3548cb44685e611fa8d",
+    "sixVersion": "e4f2f2136e26bf82edc0d2fd8cd9fc84f4e46fbea07b4d27eab9624bab8247d5",
+    "block": "a1dbac803b5577498b7fed5de1393d423af8d33e886dd6dd632d31f8f8fd127f",
+    "polygon": "717c3db5a833b2baf3c3948e0fa232f8489288b1588dc35e4e8d409ec023e6c3",
+    "bundledBuild": "34e763a0e75ece29b2aed4cf3e4c96251a32ebb488c1e4164aafe3c42d9a0025"
+  },
+  "peerObservations": [
+    {
+      "images": 385,
+      "definitions": 1,
+      "format": 3,
+      "sourceBytes": 172041,
+      "sourceSha256": "ede22b68fb37e489f3b6ce63330712dd69690d814047ad4742142c40b27781fd",
+      "outputSha256": "47fcd074bee17707b142a5f5ba4af23687bbd9022e5b1c6d9ee3dc7a8116b8e2",
+      "audit": "clean"
+    },
+    {
+      "images": 385,
+      "definitions": 1,
+      "format": 19,
+      "sourceBytes": 174475,
+      "sourceSha256": "7f05778ea4f41d27d3cba8bdd258415b50513e0b89da69aaeba9999882c232b0",
+      "outputSha256": "d6f05f9a54fcba64d60a1fa4bb59fc77f32b1bde9ec29121a0756eefe095dd5c",
+      "audit": "clean"
+    },
+    {
+      "images": 385,
+      "definitions": 4,
+      "format": 3,
+      "sourceBytes": 172563,
+      "sourceSha256": "b86437c13ee13eff8b7e241bfeb6a96ffea1b67c894786360ee08586b6dfa674",
+      "outputSha256": "fac053c8a3c740da403827659c36044dfff2fac824333282c01e43ae8659dd9b",
+      "audit": "clean"
+    },
+    {
+      "images": 385,
+      "definitions": 4,
+      "format": 19,
+      "sourceBytes": 174997,
+      "sourceSha256": "1578db0fb2a03f7d421a7f1eed875fcdb737ab833c3446f08ced874214737d6b",
+      "outputSha256": "f5bac8e221aaf91879e1b0f9dd63e928c665027a2012766a0ffec24ecd64ffa9",
+      "audit": "clean"
+    },
+    {
+      "images": 512,
+      "definitions": 1,
+      "format": 3,
+      "sourceBytes": 222079,
+      "sourceSha256": "ff464ebaf6a9c143079b8db57ed982801e13e917d05b60605fa4daf6518962d5",
+      "outputSha256": "d2d8bd2746b6c57cf75db1e93df23614ccf949b1c4f06e454b7b2c62276e25fe",
+      "audit": "clean"
+    },
+    {
+      "images": 512,
+      "definitions": 1,
+      "format": 19,
+      "sourceBytes": 225275,
+      "sourceSha256": "d75508b0729ed632762f1a5bf74b82db5f388c5e6fbca3cce508ec4a1f93c997",
+      "outputSha256": "e1a02b64ff22ef7b38825a8f920b98d72ca9c025d918421febd2f92dcebb439a",
+      "audit": "clean"
+    },
+    {
+      "images": 512,
+      "definitions": 4,
+      "format": 3,
+      "sourceBytes": 222601,
+      "sourceSha256": "42b33f5f50eec29c7c5f07ef8b0f735d6557419f9ca2e97bf3f21c7b97fb1729",
+      "outputSha256": "ff0633f4b1e64954d257aa2845a1213039406ca313cbbac3a68bcd8b279f3f6e",
+      "audit": "clean"
+    },
+    {
+      "images": 512,
+      "definitions": 4,
+      "format": 19,
+      "sourceBytes": 225797,
+      "sourceSha256": "07265f4af17f0ec9f9502a824925f9b72da2ab16398fce86021ae3a4baf8508c",
+      "outputSha256": "d49a5bb63d75c09eb8952ad64a7c2d4e01c4567be141c20f9a9052950ad64bb0",
+      "audit": "clean"
+    }
+  ],
+  "blockPeerObservations": [
+    {
+      "version": "default",
+      "images": 512,
+      "modelImages": 256,
+      "blockImages": 256,
+      "definitions": 2,
+      "sourceSha256": "d337bde2e1cbf0a262c2745fce6510e16bc89fc4b09f4cfa72e43954f4c567e3",
+      "outputSha256": "cbb557e20848eb299c23cc3b6f9d4a1bace3fcf906c95ed92ef1f73a03bf370b",
+      "audit": "clean"
+    },
+    {
+      "version": ".v2",
+      "images": 512,
+      "modelImages": 256,
+      "blockImages": 256,
+      "definitions": 2,
+      "sourceSha256": "7dec581a943536dc4ed17f304ba4b980044eb562611d27739aa0a53396bb2332",
+      "outputSha256": "f28b00aa27b5f6126a84769ff4f9a63fcf79c130a9a1adb4ec4ffd42c4b5ce50",
+      "audit": "clean"
+    }
+  ],
+  "polygonPeerObservations": [
+    {
+      "images": 512,
+      "polygonVertices": 18,
+      "definitions": 1,
+      "sourceSha256": "5ac113c0466beebfbd6ec8332df6da4384e3ffc3492df28b1e4aac564494c935",
+      "outputSha256": "559a169ea153aab410fb2b95b0f650e8bbf4ebeb9260f6f416de2f31419970a4",
+      "audit": "clean"
+    },
+    {
+      "images": 512,
+      "polygonVertices": 256,
+      "definitions": 1,
+      "sourceSha256": "89db629dba7536425ce0b5085fe7ac20a55dc3d437b4d326b4efdf3ca0544b61",
+      "outputSha256": "81aa4bf575313eca74e2068045f2fc3b5dbcf26252e1fe98faa06a08cf2f37d6",
+      "audit": "clean"
+    }
+  ],
+  "limits": [
+    "Selected locally generated ASCII DXF source graphs; no native 512-image GUI, independent producer, binary input, cross-version output, or other platform qualification.",
+    "513 images, more than 256 clipping vertices, source files above 256 KiB and profiles exceeding the shared logical memory budget remain outside the admitted profile.",
+    "The 4 MiB charge is logical retained storage, not an allocator-capacity or RSS measurement. Larger graphs require their own bound, closure, performance and independent readback evidence."
+  ]
+}

@@ -36,13 +36,13 @@ below is still open, and its linked evidence defines the present boundary.
    evidence rather than weakening refusals. Extend the 256 KiB source capture
    only with aggregate memory accounting. Recheck native LibreCAD and FreeCAD.
 2. **LibreCAD IMAGE and plot graphs.** Extend the checked
-   [384-image profile](docs/research/p8d-librecad-384-image-graphs-2026-11-28.json)
-   and [single- and multi-image clipping controls](docs/research/p8d-librecad-single-image-polygon-2026-11-28.json), with [selected native clipping render checks](docs/research/p8d-librecad-image-clipping-render-2026-11-28.json) and a later [affine pixel-basis fix](docs/research/p8d-librecad-image-affine-basis-2026-11-28.json),
+   [512-image profile](docs/research/p8d-librecad-512-image-graphs-2026-11-28.json)
+   and [single- and multi-image clipping controls](docs/research/p8d-librecad-single-image-polygon-2026-11-28.json), with [selected native clipping render checks](docs/research/p8d-librecad-image-clipping-render-2026-11-28.json) and an [affine pixel-basis fix](docs/research/p8d-librecad-image-affine-basis-2026-11-28.json),
    to larger drawings, more graph shapes, layers, versions, clipping and
-   references. Preserve the 385-image, legacy MATERIAL, orphan and
-   cross-version refusals until their respective bounds, output closure and
+   references. Preserve the 513-image, oversized-source, legacy MATERIAL, orphan
+   and cross-version refusals until their respective bounds, output closure and
    independent readback are proved. Current capture uses a shared 4 MiB logical
-   raster-source budget, 512 IMAGEDEF groups, 542 IMAGE groups and a 256 KiB source-file gate;
+   raster-source budget, 640 IMAGEDEF groups, 542 IMAGE groups and a 256 KiB source-file gate;
    raise limits only with aggregate accounting. Qualify rendering and platforms
    separately; one native skewed-image save/reopen, [selected pointer picks](docs/research/p8d-librecad-native-image-picking-2026-11-28.json), and [one macOS print-to-PDF check](docs/research/p8d-librecad-image-skew-print-pdf-2026-11-28.json) are checked after the affine change. Clipping beyond 256 vertices, broader GUI picking and printing remain open.
 3. **Legacy HEADER and versions.** Resolve R12/R14 `$FACETRES`, `$ISOLINES`,
@@ -83,7 +83,7 @@ below is still open, and its linked evidence defines the present boundary.
    of LibreCAD PR #3289, LibreCAD_3 PRs #460–#463 and the codec. Finish native
    GUI, Linux/Windows, package and FreeCAD handoff qualification. For the local
    FreeCAD candidate, preserve named child layers through block composition; the
-   [parametric metadata slice](docs/research/p8-freecad-parametric-block-original-layer-2026-11-28.json) retains declared child and nested-INSERT layer names, and the [shared property fix](docs/research/p8-freecad-original-layer-persistence-2026-11-28.json) preserves them through native document save/reopen. The [current 25-patch candidate](docs/research/p8-freecad-candidate-linux-windows-2026-11-28.json) passes 20 selected headless tests on Linux and Windows. A [recursive-block guard](docs/research/p8-freecad-block-recursion-guard-2026-11-28.json) now skips and reports cyclic or excessively deep edges in both composition modes; the [depth-boundary correction](docs/research/p8-freecad-block-shared-depth-boundary-2026-11-28.json) permits reuse of already-composed blocks. The [27-patch candidate](docs/research/p8-freecad-candidate-recursion-platforms-2026-11-28.json) passes all 21 selected headless tests on Linux and Windows. Visibility and fused-mode layer handling remain open;
+   [parametric metadata slice](docs/research/p8-freecad-parametric-block-original-layer-2026-11-28.json) retains declared child and nested-INSERT layer names, and the [shared property fix](docs/research/p8-freecad-original-layer-persistence-2026-11-28.json) preserves them through native document save/reopen. A [recursive-block guard](docs/research/p8-freecad-block-recursion-guard-2026-11-28.json) now skips and reports cyclic or excessively deep edges in both composition modes; the [depth-boundary correction](docs/research/p8-freecad-block-shared-depth-boundary-2026-11-28.json) permits reuse of already-composed blocks. The [27-patch candidate](docs/research/p8-freecad-candidate-recursion-platforms-2026-11-28.json) passes all 21 selected headless tests on Linux and Windows. Visibility and fused-mode layer handling remain open;
    the [3DFACE check](docs/research/p8-freecad-3dface-block-layer-loss-2026-11-27.json)
    reports current loss while retaining geometry; the [block geometry report](docs/research/p8-freecad-block-geometry-layer-loss-2026-11-27.json) extends that disclosure to selected LINE/CIRCLE controls. Review color, other block
    entities and independent producers, split the candidate, and follow
