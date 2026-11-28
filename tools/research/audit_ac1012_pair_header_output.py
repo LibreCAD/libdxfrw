@@ -69,33 +69,42 @@ def check_references(fields, objects, header):
     return checked
 
 
-def check_physical_times(data, fields):
+def physical_tags(data):
     if data.startswith(BINARY_SENTINEL):
-        tags = read_pairs(data)
-    else:
-        lines = data.decode("utf-8").splitlines()
-        require(len(lines) % 2 == 0, "unpaired ASCII DXF tags")
-        tags = [(int(lines[i].strip()), lines[i + 1].strip()) for i in range(0, len(lines), 2)]
-    start = next((i for i in range(len(tags) - 1)
-                  if tags[i] == (0, "SECTION") and tags[i + 1] == (2, "HEADER")), None)
-    require(start is not None, "missing physical HEADER")
+        return list(read_pairs(data))
+    lines = data.decode("utf-8").splitlines()
+    require(len(lines) % 2 == 0, "unpaired ASCII DXF tags")
+    return [(int(lines[i].strip()), lines[i + 1].strip()) for i in range(0, len(lines), 2)]
+
+
+def check_physical_times(tags, fields):
+    starts = [i for i in range(len(tags) - 1)
+              if tags[i] == (0, "SECTION") and tags[i + 1] == (2, "HEADER")]
+    require(len(starts) == 1, "missing or duplicate physical HEADER")
+    start = starts[0]
     expected = {"TDCREATE": "TDUCREATE", "TDUPDATE": "TDUUPDATE",
                 "TDINDWG": "TDINDWG", "TDUSRTIMER": "TDUSRTIMER"}
     observed = {}
+    ended = False
     for i in range(start + 2, len(tags) - 1):
         code, value = tags[i]
         if (code, value) == (0, "ENDSEC"):
+            ended = True
             break
-        if code != 9 or not value.startswith("$") or value[1:] not in expected:
+        if code != 9:
+            continue
+        require(isinstance(value, str), "invalid physical HEADER variable name")
+        if not value.startswith("$") or value[1:] not in expected:
             continue
         name = value[1:]
-        require(name not in observed and tags[i + 1][0] == 40, f"invalid physical timestamp: {name}")
+        require(name not in observed and i + 2 < len(tags) and tags[i + 1][0] == 40 and
+                tags[i + 2][0] in (0, 9), f"invalid physical timestamp: {name}")
         day, millis = fields[expected[name]]["value"]
         actual = float(tags[i + 1][1])
         require(math.isclose(actual, day + millis / 86400000.0, rel_tol=0.0, abs_tol=1e-9),
                 f"physical timestamp mismatch: {name}")
         observed[name] = actual
-    require(set(observed) == set(expected), "missing physical timestamp")
+    require(ended and set(observed) == set(expected), "incomplete physical HEADER timestamps")
     return observed
 
 
@@ -134,20 +143,33 @@ def main():
                 drawing = ezdxf.readfile(output)
                 checked = compare(source["fields"], drawing.header)
                 checked["references"] = check_references(source["fields"], objects, drawing.header)
-                checked["physicalTimes"] = check_physical_times(output.read_bytes(), source["fields"])
+                tags = physical_tags(output.read_bytes())
+                checked["physicalTimes"] = check_physical_times(tags, source["fields"])
                 altered_fields = dict(source["fields"])
                 altered_create = dict(altered_fields["TDUCREATE"])
                 day, millis = altered_create["value"]
                 altered_create["value"] = [day + 1, millis]
                 altered_fields["TDUCREATE"] = altered_create
                 try:
-                    check_physical_times(output.read_bytes(), altered_fields)
+                    check_physical_times(tags, altered_fields)
                 except ValueError:
                     pass
                 else:
                     raise ValueError("changed source creation time was accepted")
-                require(check_physical_times(output.read_bytes(), source["fields"]) == checked["physicalTimes"],
+                require(check_physical_times(tags, source["fields"]) == checked["physicalTimes"],
                         "corrected physical timestamp retry changed")
+                end = tags.index((0, "ENDSEC"))
+                duplicate_time = tags[:end] + [(9, "$TDCREATE"), (40, 0.0)] + tags[end:]
+                duplicate_header = tags + [(0, "SECTION"), (2, "HEADER"), (0, "ENDSEC")]
+                for changed in (duplicate_time, duplicate_header):
+                    try:
+                        check_physical_times(changed, source["fields"])
+                    except ValueError:
+                        pass
+                    else:
+                        raise ValueError("duplicate physical HEADER evidence accepted")
+                require(check_physical_times(tags, source["fields"]) == checked["physicalTimes"],
+                        "physical duplicate-control retry changed")
                 original = drawing.header["$DIMTIH"]
                 drawing.header["$DIMTIH"] = 0 if original else 1
                 try:
@@ -165,6 +187,7 @@ def main():
                 checked.update({"sha256": sha(output.read_bytes()), "strictSentinelPreserved": True,
                                 "changedDimtihRejectedAndRetryPassed": True,
                                 "changedSourceTimeRejectedAndRetryPassed": True,
+                                "duplicateHeaderAndTimeRejectedAndRetryPassed": True,
                                 "auditErrors": 0, "auditFixes": 0})
                 results[f"{side}-{'binary' if binary else 'ascii'}"] = checked
     print(json.dumps({"candidateSha256": sha(args.dwg2dxf.read_bytes()), "outputs": results}, indent=2))

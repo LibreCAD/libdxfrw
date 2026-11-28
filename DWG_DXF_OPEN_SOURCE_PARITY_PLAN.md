@@ -77,7 +77,7 @@ below is still open, and its linked evidence defines the present boundary.
 7. **AC1012 and legacy source semantics.** Qualify the remaining HEADER,
    graph, output and native semantics of the [generated pair with its 32-frame
    census](docs/research/p6-ac1012-pair-object-census-2026-11-27.json) and
-   [expanded bounded partial-output and physical-timestamp check](docs/research/p6-ac1012-pair-header-physical-times-2026-11-28.json), and the
+   [expanded bounded partial-output and physical-timestamp check](docs/research/p6-ac1012-header-output-duplicate-guards-2026-11-28.json), and the
    [ODA-generated pair](docs/research/p6-ac1012-oda-root-case-pair-2026-11-25.json).
    The [shared HEADER envelope audit](docs/research/p6-ac1012-pair-header-envelope-2026-11-28.json) and [complete selected-pair HEADER wire walk](docs/research/p6-ac1012-pair-header-complete-wire-2026-11-28.json) account for 195 fields, four padding bits and 24 selected targets per drawing with rejection/retry controls. [Shared bounded wire readers](docs/research/p6-ac1012-shared-bits-refactor-2026-11-28.json) reduce duplication; native semantics and complete output closure remain open.
    Obtain native normal-open and cloning results using the [witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md);

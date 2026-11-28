@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-header-output-duplicate-guards-2026-11-28",
+  "supportClaimEffect": "none",
+  "candidateCommit": "7aa16add5",
+  "implementationDigestSha256": "9944e586474c9f22075f2173cffd13588bc0a29d645e3419ea2ff1c57f6f8dda",
+  "scope": "Prevent ambiguous physical HEADER timestamp evidence in the selected AC1012 partial-output audit.",
+  "checks": [
+    "The reusable ASCII/Binary tag check now requires exactly one HEADER section, one complete instance of each selected timestamp, the expected group 40 value and no extra value in that variable.",
+    "Duplicate HEADER and duplicate TDCREATE controls are rejected for each of four outputs, and the unchanged tag stream succeeds on retry. Existing source-time mutation, 143-value, eight-reference and strict-preservation checks also pass."
+  ],
+  "hashes": {
+    "tool": "b49b1d54cfce3d5e7b2cd6f52e0ec786acb82465f0e4b42d564ec6add02fc53e",
+    "results": "e20811277cad373d45f5b99063c5352111f99470a09587fdaf901517095687a2"
+  },
+  "limits": [
+    "This guards selected physical timestamp evidence only; it does not qualify arbitrary HEADER variables, native semantics, or complete-file export."
+  ]
+}
