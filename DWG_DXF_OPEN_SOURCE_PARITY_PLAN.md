@@ -37,11 +37,12 @@ below is still open, and its linked evidence defines the present boundary.
    only with aggregate memory accounting. Recheck native LibreCAD and FreeCAD.
 2. **LibreCAD IMAGE and plot graphs.** Extend the checked
    [384-image profile](docs/research/p8d-librecad-384-image-graphs-2026-11-28.json)
+   and [18–256-vertex multi-image clipping controls](docs/research/p8d-librecad-large-image-polygons-2026-11-28.json)
    to larger drawings, more graph shapes, layers, versions, clipping and
    references. Preserve the 385-image, legacy MATERIAL, orphan and
    cross-version refusals until their respective bounds, output closure and
    independent readback are proved. Current capture uses a shared 4 MiB logical
-   raster-source budget, 512 IMAGEDEF groups and a 256 KiB source-file gate;
+   raster-source budget, 512 IMAGEDEF groups, 542 IMAGE groups and a 256 KiB source-file gate;
    raise limits only with aggregate accounting. Qualify rendering and platforms
    separately.
 3. **Legacy HEADER and versions.** Resolve R12/R14 `$FACETRES`, `$ISOLINES`,

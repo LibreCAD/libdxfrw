@@ -1,0 +1,79 @@
+{
+  "date": "2026-11-28",
+  "consumer_commit": "fe6e433456402d836aa8450e72cf66535b030041",
+  "codec_test_inclusive_digest": "af2d9e8a1f4866db44def162e69f1c974fc3b08dbd0f263a4100431460e473ea",
+  "authority": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-3A2FF847-BE14-4AC5-9BD4-BD3DCAEF2281.htm",
+  "source": "Locally generated AC1024 ASCII, two or 384 images sharing a definition; one convex clipped polygon, 18 or 256 vertices. No generated DXF committed.",
+  "change": "Retain up to 542 groups per IMAGE, matching 30 fixed groups and the existing codec inspector limit of 256 two-coordinate polygon vertices. Keep aggregate 4 MiB logical capture budget, 256 KiB file gate, 64 KiB per-record gate and existing graph/version checks.",
+  "validation": {
+    "new_test": "1158 assertions, both image counts and 18/256 vertices, 257 rejected, destination retained and corrected same-filter retry; late typed and physical final-vertex mutation refused and same-adapter retry succeeded.",
+    "budget": "780 assertions including 542 group acceptance and 543 rejection.",
+    "legacy": "84 assertions; existing three-version polygon controls.",
+    "modern": "216 assertions; existing modern clip controls.",
+    "graphs": "2250 assertions; six-version bounded image graphs.",
+    "bundled": "LibreCAD bundled codec library target built successfully.",
+    "independent": "ezdxf checked ownership, reactors, graph closure, geometry and all polygon vertices before and after export, with clean audits.",
+    "peer_results": [
+      {
+        "images": 2,
+        "vertices": 18,
+        "sourceSha256": "8f914666a936467816e8d26fab099c9c0cc143201632fe796f2d5d3236e39964",
+        "outputSha256": "db61121668186aa4d9ceaa2efdf7c880810075080542977bb0af8cc8a1a39e69",
+        "audit": "clean"
+      },
+      {
+        "images": 2,
+        "vertices": 256,
+        "sourceSha256": "392b063f20b062c5090489229bf783e631687db15e8a058fe9e59229d7e82d17",
+        "outputSha256": "5b0f75e66c5613216a728263ecfcf36feed4e56bcc2158be8009735c451f2433",
+        "audit": "clean"
+      },
+      {
+        "images": 384,
+        "vertices": 18,
+        "sourceSha256": "710a37f74f14f290a88eca749c0adb048da77d7b85ed1bfca222acf3abdb40a9",
+        "outputSha256": "68f8b2cd44450bd4fd7c8b5e0d8ed59d84f6757a45acc432a9be892fb39f438b",
+        "audit": "clean"
+      },
+      {
+        "images": 384,
+        "vertices": 256,
+        "sourceSha256": "3b6c66683d428aea6c002754b1a78f7f713c7712cb20f71a19334e0ff4cc1609",
+        "outputSha256": "463ab23ef5568db4e07d793fdedd4fb5619e1816939e17a17c1b1e9ea38c2303",
+        "audit": "clean"
+      }
+    ],
+    "peer_log_sha256": "7f959219823e2383da7c8d1c0161691939021d370949b7d3d8b9690e9c25b106",
+    "logs": {
+      "intersection": {
+        "path": "/private/tmp/librecad-image-polygon-intersection-20261128.log",
+        "sha256": "fc2d29c49e589921d8419985f1cc905ecb5ab8e52aed08175156a36d0868f40a"
+      },
+      "budget": {
+        "path": "/private/tmp/librecad-image-polygon-budget-20261128.log",
+        "sha256": "faef2d4f202793ff5c4f75e6d69ada8e6f6fa9ded1ef9c5dc5572094bbf1c659"
+      },
+      "legacy": {
+        "path": "/private/tmp/librecad-image-polygon-legacy-20261128.log",
+        "sha256": "889bb050038da356ae1b1a0ad11227b964f1e03ecff522b9025b8fe56df13edc"
+      },
+      "modern": {
+        "path": "/private/tmp/librecad-image-polygon-modern-20261128.log",
+        "sha256": "8bdc758fafe078fc54fc32e7c962bd8312422c9d81b83255475b27896d6ba7c1"
+      },
+      "graph": {
+        "path": "/private/tmp/librecad-image-polygon-graph-20261128.log",
+        "sha256": "0960cfc0ba74e2a32baae7b0894dd2e32cc9843a749dc979e4d00ee7c9450dbf"
+      },
+      "bundled": {
+        "path": "/private/tmp/librecad-image-polygon-bundled-20261128.log",
+        "sha256": "dd26a23af8f90e0da6403d3c794642ab4d18f776dd404c409bc1554a28612cc0"
+      }
+    }
+  },
+  "limitations": [
+    "Headless tests only; native rendering, edits, other producers and platforms remain unqualified.",
+    "Single-image polygons and other unsupported graph profiles remain guarded; 257 vertices and 385 images remain outside the selected profile.",
+    "The 256-vertex maximum is the library inspector bound, not an assertion that the DXF specification imposes that limit."
+  ]
+}
