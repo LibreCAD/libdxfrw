@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 import tempfile
 
+from audit_ac1012_pair_header import audit as audit_header
 from generate_ac1012_dictionary_merge_samples import read_object_frame
 from generate_ac1012_dictionary_witness import require, run, sha
 
@@ -74,7 +75,8 @@ def audit(packet: Path, side: str, manifest: dict, dwgread: str, probe: str) -> 
         require(expected_sha is None or digest == expected_sha, f"frame mismatch {handle:X}")
         frames[f"{handle:X}"] = {"type": kind, "offset": offset, "frameSha256": digest,
                                   "binding": "shared-block-probe" if expected_sha is None else "audited-packet"}
-    return {"sourceSha256": source_sha, "frameCount": len(frames),
+    return {"sourceSha256": source_sha, "headerEnvelope": audit_header(path.read_bytes()),
+            "frameCount": len(frames),
             "probeOutputSha256": sha(probe_result.stdout + probe_result.stderr), "frames": frames}
 
 

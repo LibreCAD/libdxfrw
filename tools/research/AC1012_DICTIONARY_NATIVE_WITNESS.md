@@ -161,6 +161,14 @@ python3 -B tools/research/package_ac1012_populated_pair.py \
   /private/tmp/ac1012-native-two-element-handoff
 ```
 
+For the `populated-links` handoff, independently recheck the locator and HEADER
+envelope, CRCs, truncations and corrected retry with:
+
+```sh
+python3 -B tools/research/audit_ac1012_pair_header.py \
+  /private/tmp/ac1012-native-two-element-handoff
+```
+
 Before transfer, the bounded source audit can recheck both frames and their
 selected EED, APPID, extension-dictionary and XRECORD frames and links:
 

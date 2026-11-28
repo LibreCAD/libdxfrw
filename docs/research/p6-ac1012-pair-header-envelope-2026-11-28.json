@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-pair-header-envelope-2026-11-28",
+  "supportClaimEffect": "none",
+  "candidateCommit": "f8bc1c40f",
+  "implementationDigestSha256": "9944e586474c9f22075f2173cffd13588bc0a29d645e3419ea2ff1c57f6f8dda",
+  "authority": {
+    "document": "ODA Open Design Specification for .dwg files v5.4.1",
+    "sections": [
+      "3.2.6 section locator records",
+      "9 AcDb:Header envelope and CRC"
+    ]
+  },
+  "scope": "Independent physical HEADER envelope and locator audit for the existing locally generated populated-links AC1012 witness pair.",
+  "checks": [
+    "Both packet drawings are hash-matched to their handoff manifest. Each has three non-overlapping bounded locators, a valid file-header CRC and sentinel, a 508-byte HEADER section at offset 70, a 470-byte payload, valid section CRC fd02, matching section sentinels and no unclaimed section bytes.",
+    "Both files reject eight separate damaged controls, including repaired-CRC duplicate and out-of-range locators; every truncated prefix is refused and the original input succeeds on retry.",
+    "The existing 32-frame per-drawing object census calls the shared HEADER observer; both drawings pass the combined census and the focused legacy BLOCK_HEADER adapter probe.",
+    "Source-release inventory check and self-test pass. No DWG/DXF fixture is committed."
+  ],
+  "hashes": {
+    "headerTool": "eb8336d5ce2e908c35654d6fb6dc0f4455673b8bddf9376d248cb3e0523dbe39",
+    "censusTool": "d7e18248946b883c4864f2fa08c01a210ecb5e8e7c63f7e8d90fd679d25b40e8",
+    "headerResults": "1ba5008cccd28de96a3e264cf409a00ef88c1005858fe8a809307ea20351daac",
+    "integratedCensusResults": "72d71d7aa63a97ef10f91afc3ea38cef1d41b7a6a469f863abe7e9a79b17ec14"
+  },
+  "limits": [
+    "These envelope and CRC checks do not decode or qualify individual HEADER variable spans or semantics, entire graph closure, whole-file output, native normal-open, or cloning behavior.",
+    "Both inputs are specification-directed, LibreDWG-generated controls; matching independent structural checks do not establish native AutoCAD semantics."
+  ]
+}
