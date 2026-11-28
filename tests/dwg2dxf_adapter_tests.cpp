@@ -41676,7 +41676,8 @@ bool typedDwgR24TableStyleDxfRoundTrip(bool binary, std::uint64_t nonce,
                                       bool variedIndexedColors = false,
                                       bool variedBorderDetails = false,
                                       bool variedBorderLineWeights = false,
-                                      bool variedCmcColors = false) {
+                                      bool variedCmcColors = false,
+                                      bool defaultTableBorders = false) {
     const std::string profileSuffix = inheritedCustomMargins
         ? "-inherited-margins" : "-explicit-margins";
     const std::filesystem::path output =
@@ -41698,6 +41699,9 @@ bool typedDwgR24TableStyleDxfRoundTrip(bool binary, std::uint64_t nonce,
         variedAlignments, variedPropertyFlags, variedBorderOverrides,
         variedIndexedColors, variedBorderDetails,
         variedBorderLineWeights, variedCmcColors);
+    if (defaultTableBorders)
+        data.tableStyles.front().m_tableCellStyle.m_borders =
+            data.tableStyles.front().m_cellStyles.front().m_borders;
     constexpr std::uint32_t kBorderLineTypeHandle = 0x570u;
     if (lineTypeProfile) {
         DRW_LType lineType;
@@ -41744,6 +41748,19 @@ bool typedDwgR24TableStyleDxfRoundTrip(bool binary, std::uint64_t nonce,
         return fail("unwitnessed R24 TABLESTYLE prefix replaced the destination");
 
     data.tableStyles.front().m_r24UnknownValue1 = prefixValue1;
+    if (defaultTableBorders) {
+        auto& borders = data.tableStyles.front().m_tableCellStyle.m_borders;
+        borders.front().m_edgeFlags = borders.back().m_edgeFlags;
+        if (writer.fileExport(output.string(), DRW::AC1024, binary, &data, false)
+            || !destinationIsSentinel())
+            return fail("R24 TABLESTYLE accepted a duplicate default border edge");
+        borders.front().m_edgeFlags = 1;
+        borders.front().m_lineTypeHandle = 0x999u;
+        if (writer.fileExport(output.string(), DRW::AC1024, binary, &data, false)
+            || !destinationIsSentinel())
+            return fail("R24 TABLESTYLE accepted an unqualified default border reference");
+        borders.front().m_lineTypeHandle = 0u;
+    }
     data.tableStyles.front().m_cellStyles.front()
         .m_contentFormat.m_textStyleHandle = 0x999u;
     if (writer.fileExport(output.string(), DRW::AC1024, binary,
@@ -42125,7 +42142,7 @@ bool typedDwgR24TableStyleDxfRoundTrip(bool binary, std::uint64_t nonce,
         || tableCellStyle.m_contentFormat.m_textHeight
             != data.tableStyles.front().m_tableCellStyle
                 .m_contentFormat.m_textHeight
-        || tableCellStyle.m_borders.size() != 0u
+        || tableCellStyle.m_borders.size() != (defaultTableBorders ? 6u : 0u)
         || !sameMargins(tableCellStyle,
             data.tableStyles.front().m_tableCellStyle)
         || titleStyle.m_id != 1 || titleStyle.m_styleClass != 1
@@ -42181,6 +42198,18 @@ bool typedDwgR24TableStyleDxfRoundTrip(bool binary, std::uint64_t nonce,
         || titleStyle.m_borders[0].m_doubleLineSpacing
             != sourceTitleFirstBorder.m_doubleLineSpacing)
         return fail("R24 TABLESTYLE nested cell styles were not projected into typed state");
+    for (std::size_t index = 0; index < tableCellStyle.m_borders.size(); ++index) {
+        const auto& actual = tableCellStyle.m_borders[index];
+        const auto& expected = data.tableStyles.front().m_tableCellStyle.m_borders[index];
+        if (actual.m_edgeFlags != expected.m_edgeFlags
+            || actual.m_propertyOverrideFlags != expected.m_propertyOverrideFlags
+            || actual.m_borderType != expected.m_borderType || actual.m_color != expected.m_color
+            || actual.m_lineWeight != expected.m_lineWeight
+            || actual.m_lineTypeHandle != expected.m_lineTypeHandle
+            || actual.m_visible != expected.m_visible
+            || actual.m_doubleLineSpacing != expected.m_doubleLineSpacing)
+            return fail("R24 TABLESTYLE default border changed on readback");
+    }
     for (std::size_t index = 0; index < typedStyle.m_cellStyles.size();
          ++index) {
         if (typedStyle.m_cellStyles[index].m_contentFormat.m_textHeight
@@ -42527,10 +42556,14 @@ bool typedDwgR24TableStyleDxfRoundTrip(bool binary, std::uint64_t nonce,
         appendColors(cellStyle);
     }
     const std::vector<int> colors = integerValues(62);
-    const std::vector<int> expectedGridMasks {
+    std::vector<int> expectedGridMasks {
         1, 2, 4, 8, 16, 32, 1, 2, 4, 8, 16, 32,
         1, 2, 4, 8, 16, 32};
     std::vector<int> expectedBorderOverrideFlags(18u, 0);
+    if (defaultTableBorders) {
+        expectedGridMasks.insert(expectedGridMasks.begin(), {1, 2, 4, 8, 16, 32});
+        expectedBorderOverrideFlags.insert(expectedBorderOverrideFlags.begin(), 6u, 0);
+    }
     if (variedBorderOverrides) {
         for (int index = 0; index < 6; ++index)
             expectedBorderOverrideFlags[static_cast<std::size_t>(index)] =
@@ -42566,6 +42599,8 @@ bool typedDwgR24TableStyleDxfRoundTrip(bool binary, std::uint64_t nonce,
         }
     };
     appendFormatAndMargins(sourceTableStyle.m_tableCellStyle);
+    for (const auto& border : sourceTableStyle.m_tableCellStyle.m_borders)
+        expectedGroup40.push_back(border.m_doubleLineSpacing);
     for (const DRW_TableStyleCellStyle& cellStyle :
          sourceTableStyle.m_cellStyles) {
         appendFormatAndMargins(cellStyle);
@@ -42610,7 +42645,7 @@ bool typedDwgR24TableStyleDxfRoundTrip(bool binary, std::uint64_t nonce,
         || countString(1, "CONTENTFORMAT_BEGIN") != 4u
         || countString(1, "CELLMARGIN_BEGIN")
             != expectedMarginBeginCount
-        || countString(1, "GRIDFORMAT_BEGIN") != 18u
+        || countString(1, "GRIDFORMAT_BEGIN") != (defaultTableBorders ? 24u : 18u)
         || countString(1, "CELLSTYLE_BEGIN") != 4u
         || countString(309, "TABLEFORMAT_END") != 4u
         || integerValues(95) != expectedGridMasks
@@ -95330,6 +95365,14 @@ int main(int argc, char** argv) {
                 && typedDwgR24TableStyleDxfRoundTrip(
                     true, nonce, false, 8, true)
                 && valueDomainRoundTrips()
+                && typedDwgR24TableStyleDxfRoundTrip(
+                    false, nonce, false, 8, false, 512, 0,
+                    false, false, false, false, false, false, false,
+                    false, false, false, false, false, true)
+                && typedDwgR24TableStyleDxfRoundTrip(
+                    true, nonce, false, 8, false, 512, 0,
+                    false, false, false, false, false, false, false,
+                    false, false, false, false, false, true)
                 && typedDwgR24TableStyleDxfRoundTrip(
                     false, nonce, false, 8, false, 512, 0, true)
                 && typedDwgR24TableStyleDxfRoundTrip(

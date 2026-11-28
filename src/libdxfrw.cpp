@@ -15041,13 +15041,26 @@ bool dxfRW::writeTableStyle(
             || ent->m_titleSuppressed || ent->m_headerSuppressed
             || !ent->m_rowStyles.empty() || ent->m_cellStyles.size() != 3u)
             return failR24("R24 TABLESTYLE contains unrepresented legacy fields or style count");
+        const auto& tableBorders = ent->m_tableCellStyle.m_borders;
+        const bool witnessedTableBorders = tableBorders.empty()
+            || (tableBorders.size() == 6u
+                && std::all_of(tableBorders.begin(), tableBorders.end(),
+                    [](const DRW_TableStyleBorder& border) {
+                        return border.m_propertyOverrideFlags == 0
+                            && border.m_borderType == 1 && border.m_color == 0
+                            && border.m_colorCmc.m_method == 0xC1u
+                            && border.m_lineWeight == -2
+                            && border.m_lineTypeHandle == 0u
+                            && border.m_visible == 0
+                            && border.m_doubleLineSpacing == 0.045;
+                    }));
         if (!ent->m_tableCellStyle.m_hasData
             || ent->m_tableCellStyle.m_id != 4
             || ent->m_tableCellStyle.m_styleClass != 2
             || ent->m_tableCellStyle.m_name != "Table"
+            || !witnessedTableBorders
             || !validR24Style(ent->m_tableCellStyle, 4, 2, "Table",
-                              0u, false)
-            || !ent->m_tableCellStyle.m_borders.empty())
+                              tableBorders.size(), false))
             return failR24("R24 TABLESTYLE default Table cell style is outside the witnessed profile");
         constexpr int kIds[] = {1, 2, 3};
         constexpr int kClasses[] = {1, 1, 2};

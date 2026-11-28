@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1024-default-table-borders-2026-11-27",
+  "supportClaimEffect": "none",
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.4.101.2-20.4.101.4: R24 Table cell style, six permitted edge flags and border handle roles.",
+  "source": {
+    "sha256": "3e2732452a4b669c5b3dce4d145e5249a73548400d80ded8bd8d0a1e98632ff2",
+    "provenance": "Locally authored DXF converted to AC1024 by ODA File Converter 27.10 on Linux."
+  },
+  "profile": "Only the observed six ordered default borders: edges 1,2,4,8,16,32; zero overrides, single by-block line, by-block lineweight, null linetype, invisibility 0 and spacing 0.045. The pre-existing empty-border profile is retained.",
+  "checks": [
+    "PASS libdxfrw_tablestyle_r24_typed_writer: ASCII and binary field-order and readback, duplicate-edge and unresolved-linetype refusal with destination preservation, and corrected retry.",
+    "PASS source and generated ASCII/binary outputs agree on selected 3DFACE vertices, layer, text and referenced DIMSTYLE text style with the ODA conversion when inspected by ezdxf 1.4.5.",
+    "PASS ODA File Converter 27.1.0 macOS reopened both generated outputs and produced AC1024 DWGs; LibreDWG 0.14 independently decoded all six Table border edge masks and values matching the original. The ASCII check also passed with ODA audit disabled.",
+    "PASS explicit partial ASCII/binary conversion completed. Strict conversion remains refused due to the separately unclassified 739-byte header suffix."
+  ],
+  "outputSha256": {
+    "ascii": "666948d3a6a6a1e60efa93d7ce7da76d3323678b0d0e02eea230fdc45dd59299",
+    "binary": "2a9a6da2ae95e1e9c9c592ba01374e1c35b53af89f152794ee97f7a5f9668311",
+    "odaPeerDxf": "9d8eebf0a4731ab3f20e8af9e8009cd52a4168d72419bc5cf94a22b8c2e4030b"
+  },
+  "remainingIssues": [
+    "ezdxf 1.4.5 reports zero errors but two fixes on each partial output: removes DETAILVIEWSTYLE and SECTIONVIEWSTYLE dictionary members because their object tokens lack the ACDB prefix. The ODA peer DXF uses ACDBDETAILVIEWSTYLE and ACDBSECTIONVIEWSTYLE and audits without fixes. Investigate canonical naming and identity checks with failure/retry coverage.",
+    "The ODA intermediary is related to the input producer; selected fields and independent decoding are not proof of full lossless conversion or native AutoCAD semantics.",
+    "No DWG or DXF fixture was committed."
+  ]
+}
