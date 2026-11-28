@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-block-annotation-depth-2026-11-28",
+  "supportClaimEffect": "none",
+  "freecadBase": "477a7041803823a1fcae528133cb07ee5533b1b2",
+  "candidate": "29 ordered local patches; no FreeCAD commit or submission",
+  "change": "Reuse the block composition nesting limit for separately expanded annotations. Stop at the bound and report the existing block-depth loss. Skip annotation traversal when no block annotations were captured.",
+  "checks": [
+    "Before the fix, a generated 129-level block chain instantiated leaf TEXT even though block composition had cut that depth. The 128-level control remains admitted; both modes reject the 129th annotation and a subsequent 128-level import succeeds.",
+    "A regression control with annotation import enabled but no block annotations preserves the existing shared-block geometry boundary without a spurious nesting warning. Annotation-disabled controls also pass.",
+    "The ordered 29-patch chain replays byte-for-byte against the verified source archive and candidate checkout. The selected native macOS ARM64 headless probe passes 23 tests with zero skips; its source base and built Import module were checked.",
+    "The source-release inventory and its self-test pass with the added patch. No generated drawing is committed."
+  ],
+  "evidenceSha256": {
+    "patch": "ac966db90c65c8beaed63ca511d8640ede0c8e5fcb9546e0fc24b99cbd5d4c83",
+    "depthRed": "8b208d09cc897ee783de60ee60be7e0b845bbef8d4e1619af9968400fa0e21d7",
+    "emptyGraphRed": "830418dcfbb9e26b45696ede120cba3200b38ec2e26c94eed3f75e9d148af1b9",
+    "verifiedReceipt": "c2702c13ae4da30c99ea21d8c05832261fbe7f99a53f208217647b8653acb1f4",
+    "headlessProbe": "9f9d02f7639ac61967c916d1c3de5bea0e64304c0ddea2e620f66671810883e5",
+    "importModule": "eb5a28761b2121f47d591442da5fc8d70e526d2b3a5e9325a6ff9d7b0c6e6886"
+  },
+  "verifiedReceipt": "/private/tmp/freecad-annotation-depth-verified3-20261128/freecad-candidate-probe-gz53s6qb/receipt.json",
+  "limits": [
+    "The 128-level annotation limit is conservative: a previously composed shared geometry child can be reachable beyond that depth, while its text is omitted with a diagnostic.",
+    "The limit bounds recursion depth but does not bound total visits through a wide shared block graph; establish a bounded-work policy and meaningful loss reporting separately.",
+    "This is a downstream local FreeCAD candidate, not an upstream FreeCAD commit, GUI qualification or general DWG/DXF support claim."
+  ]
+}

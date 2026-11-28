@@ -43,6 +43,7 @@ EXTRA_TESTS = {
         "test_nested_block_original_layer_metadata",
         "test_nested_insert_named_layer_loss_is_reported",
         "test_block_reference_cycles_and_retry",
+        "test_block_annotation_depth_guard_and_retry",
     ),
 }
 
