@@ -49,6 +49,7 @@ EXTRA_DIST = \
     docs/patches/freecad-p8-block-text-shear-control-2026-11-28.patch \
     docs/patches/freecad-p8-block-transform-sharing-2026-11-28.patch \
     docs/patches/freecad-p8-bounded-minsert-2026-11-28.patch \
+    docs/patches/freecad-p8-circle-arc-ocs-2026-11-28.patch \
     docs/patches/freecad-p8-default-block-mesh-layer-refusal-2026-11-16.patch \
     docs/patches/freecad-p8-default-bounded-polyface-2026-11-15.patch \
     docs/patches/freecad-p8-default-byblock-no-color-2026-11-16.patch \

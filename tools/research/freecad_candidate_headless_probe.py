@@ -62,6 +62,8 @@ EXTRA_TESTS = {
         "test_block_insert_array_invalid_then_valid",
         "test_insert_array_annotation_budget_and_retry",
         "test_insert_array_negative_spacing_inches",
+        "test_circle_arc_ocs_direct_and_block",
+        "test_circle_arc_invalid_normal_then_valid",
     ),
 }
 
