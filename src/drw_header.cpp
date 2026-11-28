@@ -4350,7 +4350,7 @@ bool DRW_Header::encodeDwgForWriter(
         DRW::Version version, dwgBufferW *buf, dwgBufferW *hBbuf,
         dwgBufferW *strBuf, std::uint32_t namedObjectDictionaryHandle,
         std::uint32_t plotSettingsDictionaryHandle,
-        std::array<std::uint64_t, 5>* currentReferenceBits,
+        std::array<std::uint64_t, 9>* currentReferenceBits,
         std::uint32_t groupDictionaryHandle,
         std::uint32_t plotStyleDictionaryHandle) {
     return encodeDwgForWriterMaterial(version, buf, hBbuf, strBuf,
@@ -4362,7 +4362,7 @@ bool DRW_Header::encodeDwgForWriterMaterial(
         DRW::Version version, dwgBufferW *buf, dwgBufferW *hBbuf,
         dwgBufferW *strBuf, std::uint32_t namedObjectDictionaryHandle,
         std::uint32_t plotSettingsDictionaryHandle,
-        std::array<std::uint64_t, 5>* currentReferenceBits,
+        std::array<std::uint64_t, 9>* currentReferenceBits,
         std::uint32_t groupDictionaryHandle, std::uint32_t plotStyleDictionaryHandle,
         std::uint32_t materialDictionaryHandle, std::uint32_t currentMaterialHandle) {
     if (version != DRW::AC1015 && version != DRW::AC1018 &&
@@ -4746,23 +4746,25 @@ bool DRW_Header::encodeDwgForWriterMaterial(
     // Preserve the established compact null when no value was supplied.
     // A supplied value reserves a patchable slot, even if it later fails
     // validation, so the caller can correct it and retry.
-    const bool hasDimTextStyle = std::any_of(vars.begin(), vars.end(), [](const auto& item) {
-        const auto& key = item.first;
-        const std::size_t start = !key.empty() && key.front() == '$' ? 1u : 0u;
-        constexpr char name[] = "DIMTXSTY";
-        return key.size() - start == sizeof(name) - 1u
-            && std::equal(key.begin() + start, key.end(), name, [](char a, char b) {
-                return std::toupper(static_cast<unsigned char>(a)) == b;
-            });
-    });
-    if (currentReferenceBits != nullptr && hasDimTextStyle)
-        putCurrentReference(4);
-    else
-        hBbuf->putHandle(makeHardPtr(0));  // DIMTXSTY
-    hBbuf->putHandle(makeHardPtr(0));  // DIMLDRBLK
-    hBbuf->putHandle(makeHardPtr(0));  // DIMBLK
-    hBbuf->putHandle(makeHardPtr(0));  // DIMBLK1
-    hBbuf->putHandle(makeHardPtr(0));  // DIMBLK2
+    const auto putOptionalReference = [&](std::size_t index, const char* name) {
+        const bool supplied = std::any_of(vars.begin(), vars.end(), [name](const auto& item) {
+            const auto& key = item.first;
+            const std::size_t start = !key.empty() && key.front() == '$' ? 1u : 0u;
+            return key.size() - start == std::strlen(name)
+                && std::equal(key.begin() + start, key.end(), name, [](char a, char b) {
+                    return std::toupper(static_cast<unsigned char>(a)) == b;
+                });
+        });
+        if (currentReferenceBits != nullptr && supplied)
+            putCurrentReference(index);
+        else
+            hBbuf->putHandle(makeHardPtr(0));
+    };
+    putOptionalReference(4, "DIMTXSTY");
+    putOptionalReference(5, "DIMLDRBLK");
+    putOptionalReference(6, "DIMBLK");
+    putOptionalReference(7, "DIMBLK1");
+    putOptionalReference(8, "DIMBLK2");
     if (version > DRW::AC1018) {  // 2007+: DIMLTYPE, DIMLTEX1, DIMLTEX2 (parseDwg:2154-2160)
         hBbuf->putHandle(makeHardPtr(0));  // DIMLTYPE
         hBbuf->putHandle(makeHardPtr(0));  // DIMLTEX1

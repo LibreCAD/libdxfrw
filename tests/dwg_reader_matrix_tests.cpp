@@ -110,7 +110,7 @@ public:
 
 class DwgHeaderCurrentTestAccess {
 public:
-    static std::array<std::uint32_t, 5> offsets(const dwgWriter& writer) {
+    static std::array<std::uint32_t, 9> offsets(const dwgWriter& writer) {
         return writer.m_headerCurrentReferenceBits;
     }
 };
@@ -19821,6 +19821,14 @@ public:
             && dimStyle->second->type() == DRW_Variant::STRING
             && dimStyle->second->content.s != nullptr)
             dimensionTextStyle = *dimStyle->second->content.s;
+        const std::array<const char*, 4> arrowNames{{"DIMLDRBLK", "DIMBLK", "DIMBLK1", "DIMBLK2"}};
+        for (std::size_t i = 0; i < arrowNames.size(); ++i) {
+            const auto found = header->vars.find(arrowNames[i]);
+            if (found != header->vars.end() && found->second != nullptr
+                && found->second->type() == DRW_Variant::STRING
+                && found->second->content.s != nullptr)
+                dimensionArrows[i] = *found->second->content.s;
+        }
         const std::array<const char*, 4> names{{"CLAYER", "TEXTSTYLE", "CELTYPE", "DIMSTYLE"}};
         for (std::size_t i = 0; i < names.size(); ++i) {
             const auto found = header->vars.find(names[i]);
@@ -19931,6 +19939,7 @@ public:
     std::uint32_t handseed{0};
     std::array<std::string, 4> currentNames{};
     std::string dimensionTextStyle;
+    std::array<std::string, 4> dimensionArrows{};
     DRW_Coord lineEnd;
     dx_data data;
 };
@@ -21704,6 +21713,10 @@ void testHeaderCurrentReferencesForVersion(TestContext& t, const char* version) 
             header.addStr("$CELTYPE", "drawing-type", 6);
             header.addStr("$DIMSTYLE", "drawing-dim", 2);
             header.addStr("$DIMTXSTY", "drawing-style", 7);
+            header.addStr("$DIMLDRBLK", "Arrow-Leader", 1);
+            header.addStr("$DIMBLK", "Arrow-Main", 1);
+            header.addStr("$DIMBLK1", "_Arrow-One", 1);
+            header.addStr("$DIMBLK2", "Arrow-Two", 1);
         }
         Writer writer(&stream, &header);
         const bool headerWritten = writer.prepareDwgClassManifest()
@@ -21722,6 +21735,13 @@ void testHeaderCurrentReferencesForVersion(TestContext& t, const char* version) 
             expected[0] = writer.addLayer(layer);
             expected[1] = writer.addTextstyle(style);
             expected[3] = writer.addDimstyle(dim);
+        }
+        std::array<std::uint32_t, 4> arrowHandles{};
+        if (custom) {
+            arrowHandles[0] = writer.defineBlock("Arrow-Leader", DRW_Coord());
+            arrowHandles[1] = writer.defineBlock("Arrow-Main", DRW_Coord());
+            arrowHandles[2] = writer.defineBlock("_Arrow-One", DRW_Coord());
+            arrowHandles[3] = writer.defineBlock("Arrow-Two", DRW_Coord());
         }
         const bool objects = writer.writeDwgObjects() && writer.emitDeferredBlockControl();
         t.expect(objects, std::string(version) + " current-reference targets emitted");
@@ -21742,6 +21762,11 @@ void testHeaderCurrentReferencesForVersion(TestContext& t, const char* version) 
         t.expect(readHeaderReferenceBits(writer.buffer(), offsets[4])
                      == (custom ? expected[1] : 0u),
                  std::string(version) + " dimension text style handle resolves or is null");
+        for (std::size_t i = 0; i < arrowHandles.size(); ++i)
+            t.expect((!custom || arrowHandles[i] != 0u)
+                         && readHeaderReferenceBits(writer.buffer(), offsets[i + 5u])
+                             == arrowHandles[i],
+                     std::string(version) + " dimension arrow resolves or is null");
         const auto once = writer.buffer();
         t.expect(writer.finalizeHeaderHandseed() && writer.buffer() == once,
                  std::string(version) + " current-reference finalization is idempotent");
@@ -21760,6 +21785,11 @@ void testHeaderCurrentReferencesForVersion(TestContext& t, const char* version) 
                  std::string(version) + " source current handles resolve to table names");
         t.expect(sink.dimensionTextStyle == (custom ? "Drawing-Style" : ""),
                  std::string(version) + " dimension text style reads back");
+        const std::array<std::string, 4> expectedArrows = custom
+            ? std::array<std::string, 4>{{"Arrow-Leader", "Arrow-Main", "_Arrow-One", "Arrow-Two"}}
+            : std::array<std::string, 4>{};
+        t.expect(sink.dimensionArrows == expectedArrows,
+                 std::string(version) + " dimension arrow block names read back");
     }
 }
 
@@ -21772,6 +21802,7 @@ public:
     void writeHeader(DRW_Header& header) override {
         header.addStr("$CLAYER", "selected-layer", 8);
         if (dimension) header.addStr("$DIMTXSTY", "selected-style", 7);
+        if (arrow) header.addStr("$DIMBLK", "selected-block", 1);
     }
     void writeLTypes() override {}
     void writeLayers() override {
@@ -21790,7 +21821,10 @@ public:
     void writeVports() override {}
     void writeDimstyles() override {}
     void writeAppId() override {}
-    void writeBlocks() override {}
+    void writeBlocks() override {
+        if (includeBlock)
+            wrote = writer_.defineBlock("selected-block", DRW_Coord()) != 0u && wrote;
+    }
     void writeBlockRecords() override {}
     void writeObjects() override {}
     void writeEntities() override {
@@ -21802,6 +21836,8 @@ public:
     bool includeLayer{false};
     bool includeStyle{false};
     bool dimension{false};
+    bool arrow{false};
+    bool includeBlock{false};
     bool wrote{true};
 private:
     dwgRW& writer_;
@@ -22018,7 +22054,7 @@ void testHeaderCurrentReferences(TestContext& t) {
 
     // Every failure must precede any HEADER mutation; repairing the caller's
     // value must make the same writer succeed and reseal its CRC.
-    for (int failure = 0; failure != 11; ++failure) {
+    for (int failure = 0; failure != 15; ++failure) {
         std::stringbuf output(std::ios::out | std::ios::binary);
         std::ofstream stream;
         static_cast<std::ostream&>(stream).rdbuf(&output);
@@ -22040,6 +22076,8 @@ void testHeaderCurrentReferences(TestContext& t) {
             header.addStr("DIMTXSTY", "STANDARD", 7);
         }
         if (failure == 10) header.addStr("$dimtxsty", "STANDARD", 7);
+        const std::array<const char*, 4> arrowKeys{{"$DIMLDRBLK", "$DIMBLK", "$DIMBLK1", "$DIMBLK2"}};
+        if (failure >= 11) header.addStr(arrowKeys[failure - 11], "missing-block", 1);
         dwgWriter21 writer(&stream, &header);
         const bool prepared = writer.prepareDwgClassManifest() && writer.writeFileHeaderStub()
             && writer.writeDwgHeader() && writer.writeDwgClasses();
@@ -22071,7 +22109,8 @@ void testHeaderCurrentReferences(TestContext& t) {
             auto it = header.vars.find(key);
             if (it != header.vars.end()) { delete it->second; header.vars.erase(it); }
         }
-        if (failure >= 6) header.addStr("$DIMTXSTY", "STANDARD", 7);
+        if (failure >= 6 && failure <= 10) header.addStr("$DIMTXSTY", "STANDARD", 7);
+        if (failure >= 11) header.addStr(arrowKeys[failure - 11], "", 1);
         header.addStr("$CLAYER", "0", 8);
         t.expect(writer.finalizeHeaderHandseed()
                      && readHeaderReferenceBits(writer.buffer(),
@@ -22135,6 +22174,31 @@ void testHeaderCurrentReferences(TestContext& t) {
                  && styleReader.readBuffer(styleFile.data(), styleFile.size(), &styleSink, false)
                  && styleSink.dimensionTextStyle == "selected-style",
              "dimension text style retry publishes the selected STYLE");
+    {
+        std::ofstream existingArrow(path, std::ios::binary | std::ios::trunc);
+        existingArrow << "existing output sentinel";
+    }
+    dwgRW arrowWriter(path.string().c_str());
+    HeaderCurrentWriteAdapter arrowAdapter(arrowWriter);
+    arrowAdapter.arrow = true;
+    arrowAdapter.includeLayer = true;
+    const bool arrowRefused = !arrowWriter.write(&arrowAdapter, DRW::AC1021, true);
+    std::ifstream existingArrow(path, std::ios::binary);
+    const std::string retainedArrow((std::istreambuf_iterator<char>(existingArrow)), {});
+    existingArrow.close();
+    t.expect(arrowRefused && retainedArrow == "existing output sentinel",
+             "missing dimension arrow block preserves an existing DWG destination");
+    arrowAdapter.includeBlock = true;
+    t.expect(arrowWriter.write(&arrowAdapter, DRW::AC1021, true) && arrowAdapter.wrote,
+             "adding the dimension arrow block lets the same DWG writer retry");
+    std::ifstream publishedArrow(path, std::ios::binary);
+    const std::vector<std::uint8_t> arrowFile((std::istreambuf_iterator<char>(publishedArrow)), {});
+    HeaderPublicationSink arrowSink;
+    dwgRW arrowReader("");
+    t.expect(!arrowFile.empty()
+                 && arrowReader.readBuffer(arrowFile.data(), arrowFile.size(), &arrowSink, false)
+                 && arrowSink.dimensionArrows[1] == "selected-block",
+             "dimension arrow retry publishes the selected BLOCK_RECORD");
 }
 
 // Optional local physical-producer regression; the caller supplies the

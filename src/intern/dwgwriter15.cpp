@@ -859,7 +859,7 @@ void dwgWriter15::initHeaderControlHandles() {
 }
 
 bool dwgWriter15::planHeaderCurrentReferences(
-        std::array<std::uint32_t, 5>& references) const {
+        std::array<std::uint32_t, 9>& references) const {
     if (m_header == nullptr || !m_dwgTableRecordsComplete)
         return false;
     struct RequestedReference {
@@ -868,13 +868,17 @@ bool dwgWriter15::planHeaderCurrentReferences(
         int group;
         const std::map<std::string, std::uint32_t>* table;
     };
-    const std::array<RequestedReference, 5> requests{{
+    const std::array<RequestedReference, 9> requests{{
         {"CLAYER", "0", 8, &m_writingCtx.layerMap},
         {"TEXTSTYLE", "STANDARD", 7, &m_writingCtx.styleMap},
         {"CELTYPE", "BYLAYER", 6, &m_writingCtx.ltypeMap},
         {"DIMSTYLE", "STANDARD", 2, &m_writingCtx.dimstyleMap},
-        {"DIMTXSTY", "", 7, &m_writingCtx.styleMap}}};
-    std::array<std::uint32_t, 5> result{};
+        {"DIMTXSTY", "", 7, &m_writingCtx.styleMap},
+        {"DIMLDRBLK", "", 1, nullptr},
+        {"DIMBLK", "", 1, nullptr},
+        {"DIMBLK1", "", 1, nullptr},
+        {"DIMBLK2", "", 1, nullptr}}};
+    std::array<std::uint32_t, 9> result{};
     for (std::size_t i = 0; i < requests.size(); ++i) {
         const auto& request = requests[i];
         const std::string canonicalBare(request.name);
@@ -902,14 +906,27 @@ bool dwgWriter15::planHeaderCurrentReferences(
             if ((name.empty() && i < 4u) || name.find('\0') != std::string::npos)
                 return false;
         }
-        if (name.empty() && i == 4u)
+        if (name.empty() && i >= 4u)
             continue;
-        const auto target = request.table->find(toUpperCase(name));
-        if (target == request.table->end() || target->second == 0u
-            || m_emittedDwgTableRecordHandles.find(target->second)
-                == m_emittedDwgTableRecordHandles.end())
-            return false;
-        result[i] = target->second;
+        if (request.table != nullptr) {
+            const auto target = request.table->find(toUpperCase(name));
+            if (target == request.table->end() || target->second == 0u
+                || m_emittedDwgTableRecordHandles.find(target->second)
+                    == m_emittedDwgTableRecordHandles.end())
+                return false;
+            result[i] = target->second;
+        } else {
+            const auto target = m_userBlockHandles.find(toUpperCase(name));
+            if (!m_blockControlEmitted || target == m_userBlockHandles.end()
+                || target->second == 0u
+                || std::count_if(m_emittedDwgBlockRecords.begin(),
+                                 m_emittedDwgBlockRecords.end(),
+                                 [target](const DRW::DwgBlockWriteRecord& block) {
+                                     return block.blockRecordHandle == target->second;
+                                 }) != 1)
+                return false;
+            result[i] = target->second;
+        }
     }
     references = result;
     return true;
@@ -931,8 +948,8 @@ bool dwgWriter15::writeDwgHeader() {
     // the same accumulator for both buf and hBbuf.
     if (m_header != nullptr) {
         const std::uint64_t dataStartBit = m_buf.bitCount();
-        std::array<std::uint64_t, 5> currentReferenceBits{};
-        currentReferenceBits[4] = (std::numeric_limits<std::uint64_t>::max)();
+        std::array<std::uint64_t, 9> currentReferenceBits{};
+        currentReferenceBits.fill((std::numeric_limits<std::uint64_t>::max)());
         // Propagate encode failure: writeDwgHeader reports success as a bool.
         if (!m_header->encodeDwgForWriter(
                 m_version, &m_buf, &m_buf, nullptr,

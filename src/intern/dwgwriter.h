@@ -760,7 +760,7 @@ public:
     /// Resolve all current HEADER table names to already emitted identities.
     /// A subclass must reject an incomplete or ambiguous plan before patching.
     virtual bool planHeaderCurrentReferences(
-        std::array<std::uint32_t, 5>&) const { return false; }
+        std::array<std::uint32_t, 9>&) const { return false; }
 
     /// Patch the already-emitted HEADER field after all object handles have
     /// been minted, then reseal its CRC before container packaging. The fixed
@@ -782,7 +782,7 @@ public:
             (std::max)(m_header->getHandSeed(), highWaterHandle()), requiredSeed);
         if (seed <= maxHandle)
             return false;
-        std::array<std::uint32_t, 5> currentReferences{};
+        std::array<std::uint32_t, 9> currentReferences{};
         if (!planHeaderCurrentReferences(currentReferences))
             return false;
         const auto& headerBytes = m_buf.data();
@@ -790,7 +790,7 @@ public:
         for (std::size_t i = 0; i < m_headerCurrentReferenceBits.size(); ++i) {
             const std::uint64_t bit = m_headerCurrentReferenceBits[i];
             if (bit == DRW_Header::kInvalidDwgHandseedBitOffset) {
-                if (i != 4u || currentReferences[i] != 0u)
+                if (i < 4u || currentReferences[i] != 0u)
                     return false;
                 continue;
             }
@@ -1856,8 +1856,8 @@ protected:
 
     bool recordHeaderCurrentReferenceOffsets(
         std::uint64_t streamStartBit,
-        const std::array<std::uint64_t, 5>& relativeBits) {
-        std::array<std::uint32_t, 5> result{};
+        const std::array<std::uint64_t, 9>& relativeBits) {
+        std::array<std::uint32_t, 9> result{};
         for (std::size_t i = 0; i < result.size(); ++i) {
             if (relativeBits[i] == (std::numeric_limits<std::uint64_t>::max)()) {
                 result[i] = DRW_Header::kInvalidDwgHandseedBitOffset;
@@ -2272,7 +2272,11 @@ protected:
         DRW_Header::kInvalidDwgHandseedBitOffset};
     std::uint32_t m_headerDataStartBit {
         DRW_Header::kInvalidDwgHandseedBitOffset};
-    std::array<std::uint32_t, 5> m_headerCurrentReferenceBits {{
+    std::array<std::uint32_t, 9> m_headerCurrentReferenceBits {{
+        DRW_Header::kInvalidDwgHandseedBitOffset,
+        DRW_Header::kInvalidDwgHandseedBitOffset,
+        DRW_Header::kInvalidDwgHandseedBitOffset,
+        DRW_Header::kInvalidDwgHandseedBitOffset,
         DRW_Header::kInvalidDwgHandseedBitOffset,
         DRW_Header::kInvalidDwgHandseedBitOffset,
         DRW_Header::kInvalidDwgHandseedBitOffset,
