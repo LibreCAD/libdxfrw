@@ -10,6 +10,7 @@
     "Six locally generated R13, R14 and R2000 inputs from independent runs produced identical DWG hashes and identical wire observations before and after the consolidation, including cloning 0 and 1 controls.",
     "Additional locally generated populated R14 and R2000 dictionaries each retain the three expected names and soft-owner handles; the walker observes the R14 cloning field absent and the R2000 field equal to 1. Their frame bodies are included in the fast controls, with wrong-role and corrected-retry checks for each version.",
     "Locally authored seeds were converted and reopened by ODA 27.1.0 as R13/R14 witnesses. The shared subclass walker reproduces the previous selected DICTIONARYWDFLT frame offsets, EED, cloning, owner, extension, item and default handles exactly; focused controls reject wrong roles and truncation before corrected retry.",
+    "The malformed-source generator also reuses the shared frame locator. Before and after the refactor, its R14 dictionary, CELLSTYLEMAP and default-role mutations have identical bytes and pass the same rejection/retry checks against the recorded earlier candidate binary; these are not current-head platform qualification.",
     "The generated AC1012 two-element pair's populated root audit is byte-for-byte identical before and after the consolidation, including wrong-role rejection and corrected retry. The selected entity audit also passes.",
     "The new fast CTest covers the three version profiles, wrong-version layout, malformed CRC, size, truncation and duplicate trace, wrong parent, extension and item roles, model mismatch and valid retry.",
     "No generated drawing is committed; source-release inventory and self-test pass."
@@ -17,7 +18,8 @@
   "sha256": {
     "sharedWalker": "00a6bcd750534525324fd7f61cd27e80d4548e4fdd790557089f6b7622b48056",
     "controls": "3ab0da3d8d05f43b2e10080e16589b9c4e2eb9627ac8a8cce4b336cd65a0c20f",
-    "defaultWitnessGenerator": "0de2d63c9567ddb485fea2f6921d6136cc0bb99f9b5dfc2feb155997423bf060",
+    "defaultWitnessGenerator": "037c9e49b80e7dfeab9be603ea96402aa00f88ceaed53433dd762dcdf442dc61",
+    "earlierCandidateBinary": "d0e16d5fbe2734721d9204d3b3691ada89075b402db4fee4c054097157aacae6",
     "odaDefaultWitnessReceipt": "d63ae984122812a56ec5f144ac4b6b1d431821b4305efdf1bf9cb2f125c708e8",
     "populatedR14Dwg": "28a5916ed0477135db14130881a3dd6fe076debf8acde407caa238b109194edd",
     "populatedR2000Dwg": "1df74e74c0ba135ebaa9c78d3ac0f094fe9a03d4a2a3265dc78459095bfe8cdd",

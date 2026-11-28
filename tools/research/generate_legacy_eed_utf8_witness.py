@@ -10,7 +10,6 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-import re
 import tempfile
 
 from generate_ac1012_dictionary_witness import Bits, crc16, executable_identity, model_and_frame, require, run, sha
@@ -43,23 +42,15 @@ def malformed_controls(dwgread: str, candidate: str, source: Path, root: Path,
                        default_source: dict) -> dict:
     """Corrupt source self-handles with valid CRCs and test refusal/retry."""
     trace = run([dwgread, "-v4", str(source)])
-    blocks = re.split(r"(?=Object number:)", (trace.stdout + trace.stderr).decode(errors="replace"))
+    text = (trace.stdout + trace.stderr).decode(errors="replace")
     result = {}
     original = source.read_bytes()
+    versions = [name for name in ("r13", "r14") if original.startswith(VERSIONS[name])]
+    require(len(versions) == 1, "unexpected legacy source version")
     for label, handle, objtype in (("dictionary", 0x12, 500), ("cellmap", 0xC1, 508)):
-        pattern = re.compile(r"\bhandle: 0\.[0-9]+\." + format(handle, "X") + r"\s")
-        matches = [block for block in blocks if pattern.search(block)]
-        require(len(matches) == 1, f"{label} peer frame is not unique")
-        location = re.search(r"Size: (\d+) \[MS\], Type: (\d+) \[BS\], Address: (\d+)", matches[0])
-        require(location is not None, f"{label} peer frame location missing")
-        size, found_type, address = map(int, location.groups())
-        require(found_type == objtype and address >= 2 and address + size + 2 <= len(original),
-                f"{label} frame bounds or type invalid")
-        require(original[address - 2:address] == size.to_bytes(2, "little"),
-                f"{label} unexpected frame size encoding")
-        require(int.from_bytes(original[address + size:address + size + 2], "little")
-                == crc16(original[address - 2:address + size]), f"{label} CRC mismatch")
-        bits = Bits(original[address:address + size])
+        address, frame = locate_object_frame(original, text, versions[0], handle, objtype)
+        size = len(frame)
+        bits = Bits(frame)
         require(bits.bs() == objtype and bits.handle(0, own=True)["value"] == handle,
                 f"{label} wire identity mismatch")
         bit = bits.position - 1
