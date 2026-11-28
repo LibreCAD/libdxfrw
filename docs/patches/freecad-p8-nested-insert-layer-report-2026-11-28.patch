@@ -1,0 +1,66 @@
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.h
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.h
+@@ -577,0 +578,6 @@
++            // A nested instance's layer cannot be represented by the outer
++            // instance's layer group in either block composition mode.
++            if (Reader.m_preserveLayers && Reader.m_entityAttributes.m_Layer != nullptr
++                && Reader.m_entityAttributes.m_Layer->Name != "0") {
++                Reader.UnsupportedFeature("Nested INSERT nondefault layer");
++            }
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -1047,0 +1048,6 @@
++
++    def test_nested_insert_named_layer_loss_is_reported(self):
++        """A nested INSERT layer cannot be represented by its outer instance."""
++        import sys
++        import types
++        draft = types.ModuleType("Draft")
+@@ -1048,0 +1055,47 @@
++        def make_layer(name, *args):
++            layer = self.document.addObject("App::FeaturePython", "TestLayer")
++            layer.Label = name
++            layer.addProperty("App::PropertyLinkListHidden", "Group")
++            return layer
++
++        draft.make_layer = make_layer
++        old_draft = sys.modules.get("Draft")
++        sys.modules["Draft"] = draft
++        try:
++            for mode in (2, 3):
++                for layer, detail_color in (("0", 1), ("DETAIL", 1), ("DETAIL", -1)):
++                    for preserve in (False, True):
++                        with self.subTest(mode=mode, layer=layer, detail_color=detail_color, preserve=preserve):
++                            options = FreeCAD.ParamGet(self.option_source)
++                            options.SetInt("DxfImportMode", mode)
++                            options.SetBool("dxfUseDraftVisGroups", preserve)
++                            tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                                    (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"),
++                                    (0, "SECTION"), (2, "TABLES"), (0, "TABLE"), (2, "LAYER"), (70, 2)]
++                            for name in ("0", "DETAIL"):
++                                tags.extend([(0, "LAYER"), (2, name), (70, 0), (62, detail_color if name == "DETAIL" else 1), (6, "CONTINUOUS")])
++                            tags.extend([(0, "ENDTAB"), (0, "ENDSEC"), (0, "SECTION"), (2, "BLOCKS"),
++                                         (0, "BLOCK"), (8, "0"), (2, "INNER"), (70, 0), (10, 0), (20, 0), (30, 0),
++                                         (0, "LINE"), (8, "0"), (10, 0), (20, 0), (30, 0), (11, 4), (21, 0), (31, 0),
++                                         (0, "ENDBLK"), (8, "0"),
++                                         (0, "BLOCK"), (8, "0"), (2, "OUTER"), (70, 0), (10, 0), (20, 0), (30, 0),
++                                         (0, "INSERT"), (8, layer), (2, "INNER"), (10, 1), (20, 2), (30, 0),
++                                         (0, "ENDBLK"), (8, "0"), (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES"),
++                                         (0, "INSERT"), (8, "0"), (2, "OUTER"), (10, 2), (20, 3), (30, 0),
++                                         (0, "ENDSEC"), (0, "EOF")])
++                            path = os.path.join(self.temp_dir, "nested-insert-layer.dxf")
++                            with open(path, "w", encoding="ascii", newline="\n") as stream:
++                                stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++                            previous = set(self.document.Objects)
++                            stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                            reason = "Nested INSERT nondefault layer"
++                            self.assertEqual(reason in stats["unsupportedFeatures"], preserve and layer != "0")
++                            links = [obj for obj in self.document.Objects if obj not in previous and obj.Name.startswith("Link_OUTER")]
++                            self.assertEqual(len(links), 1)
++                            self.assertAlmostEqual(links[0].Shape.Length, 4.0)
++        finally:
++            if old_draft is None:
++                del sys.modules["Draft"]
++            else:
++                sys.modules["Draft"] = old_draft
++

@@ -41,6 +41,7 @@ EXTRA_TESTS = {
         "test_block_line_named_layer_loss_is_reported",
         "test_block_circle_named_layer_loss_is_reported",
         "test_nested_block_original_layer_metadata",
+        "test_nested_insert_named_layer_loss_is_reported",
         "test_block_reference_cycles_and_retry",
     ),
 }
