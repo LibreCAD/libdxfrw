@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-47-linux-gui-2026-11-28",
+  "date": "2026-11-28",
+  "gate": "P8",
+  "supportClaimEffect": "none",
+  "run": "https://github.com/dxli/libdxfrw/actions/runs/46161593587",
+  "job": "https://github.com/dxli/libdxfrw/actions/runs/46161593587/job/141029900229",
+  "sourceCommit": "477a7041803823a1fcae528133cb07ee5533b1b2",
+  "patchCount": 47,
+  "outputSha256": {
+    "src/Mod/Import/App/dxf/ImpExpDxf.cpp": "fc38719aa065aa1c1ad8e0abe9631e117f13fb5c23514fe2b87db8dbbe6b2559",
+    "src/Mod/Import/App/dxf/ImpExpDxf.h": "b794a073b2119c394f92d7c90cf6497cab9e15abdefbc494af756803e1a421e3",
+    "src/Mod/Import/App/dxf/dxf.cpp": "0f986db1b0131f71eae6c480582c090b014b14a5f75e3959f6db4984a25583ca",
+    "src/Mod/Import/App/dxf/dxf.h": "283f2966359a8336b6683066db5f0b5400cc9ef467164b5e24329cfa1fad8bf6",
+    "src/Mod/Import/importtests/TestImportDXF.py": "f64ecb4532fb2bcd688ef9e87cc22d0a618893498d974bbb6df186670a7716cf"
+  },
+  "headless": {
+    "testsRun": 47,
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0,
+    "receiptSha256": "81f488fc39cb8a726ffde473f96fd957fa6b61ace37f155e7293b88a49a2723d"
+  },
+  "gui": {
+    "profile": "smoke",
+    "cases": 10,
+    "qtPlatform": "xcb",
+    "receiptSha256": "3fce370baf471dbded913152a13b4d2d46a9ed5ed43207e7e24f9ec963279f9e",
+    "pixelEvidence": {
+      "channelThreshold": 24,
+      "height": 240,
+      "imageSha256": {
+        "pixel-all-hidden.png": "96d83e6200e17e6bd651d4eac03813ef5605d820268f00c12b0104dac3adf2fb",
+        "pixel-mesh-hidden.png": "ce020898b99b40bce169172e16497ec03ed5f0f5e02cb16d11d3613c5eab9ee5",
+        "pixel-restored.png": "b8066bf4f7d2288c25b07f2206a326f0435f31155a83d39f89f39b26df355709",
+        "pixel-visible.png": "5dbef0bb6ade77fe07c75220a51318f84cd93af9ece7ba0e85fe10f94bb65d9b"
+      },
+      "lineChangedPixels": 80,
+      "meshChangedPixels": 2440,
+      "meshDifferenceBounds": [
+        43,
+        90,
+        121,
+        149
+      ],
+      "restorationChangedPixels": 0,
+      "width": 320
+    }
+  },
+  "limits": [
+    "This covers the pinned 47-patch local FreeCAD draft on hosted Linux only; it is not upstream submission or general FreeCAD support.",
+    "Windows qualification in the same run remains in progress.",
+    "The GUI smoke covers its ten listed cases and four selected framebuffer captures, not all importer profiles."
+  ]
+}
