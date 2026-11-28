@@ -64,6 +64,8 @@ EXTRA_TESTS = {
         "test_insert_array_negative_spacing_inches",
         "test_circle_arc_ocs_direct_and_block",
         "test_circle_arc_invalid_normal_then_valid",
+        "test_lwpolyline_bulge_elevation_ocs",
+        "test_lwpolyline_invalid_normal_then_valid",
     ),
 }
 

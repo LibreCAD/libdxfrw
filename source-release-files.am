@@ -74,6 +74,7 @@ EXTRA_DIST = \
     docs/patches/freecad-p8-layer-color-syntax-guard-2026-11-16.patch \
     docs/patches/freecad-p8-legacy-dxf-block-3dface-2026-11-15.patch \
     docs/patches/freecad-p8-legacy-dxf-surface-mesh-unit-scaling-2026-11-15.patch \
+    docs/patches/freecad-p8-lwpolyline-ocs-2026-11-28.patch \
     docs/patches/freecad-p8-mesh-bylayer-display-2026-11-27.patch \
     docs/patches/freecad-p8-minsert-inch-negative-control-2026-11-28.patch \
     docs/patches/freecad-p8-minsert-ocs-overflow-2026-11-28.patch \

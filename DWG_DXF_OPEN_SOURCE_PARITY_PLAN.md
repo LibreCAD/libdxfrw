@@ -95,7 +95,7 @@ below is still open, and its linked evidence defines the present boundary.
    AC1024 array partial handoff](docs/research/p8-freecad-ac1024-minsert-partial-handoff-2026-11-28.json)
    checks six lines in both FreeCAD modes; strict conversion remains blocked by
    the HEADER suffix and partial output is not whole-file proof. For the local
-   [44-patch FreeCAD draft](docs/research/p8-freecad-circle-arc-ocs-2026-11-28.json),
+   [45-patch FreeCAD draft](docs/research/p8-freecad-lwpolyline-ocs-2026-11-28.json),
    preserve named child-layer visibility and color through block composition;
    qualify additional geometry, polyline/arc OCS and unit profiles, malformed
    numeric extremes, real producer drawings and actual Draft rendering. TEXT under
@@ -109,8 +109,8 @@ below is still open, and its linked evidence defines the present boundary.
    [Linux and Windows headless run](https://github.com/dxli/libdxfrw/actions/runs/46157961230)
    has passed Linux and is still running on Windows. The current 42-patch
    [platform run](https://github.com/dxli/libdxfrw/actions/runs/46159919285)
-   is in progress; later OCS-overflow and circular-geometry changes still need
-   a matching recheck.
+   is in progress; later OCS-overflow, circular-geometry and lightweight-
+   polyline changes still need a matching recheck.
    Do not carry earlier results across changed importer code.
 
 The remote ObjectARX host's release, OS, SDK and access route remain unknown.
