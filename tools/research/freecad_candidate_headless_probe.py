@@ -67,6 +67,7 @@ EXTRA_TESTS = {
         "test_lwpolyline_bulge_elevation_ocs",
         "test_lwpolyline_invalid_normal_then_valid",
         "test_lwpolyline_closed_bulge_ocs",
+        "test_classic_polyline_2d_ocs_and_3d_wcs",
     ),
 }
 
