@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-shared-bits-refactor-2026-11-28",
+  "supportClaimEffect": "none",
+  "candidateCommit": "fd5150672",
+  "implementationDigestSha256": "9944e586474c9f22075f2173cffd13588bc0a29d645e3419ea2ff1c57f6f8dda",
+  "scope": "Share bounded bit-double, raw-double and ASCII text readers among the existing AC1012 HEADER and object wire observers.",
+  "checks": [
+    "The shared bit reader handles raw, zero and one bit-double forms, bounded ASCII text and optional finite-value checking. Eleven focused valid/malformed, non-finite and truncation controls pass.",
+    "The two-input HEADER, 32-object census and selected control/style/VPORT/block-entity audit outputs are byte-for-byte identical before and after the refactor. The 143-field partial-output audit also passes.",
+    "Source-release inventory check passes; no generated drawing fixture is committed."
+  ],
+  "hashes": {
+    "sharedReader": "a5e6a086437856702a0904329967d7a107929dddfaadb449ac7187124460a89c",
+    "objectObserver": "391f8b7e9fdd575a608dc482e1fabbc59b5deefdcae5e51302d382ba7d89c87a",
+    "headerObserver": "1a904a4b783b5ef68fb7e280c5a628840444f8ccff6144053044a853746f8773",
+    "controls": "f7155e6b36d239cb5542686814428ef0aff430c621b97d8813bb33f425cb24df",
+    "objectAudit": "cd0016c63f3ba8b264e01dd64e6180984c256b0aa1385464d0411612c21a3d83",
+    "headerAudit": "51a5de9a251d4e14a59497dfa4887c5b38b4899433505d732d73bf717f10928e",
+    "census": "19d512bb1b9e74533deddbd14f2f53835e56fed62aa76cff63e852cdf07b75d9"
+  },
+  "limits": [
+    "This is a research-tool consolidation; it does not expand the admitted DWG or DXF profiles, establish native semantics, or alter library parsing."
+  ]
+}

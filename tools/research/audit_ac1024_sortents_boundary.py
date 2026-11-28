@@ -7,6 +7,7 @@ its frame reader. This is source evidence, not export or semantic admission.
 import argparse
 import hashlib
 import json
+import math
 import struct
 from pathlib import Path
 
@@ -67,6 +68,23 @@ class Bits:
             return self.take(8)
         require(tag == 2, 'invalid bitlong tag')
         return 0
+
+    def raw_double(self, require_finite=False):
+        value = struct.unpack('<d', bytes(self.take(8) for _ in range(8)))[0]
+        require(not require_finite or math.isfinite(value), 'non-finite double')
+        return value
+
+    def bit_double(self, require_finite=False):
+        tag = self.take(2)
+        if tag == 0:
+            return self.raw_double(require_finite)
+        require(tag in (1, 2), 'invalid bit-double tag')
+        return 1.0 if tag == 1 else 0.0
+
+    def ascii_text(self, max_length):
+        length = self.bs()
+        require(length <= max_length, 'text exceeds bounded profile')
+        return bytes(self.take(8) for _ in range(length)).decode('ascii')
 
 
 def frame(data, start, expected_size, expected_hbits, expected_type, expected_handle):

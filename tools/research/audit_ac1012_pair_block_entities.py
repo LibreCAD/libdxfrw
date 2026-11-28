@@ -6,7 +6,6 @@ This is a bounded source-wire observer, not native cloning evidence.
 import argparse
 import json
 from pathlib import Path
-import struct
 
 from generate_ac1012_dictionary_merge_samples import read_object_frame
 from generate_ac1012_dictionary_witness import Bits, require, sha
@@ -61,17 +60,8 @@ def observe_style_or_appid(frame: bytes, style: bool) -> dict:
         spans[label] = {"startBit": start, "endBit": bits.position, "value": value}
         return value
 
-    def text_value():
-        length = bits.bs()
-        require(length <= 128, "table text exceeds profile")
-        return bytes(bits.take(8) for _ in range(length)).decode("ascii")
-
-    def bit_double():
-        tag = bits.take(2)
-        if tag == 0:
-            return struct.unpack("<d", bytes(bits.take(8) for _ in range(8)))[0]
-        require(tag in (1, 2), "invalid bit-double")
-        return 1.0 if tag == 1 else 0.0
+    text_value = lambda: bits.ascii_text(128)
+    bit_double = bits.bit_double
 
     require(field("type", bits.bs) == (53 if style else 67)
             and field("self", lambda: bits.handle(0, own=True))["value"] == handle
@@ -118,17 +108,8 @@ def observe_dimstyle(frame: bytes, handle: int = 0x2d, name: str = "Standard",
         spans[label] = {"startBit": start, "endBit": bits.position, "value": value}
         return value
 
-    def text_value():
-        length = bits.bs()
-        require(length <= 128, "DIMSTYLE text exceeds profile")
-        return bytes(bits.take(8) for _ in range(length)).decode("ascii")
-
-    def bit_double():
-        tag = bits.take(2)
-        if tag == 0:
-            return struct.unpack("<d", bytes(bits.take(8) for _ in range(8)))[0]
-        require(tag in (1, 2), "invalid bit-double")
-        return 1.0 if tag == 1 else 0.0
+    text_value = lambda: bits.ascii_text(128)
+    bit_double = bits.bit_double
 
     require(field("type", bits.bs) == 69
             and field("self", lambda: bits.handle(0, own=True))["value"] == handle
@@ -185,20 +166,9 @@ def observe_vport(frame: bytes) -> dict:
         spans[label] = {"startBit": start, "endBit": bits.position, "value": value}
         return value
 
-    def raw_double():
-        return struct.unpack("<d", bytes(bits.take(8) for _ in range(8)))[0]
-
-    def bit_double():
-        tag = bits.take(2)
-        if tag == 0:
-            return raw_double()
-        require(tag in (1, 2), "invalid bit-double")
-        return 1.0 if tag == 1 else 0.0
-
-    def text_value():
-        length = bits.bs()
-        require(length <= 128, "VPORT text exceeds profile")
-        return bytes(bits.take(8) for _ in range(length)).decode("ascii")
+    raw_double = bits.raw_double
+    bit_double = bits.bit_double
+    text_value = lambda: bits.ascii_text(128)
 
     require(field("type", bits.bs) == 65
             and field("self", lambda: bits.handle(0, own=True))["value"] == 0x26
@@ -320,12 +290,7 @@ def observe(frame: bytes, handle: int, kind: int, mode: int, name: str) -> dict:
         spans[label] = {"startBit": start, "endBit": bits.position, "value": value}
         return value
 
-    def bit_double():
-        tag = bits.take(2)
-        if tag == 0:
-            return struct.unpack("<d", bytes(bits.take(8) for _ in range(8)))[0]
-        require(tag in (1, 2), "invalid bit-double")
-        return 1.0 if tag == 1 else 0.0
+    bit_double = bits.bit_double
 
     def text_value():
         length = bits.bs()

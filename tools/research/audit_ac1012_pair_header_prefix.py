@@ -6,7 +6,6 @@ a bounded physical comparison for these witnesses, not full HEADER admission.
 """
 import argparse
 import json
-import math
 from pathlib import Path
 import struct
 import tempfile
@@ -41,27 +40,9 @@ def audit_prefix(data, peer):
         require(name in peer and peer[name] == value, f"peer mismatch: {name}")
         fields[name] = {"startBit": first, "endBit": bits.bit, "value": value}
 
-    def bitdouble():
-        tag = bits.take(2)
-        if tag == 0:
-            value = struct.unpack("<d", bytes(bits.take(8) for _ in range(8)))[0]
-            require(math.isfinite(value), "non-finite bitdouble")
-            return value
-        require(tag in (1, 2), "invalid bitdouble tag")
-        return 1.0 if tag == 1 else 0.0
-
-    def text():
-        length = bits.bs()
-        require(length <= 255, "unbounded text")
-        try:
-            return bytes(bits.take(8) for _ in range(length)).decode("ascii")
-        except UnicodeDecodeError as error:
-            raise ValueError("non-ASCII witness text") from error
-
-    def rawdouble():
-        value = struct.unpack("<d", bytes(bits.take(8) for _ in range(8)))[0]
-        require(math.isfinite(value), "non-finite raw double")
-        return value
+    bitdouble = lambda: bits.bit_double(require_finite=True)
+    rawdouble = lambda: bits.raw_double(require_finite=True)
+    text = lambda: bits.ascii_text(255)
 
     def handle(name, role):
         first = bits.bit
