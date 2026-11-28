@@ -107,8 +107,8 @@ def observe_style_or_appid(frame: bytes, style: bool) -> dict:
 
 def observe_dimstyle(frame: bytes, handle: int = 0x2d, name: str = "Standard",
                      owner_role: int = 12, extension: int = 0,
-                     text_style: int = 0x11) -> dict:
-    """Bind an R13 Standard DIMSTYLE with the selected default body."""
+                     text_style: int = 0x11, expected_overrides: dict | None = None) -> dict:
+    """Bind an R13 Standard DIMSTYLE with the selected body and references."""
     bits = Bits(frame)
     spans = {}
 
@@ -159,8 +159,11 @@ def observe_dimstyle(frame: bytes, handle: int = 0x2d, name: str = "Standard",
         ("DIMCLRD", "BS", 0), ("DIMCLRE", "BS", 0), ("DIMCLRT", "BS", 0), ("flag0", "B", 0))
     readers = {"B": lambda: bits.take(1), "RC": lambda: bits.take(8),
                "BS": bits.bs, "BD": bit_double, "TV": text_value}
+    overrides = expected_overrides or {}
+    require(set(overrides) <= {name for name, _, _ in fields}, "unknown DIMSTYLE override")
     for name, kind, expected in fields:
-        require(field(name, readers[kind]) == expected, f"unexpected DIMSTYLE {name}")
+        require(field(name, readers[kind]) == overrides.get(name, expected),
+                f"unexpected DIMSTYLE {name}")
     require(bits.position == boundary, "unexpected DIMSTYLE data boundary")
     for label, role, expected, raw_role in (("owner", 4, 10, owner_role), ("extension", 3, extension, 3),
                                              ("xref", 5, 0, 5), ("textStyle", 5, text_style, 5)):

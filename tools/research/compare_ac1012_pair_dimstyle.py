@@ -37,12 +37,18 @@ def main():
         if style is None:
             raise ValueError(f"missing Standard DIMSTYLE: {path}")
         values = {name: getattr(style.dxf, attribute) for name, attribute in FIELDS.items()}
+        explicit = {name: style.dxf.get(attribute) for name, attribute in FIELDS.items()
+                    if style.dxf.hasattr(attribute)}
         audit = doc.audit()
         records.append({"path": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
                         "handle": style.dxf.handle, "textStyle": style.dxf.dimtxsty,
-                        "values": values,
-                        "differences": {name: {"source": expected[name], "output": value}
-                                        for name, value in values.items() if value != expected[name]},
+                        "readerEffectiveValues": values,
+                        "explicitValues": explicit,
+                        "omittedFields": [name for name in FIELDS if name not in explicit],
+                        "readerEffectiveDifferences": {name: {"source": expected[name], "output": value}
+                                                       for name, value in values.items() if value != expected[name]},
+                        "explicitDifferences": {name: {"source": expected[name], "output": value}
+                                                for name, value in explicit.items() if value != expected[name]},
                         "auditErrors": len(audit.errors), "auditFixes": len(audit.fixes)})
     result = {"sourceSha256": json.loads(args.observer.read_text())[args.side]["sourceSha256"],
               "reader": f"ezdxf {ezdxf.__version__}", "sourceValues": expected, "outputs": records}

@@ -235,3 +235,8 @@ Only after normal-open succeeds should the host perform the read-only
 observation and duplicate-key operation above; record the exact survivor,
 renamed key, object identity, and close/reopen result. The generated source
 pair does not by itself establish R13 default merge behavior.
+
+The selected ODA DXF reopens omit four Standard DIMSTYLE groups. The
+[default-discrimination receipt](../../docs/research/p6-ac1012-dimstyle-default-discriminator-2026-11-28.json)
+records that ezdxf supplies different values from the selected DWG fields;
+observe native values rather than treating ezdxf defaults as explicit DXF fields.

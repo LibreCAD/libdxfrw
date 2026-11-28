@@ -1,0 +1,183 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-dimstyle-default-discriminator-2026-11-28",
+  "supportClaimEffect": "none",
+  "codecDigest": "af2d9e8a1f4866db44def162e69f1c974fc3b08dbd0f263a4100431460e473ea",
+  "scope": "Three scratch-only variants of the selected generated source DXF: four omitted DIMSTYLE groups, explicit selected legacy values matching HEADER, and explicit distinct values; ODA File Converter 27.10 Linux x86_64 generated AC1012 and reopened AC1024 ASCII DXF.",
+  "reference": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-F2FAD36F-0CE3-4943-9DAD-A9BCD2AE81DA.htm",
+  "results": [
+    "All three inputs and outputs retain selected HEADER values DIMASZ=.18, DIMEXO=.0625, DIMTXT=.18 and DIMTIH=1. Input and output DXFs pass ezdxf audits.",
+    "For the omitted and explicit-header cases, ODA-generated DWG frames encode those four legacy values; ODA reopen omits all four corresponding groups. ezdxf 1.4.5 returns 2.5, .625, 2.5 and 0 as its effective defaults for omitted groups.",
+    "For the distinct case, input DXF, DWG physical frame and reopened DXF all explicitly retain DIMASZ=7.25, DIMEXO=3.5, DIMTXT=9.25 and DIMTIH=0. These are distinguishable from the unchanged HEADER values.",
+    "The shared ODA-spec frame observer verifies physical fields and handle roles in each generated DWG, rejects every byte-prefix truncation and four wrong-role mutations, and retries successfully. Original pair results are byte-for-byte unchanged.",
+    "The comparison helper now separately reports explicit and omitted groups and reader-effective defaults; its omitted and explicit-mismatch controls pass. Three related AC1012 handle-role CTests pass.",
+    "This corrects the interpretation of earlier DIMSTYLE divergence receipts: their reported DXF numbers were ezdxf effective defaults for absent groups, not explicit values present in the files.",
+    "The original witness pair was repackaged without regenerating drawings; its handoff now states the omission and reader-default limitation accurately."
+  ],
+  "scratchDirectory": "/private/tmp/ac1012-dimstyle-discriminator-20261128",
+  "cases": {
+    "omitted": {
+      "input": {
+        "sha256": "7cebf528b96e2a862a892592ee4f319edac7b3fc95259c80e7261a3bac7a41c2",
+        "header": {
+          "DIMASZ": 0.18,
+          "DIMEXO": 0.0625,
+          "DIMTXT": 0.18,
+          "DIMTIH": 1
+        },
+        "explicit": {},
+        "readerEffective": {
+          "DIMASZ": 2.5,
+          "DIMEXO": 0.625,
+          "DIMTXT": 2.5,
+          "DIMTIH": 0
+        }
+      },
+      "reopen": {
+        "sha256": "9fa8c36dcc52f940cc8cf0c438bc81a2e6f9e253f267ad6ab97f61df27768eca",
+        "header": {
+          "DIMASZ": 0.18,
+          "DIMEXO": 0.0625,
+          "DIMTXT": 0.18,
+          "DIMTIH": 1
+        },
+        "explicit": {},
+        "readerEffective": {
+          "DIMASZ": 2.5,
+          "DIMEXO": 0.625,
+          "DIMTXT": 2.5,
+          "DIMTIH": 0
+        }
+      },
+      "dwgSha256": "840476cb9b51c9b15c8b1923db79d243e62af17355ae065b5e5005ae24f10e18",
+      "frameOffset": 4463,
+      "frameSha256": "d26960d6c17991a50bfe34866f20098d36a643c83c1ba7e3ef6111c79064c19e",
+      "wireValues": {
+        "DIMASZ": 0.18,
+        "DIMEXO": 0.0625,
+        "DIMTXT": 0.18,
+        "DIMTIH": 1
+      },
+      "wrongRolesAndTruncationRejectedWithRetry": true
+    },
+    "header": {
+      "input": {
+        "sha256": "6a956c6133cbfe64fcaa167adb8dd5c08a086d7c6eab4e10935ff1e3e3c72778",
+        "header": {
+          "DIMASZ": 0.18,
+          "DIMEXO": 0.0625,
+          "DIMTXT": 0.18,
+          "DIMTIH": 1
+        },
+        "explicit": {
+          "DIMASZ": 0.18,
+          "DIMEXO": 0.0625,
+          "DIMTXT": 0.18,
+          "DIMTIH": 1
+        },
+        "readerEffective": {
+          "DIMASZ": 0.18,
+          "DIMEXO": 0.0625,
+          "DIMTXT": 0.18,
+          "DIMTIH": 1
+        }
+      },
+      "reopen": {
+        "sha256": "99c4b8e4314560a4c5cfa24be421de1097c54a3b8964f55e424cd45f06c612a3",
+        "header": {
+          "DIMASZ": 0.18,
+          "DIMEXO": 0.0625,
+          "DIMTXT": 0.18,
+          "DIMTIH": 1
+        },
+        "explicit": {},
+        "readerEffective": {
+          "DIMASZ": 2.5,
+          "DIMEXO": 0.625,
+          "DIMTXT": 2.5,
+          "DIMTIH": 0
+        }
+      },
+      "dwgSha256": "1554190d20a95aa1d8fbfc015d702c82f7f2581ecdd86dc029ee7594001a5441",
+      "frameOffset": 4463,
+      "frameSha256": "d26960d6c17991a50bfe34866f20098d36a643c83c1ba7e3ef6111c79064c19e",
+      "wireValues": {
+        "DIMASZ": 0.18,
+        "DIMEXO": 0.0625,
+        "DIMTXT": 0.18,
+        "DIMTIH": 1
+      },
+      "wrongRolesAndTruncationRejectedWithRetry": true
+    },
+    "distinct": {
+      "input": {
+        "sha256": "48dcc73c81f677b71dec5292aeaf8773d8e30f93ec81ac313398dd3586b9a669",
+        "header": {
+          "DIMASZ": 0.18,
+          "DIMEXO": 0.0625,
+          "DIMTXT": 0.18,
+          "DIMTIH": 1
+        },
+        "explicit": {
+          "DIMASZ": 7.25,
+          "DIMEXO": 3.5,
+          "DIMTXT": 9.25,
+          "DIMTIH": 0
+        },
+        "readerEffective": {
+          "DIMASZ": 7.25,
+          "DIMEXO": 3.5,
+          "DIMTXT": 9.25,
+          "DIMTIH": 0
+        }
+      },
+      "reopen": {
+        "sha256": "68fe86c9ea5e611ac0a0236eaa943ded5764596023696e9cac4e7f3041a73093",
+        "header": {
+          "DIMASZ": 0.18,
+          "DIMEXO": 0.0625,
+          "DIMTXT": 0.18,
+          "DIMTIH": 1
+        },
+        "explicit": {
+          "DIMASZ": 7.25,
+          "DIMEXO": 3.5,
+          "DIMTXT": 9.25,
+          "DIMTIH": 0
+        },
+        "readerEffective": {
+          "DIMASZ": 7.25,
+          "DIMEXO": 3.5,
+          "DIMTXT": 9.25,
+          "DIMTIH": 0
+        }
+      },
+      "dwgSha256": "baf09486f0b45f3de85359701cf75dbcfb19cc99c8351ab944bfcf499127a638",
+      "frameOffset": 4463,
+      "frameSha256": "12d5119e38140ad8a4268c45e249e9ff754cc8788516bad620c4a10e05bf72b9",
+      "wireValues": {
+        "DIMASZ": 7.25,
+        "DIMEXO": 3.5,
+        "DIMTXT": 9.25,
+        "DIMTIH": 0
+      },
+      "wrongRolesAndTruncationRejectedWithRetry": true
+    }
+  },
+  "evidenceSha256": {
+    "audit.json": "e8113ade265ce03421ef5a4092b8a11169bd0dd80d836f36dbdcae44c55bb428",
+    "comparison.json": "225c729f0a9823250907757749a274ebbdb808a5be801e632a1df9fb6ae60e56",
+    "original-observer.json": "cd0016c63f3ba8b264e01dd64e6180984c256b0aa1385464d0411612c21a3d83",
+    "direct-conversion.log": "3fc8dfb5bbc008a99195604ec9e68bc2d2b5f9b5166505646d23f2a14b6e2252",
+    "direct-reopen.log": "3fc8dfb5bbc008a99195604ec9e68bc2d2b5f9b5166505646d23f2a14b6e2252",
+    "object-vectors-ctest.log": "0f154c03014e60631b0de4e47911d62b1e695f69988f7625681a940524164b57",
+    "packetManifest": "bf752f4f863ec4911509ee8d676c6aedf9fb8dead4d3cc03446c7393cd7df5ea",
+    "packageLog": "85e7ffde632c4c0e16a419580f2980b1f5ff02694381426f9164a8f3d89a6713"
+  },
+  "limits": [
+    "The controls demonstrate ODA converter and ezdxf behavior for this profile, not native AutoCAD interpretation, rendering, or dictionary clone semantics.",
+    "The explicit-header case demonstrates ODA omits matching selected values after conversion; it does not establish the general default rule or whether HEADER drives it.",
+    "The original witness graph and dimensions require native acceptance and broader source and graph closure. Generated drawings were not committed."
+  ],
+  "updatedWitnessPacket": "/private/tmp/ac1012-native-dimstyle-correction-20261128"
+}

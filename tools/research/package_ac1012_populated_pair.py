@@ -149,8 +149,9 @@ def main():
                   "See NATIVE_WITNESS.md; repository-relative links refer to libdxfrw.\n"
                   "Root, EED, complete graph, and native semantics remain unqualified.\n")
         if args.profile in ("oda", "populated-links"):
-            readme += ("ODA DXF reopens change selected Standard DIMSTYLE values compared with the\n"
-                       "source DWG; do not use those reopens as whole-drawing fidelity evidence.\n")
+            readme += ("ODA DXF reopens omit four selected Standard DIMSTYLE groups; ezdxf supplies\n"
+                       "values different from the DWG fields. Native meaning is unverified;\n"
+                       "do not use those reopens as whole-drawing fidelity evidence.\n")
         (packet / "README.txt").write_text(readme)
         manifest = {"schema": 1, "profile": args.profile,
                     "scope": "selected physical controls; native semantics unobserved",

@@ -1274,6 +1274,7 @@ tools/research/ac1032_forum_constraint_node_spans.py
 tools/research/ac1032_forum_constraint_registry_spans.py
 tools/research/acadrust_constraint_group_probe.rs
 tools/research/apply_freecad_import_candidate.py
+tools/research/audit_ac1012_dimstyle_defaults.py
 tools/research/audit_ac1012_generated_root.py
 tools/research/audit_ac1012_oda_merge_pair.py
 tools/research/audit_ac1012_pair_block_entities.py
