@@ -1,0 +1,16 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-p6-plotstyle-digest-refresh-2026-11-27",
+  "supportClaimEffect": "none",
+  "implementationCommit": "fa9287454",
+  "previousDigest": "4846c96e1890d7851424167c46be30d785d0c8756c61b23e016b0c329cbe8c95",
+  "implementationDigestSha256": "ee0342be46823c64fc12633b6e45d7cf38f863c0c94756445534677babd2781d",
+  "inputCount": 784,
+  "reason": "Refresh qualification status after the source-bound AC1024 canonical plot dictionary change.",
+  "checks": [
+    "Clean detached checkout digest, workflow contract and qualified support checks; 15 claims remain experimental with no advertised routes."
+  ],
+  "limits": [
+    "Earlier hosted and platform results bind prior digests; current-head qualification remains pending."
+  ]
+}
