@@ -1,0 +1,18 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-p6-implementation-digest-refresh-2026-11-27",
+  "supportClaimEffect": "none",
+  "implementationCommit": "c4c375742",
+  "previousDigest": "f5a373b6adbce3a1a181b62734b6223eadd3931fbbb265b41cb1913713640467",
+  "implementationDigestSha256": "4846c96e1890d7851424167c46be30d785d0c8756c61b23e016b0c329cbe8c95",
+  "inputCount": 784,
+  "reason": "Refresh frozen status after the AC1024 layer, DIMSTYLE, TABLESTYLE and ModelDocViewStyle code and test slices.",
+  "checks": [
+    "PASS clean detached checkout qualification digest and workflow contract.",
+    "PASS qualified-format support: 15 experimental claims, 2 candidate routes, 0 advertised; support matrix passes.",
+    "Claim states and evidence references were not promoted or changed."
+  ],
+  "limits": [
+    "Earlier platform and hosted results bind earlier implementation digests; current-head hosted checks must finish before using them as current evidence."
+  ]
+}
