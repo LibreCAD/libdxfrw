@@ -18,14 +18,37 @@ from generate_ac1012_dictionary_witness import require, run, sha
 def check_header_targets(prefix: dict, objects: dict) -> dict:
     expected = {"CLAYER": (51, "0"), "TEXTSTYLE": (53, "Standard"),
                 "CELTYPE": (57, "BYLAYER"), "DIMSTYLE": (69, "Standard"),
-                "CMLSTYLE": (73, "Standard")}
+                "CMLSTYLE": (73, "Standard"), "DIMTXSTY": (53, "Standard"),
+                "BLOCK_CONTROL_OBJECT": (48, None), "LAYER_CONTROL_OBJECT": (50, None),
+                "STYLE_CONTROL_OBJECT": (52, None), "LTYPE_CONTROL_OBJECT": (56, None),
+                "VIEW_CONTROL_OBJECT": (60, None), "UCS_CONTROL_OBJECT": (62, None),
+                "VPORT_CONTROL_OBJECT": (64, None), "APPID_CONTROL_OBJECT": (66, None),
+                "DIMSTYLE_CONTROL_OBJECT": (68, None), "VX_CONTROL_OBJECT": (70, None),
+                "DICTIONARY_ACAD_GROUP": (42, None), "DICTIONARY_ACAD_MLINESTYLE": (42, None),
+                "DICTIONARY_NAMED_OBJECT": (42, None),
+                "BLOCK_RECORD_PSPACE": (49, "*PAPER_SPACE"),
+                "BLOCK_RECORD_MSPACE": (49, "*MODEL_SPACE"),
+                "LTYPE_BYLAYER": (57, "BYLAYER"), "LTYPE_BYBLOCK": (57, "BYBLOCK"),
+                "LTYPE_CONTINUOUS": (57, "CONTINUOUS")}
     targets = {}
     for name, (kind, label) in expected.items():
         handle = prefix["fields"][name]["value"][2]
         target = objects.get(handle)
-        require(target is not None and target.get("type") == kind and target.get("name") == label,
+        require(target is not None and target.get("type") == kind and
+                (label is None or target.get("name") == label),
                 f"wrong HEADER {name} target")
         targets[name] = {"handle": handle, "type": kind, "name": label}
+    root = objects[targets["DICTIONARY_NAMED_OBJECT"]["handle"]]
+    require(root.get("ownerhandle", [None])[-1] == 0, "named dictionary is not the root")
+    for key, name in (("ACAD_GROUP", "DICTIONARY_ACAD_GROUP"),
+                      ("ACAD_MLINESTYLE", "DICTIONARY_ACAD_MLINESTYLE")):
+        entry = root.get("items", {}).get(key, [])
+        require(len(entry) == 4 and entry[0] == 2 and entry[-1] == targets[name]["handle"],
+                f"wrong named dictionary membership: {key}")
+    style_dictionary = objects[targets["DICTIONARY_ACAD_MLINESTYLE"]["handle"]]
+    standard = style_dictionary.get("items", {}).get("Standard", [])
+    require(len(standard) == 4 and standard[0] == 2 and
+            standard[-1] == targets["CMLSTYLE"]["handle"], "wrong current multiline style membership")
     seed = prefix["fields"]["HANDSEED"]["value"][2]
     require(seed > max(objects), "HANDSEED does not exceed source objects")
     return targets
@@ -93,6 +116,19 @@ def audit(packet: Path, side: str, manifest: dict, dwgread: str, probe: str) -> 
         pass
     else:
         raise ValueError("wrong current-layer target type was accepted")
+    damaged = dict(by_handle)
+    root_handle = targets["DICTIONARY_NAMED_OBJECT"]["handle"]
+    root = dict(damaged[root_handle])
+    entries = dict(root["items"])
+    entries["ACAD_GROUP"] = entries["ACAD_MLINESTYLE"]
+    root["items"] = entries
+    damaged[root_handle] = root
+    try:
+        check_header_targets(prefix, damaged)
+    except ValueError:
+        pass
+    else:
+        raise ValueError("wrong root dictionary membership was accepted")
     require(check_header_targets(prefix, by_handle) == targets, "HEADER target retry changed")
     # The probe verifies both retained BLOCK_HEADER bodies and their frame
     # binding, generation, reference roles, target types, refusal and retry.
@@ -107,7 +143,7 @@ def audit(packet: Path, side: str, manifest: dict, dwgread: str, probe: str) -> 
                                   "binding": "shared-block-probe" if expected_sha is None else "audited-packet"}
     return {"sourceSha256": source_sha, "headerEnvelope": audit_header(path.read_bytes()),
             "headerPrefix": prefix, "headerTargets": targets,
-            "wrongHeaderTargetRejectedAndRetryPassed": True,
+            "wrongHeaderTargetAndDictionaryRejectedAndRetryPassed": True,
             "frameCount": len(frames),
             "probeOutputSha256": sha(probe_result.stdout + probe_result.stderr), "frames": frames}
 

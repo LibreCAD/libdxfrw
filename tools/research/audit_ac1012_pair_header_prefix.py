@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Compare the selected AC1012 HEADER prefix with an independent decoder.
 
-The prefix follows ODA v5.4.1 section 9 through model-space UCSNAME. It is a bounded
-physical comparison for these generated witnesses, not full HEADER admission.
+The walk follows ODA v5.4.1 section 9 through the AC1012 alignment bits. It is
+a bounded physical comparison for these witnesses, not full HEADER admission.
 """
 import argparse
 import json
@@ -103,7 +103,39 @@ def audit_prefix(data, peer):
         for name in ("UCSORG", "UCSXDIR", "UCSYDIR"):
             observe(prefix + name, lambda: [bitdouble() for _ in range(3)])
         handle(prefix + "UCSNAME", 5)
-    return {"startBit": 0, "endBit": bits.bit, "fieldCount": len(fields), "fields": fields}
+    for name in "DIMTOL DIMLIM DIMTIH DIMTOH DIMSE1 DIMSE2 DIMALT DIMTOFL DIMSAH DIMTIX DIMSOXD".split():
+        observe(name, lambda: bits.take(1))
+    for name in "DIMALTD DIMZIN".split():
+        observe(name, lambda: bits.take(8))
+    for name in "DIMSD1 DIMSD2".split():
+        observe(name, lambda: bits.take(1))
+    for name in "DIMTOLJ DIMJUST DIMFIT".split():
+        observe(name, lambda: bits.take(8))
+    observe("DIMUPT", lambda: bits.take(1))
+    for name in "DIMTZIN DIMALTZ DIMALTTZ DIMTAD".split():
+        observe(name, lambda: bits.take(8))
+    for name in "DIMUNIT DIMAUNIT DIMDEC DIMTDEC DIMALTU DIMALTTD".split():
+        observe(name, bits.bs)
+    handle("DIMTXSTY", 5)
+    for name in "DIMSCALE DIMASZ DIMEXO DIMDLI DIMEXE DIMRND DIMDLE DIMTP DIMTM DIMTXT DIMCEN DIMTSZ DIMALTF DIMLFAC DIMTVP DIMTFAC DIMGAP".split():
+        observe(name, bitdouble)
+    for name in "DIMPOST DIMAPOST DIMBLK_T DIMBLK1_T DIMBLK2_T".split():
+        observe(name, text)
+    for name in "DIMCLRD DIMCLRE DIMCLRT".split():
+        observe(name, bits.bs)
+    for name in "BLOCK_CONTROL_OBJECT LAYER_CONTROL_OBJECT STYLE_CONTROL_OBJECT LTYPE_CONTROL_OBJECT VIEW_CONTROL_OBJECT UCS_CONTROL_OBJECT VPORT_CONTROL_OBJECT APPID_CONTROL_OBJECT DIMSTYLE_CONTROL_OBJECT VX_CONTROL_OBJECT".split():
+        handle(name, 3)
+    for name in "DICTIONARY_ACAD_GROUP DICTIONARY_ACAD_MLINESTYLE".split():
+        handle(name, 5)
+    handle("DICTIONARY_NAMED_OBJECT", 3)
+    for name in "BLOCK_RECORD_PSPACE BLOCK_RECORD_MSPACE LTYPE_BYLAYER LTYPE_BYBLOCK LTYPE_CONTINUOUS".split():
+        handle(name, 5)
+    end = bits.bit
+    padding = envelope["payloadSize"] * 8 - end
+    require(0 <= padding <= 7, "unaccounted HEADER payload")
+    padding_value = bits.take(padding)
+    return {"startBit": 0, "endBit": end, "fieldCount": len(fields), "fields": fields,
+            "paddingBits": padding, "paddingValue": padding_value}
 
 
 def changed_bit(data, envelope, bit):
@@ -122,7 +154,9 @@ def check_mutations(data, peer, original):
     cases = {
         "wrong-handle-role": [original["fields"]["VX_TABLE_RECORD"]["startBit"] + 3],
         "wrong-current-layer-role": [original["fields"]["CLAYER"]["startBit"] + 3],
+        "wrong-root-dictionary-role": [original["fields"]["DICTIONARY_NAMED_OBJECT"]["startBit"] + 3],
         "changed-dimaso": [original["fields"]["DIMASO"]["startBit"]],
+        "changed-dimtih": [original["fields"]["DIMTIH"]["startBit"]],
         "invalid-bitdouble-tag": [original["fields"]["unit1_ratio"]["startBit"],
                                   original["fields"]["unit1_ratio"]["startBit"] + 1],
     }
@@ -136,6 +170,10 @@ def check_mutations(data, peer, original):
             pass
         else:
             raise ValueError(f"prefix mutation accepted: {label}")
+    if original["paddingBits"]:
+        padded = audit_prefix(changed_bit(data, envelope, original["endBit"]), peer)
+        require(padded["fields"] == original["fields"] and padded["endBit"] == original["endBit"],
+                "padding mutation changed decoded fields")
     require(audit_prefix(data, peer) == original, "prefix retry changed")
     return sorted(cases)
 
