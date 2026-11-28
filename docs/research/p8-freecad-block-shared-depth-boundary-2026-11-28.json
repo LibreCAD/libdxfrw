@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-block-shared-depth-boundary-2026-11-28",
+  "supportClaimEffect": "none",
+  "freecadBase": "477a7041803823a1fcae528133cb07ee5533b1b2",
+  "candidate": "27 ordered local patches; not submitted upstream",
+  "finding": "The initial depth guard unnecessarily rejected an already-composed acyclic block at the 128-level active path limit in both import modes.",
+  "change": "Apply the depth limit only when a child still requires recursive composition; continue rejecting active-path cycles.",
+  "checks": [
+    "The 129-block generated shared-reference control failed before the change in both modes and passes afterward with complete selected geometry and no loss diagnostic.",
+    "Self-cycle, mutual-cycle and excessive-depth controls still report omitted edges; an ordinary shared-block import after the malformed cases remains complete.",
+    "The 27-patch chain exactly replays against the pinned source; all 21 selected headless macOS ARM64 candidate tests pass without skips or failures. No drawing fixture was committed."
+  ],
+  "evidenceSha256": {
+    "patch": "d9188d468eb3b5c2337998a06ee9170d30837d08df1112997737a3881d8be659",
+    "red": "996655d53dc0438339deda0aeef1546cffc6500f5c096200d9962366da4357b4",
+    "green": "2b264a09fe65bf8a6ad86912a4b956ee81c87d44bfef36ddb45d4a54f2b417cd",
+    "replay": "ae6d5c09f6c0906769e1535810fa7822873569e91e064916384347babf6aac70",
+    "probeSummary": "fe0c59c19ff276662bb6580ce2974341c1c196646ef2a39117f2a21c108b4252"
+  },
+  "limits": [
+    "Native GUI, other producers and Linux/Windows requalification of this candidate remain open.",
+    "The depth guard still reports and drops an uncomposed edge at the bound; cyclic or too-deep drawings are partial."
+  ]
+}
