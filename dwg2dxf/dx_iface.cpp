@@ -20,6 +20,7 @@
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
+#include <initializer_list>
 #include <iterator>
 #include <limits>
 #include <map>
@@ -8303,6 +8304,20 @@ bool dx_iface::writeCellStyleMapRaw(std::uint32_t handle,
     }
 }
 
+namespace {
+// Seed the producer's complete ordered grammar. The shared overlay fills in
+// typed values; explicit default and null fields are significant to readers.
+void appendViewStyleFields(DRW_RawDxfObject& output,
+                           std::initializer_list<int> codes) {
+    for (const int code : codes) {
+        if (code == 340) output.groups.emplace_back(code, "0");
+        else if (code == 3 || code == 300) output.groups.emplace_back(code, "");
+        else if (code == 40) output.groups.emplace_back(code, 0.0);
+        else output.groups.emplace_back(code, 0);
+    }
+}
+}
+
 bool dx_iface::writeDetailViewStyleRaw(DRW_RawDxfObject* raw,
                                        const DRW_DetailViewStyle* typed) {
     if (dxfW == nullptr || typed == nullptr)
@@ -8331,7 +8346,7 @@ bool dx_iface::writeDetailViewStyleRaw(DRW_RawDxfObject* raw,
                 || !typed->pendingLayerRefResolutions.empty()) {
                 return false;
             }
-            output.name = "DETAILVIEWSTYLE";
+            output.name = "ACDBDETAILVIEWSTYLE";
             output.handle = typed->handle;
             output.parentHandle = typed->parentHandle;
             output.m_version = cData->sourceVersion;
@@ -8351,7 +8366,17 @@ bool dx_iface::writeDetailViewStyleRaw(DRW_RawDxfObject* raw,
             output.groups.emplace_back(330,
                                        proxyHandleString(typed->parentHandle));
             output.groups.emplace_back(100, "AcDbModelDocViewStyle");
+            appendViewStyleFields(output, {70, 3, 290});
             output.groups.emplace_back(100, "AcDbDetailViewStyle");
+            appendViewStyleFields(output, {70, 71, 90});
+            output.groups.emplace_back(71, 1);
+            appendViewStyleFields(output, {340, 62, 40, 340, 62, 40, 300, 40, 280});
+            output.groups.emplace_back(71, 2);
+            appendViewStyleFields(output, {340, 90, 62});
+            output.groups.emplace_back(71, 3);
+            appendViewStyleFields(output, {340, 62, 40, 90, 40, 90, 300});
+            output.groups.emplace_back(71, 4);
+            appendViewStyleFields(output, {340, 90, 62, 340, 90, 62, 280});
         } else {
             if (raw->name != "DETAILVIEWSTYLE"
                 && raw->name != "ACDBDETAILVIEWSTYLE")
@@ -8395,7 +8420,7 @@ bool dx_iface::writeSectionViewStyleRaw(DRW_RawDxfObject* raw,
                 || !typed->pendingAppIdResolutions.empty()
                 || !typed->pendingLayerRefResolutions.empty())
                 return false;
-            output.name = "SECTIONVIEWSTYLE";
+            output.name = "ACDBSECTIONVIEWSTYLE";
             output.handle = typed->handle;
             output.parentHandle = typed->parentHandle;
             output.m_version = cData->sourceVersion;
@@ -8415,15 +8440,18 @@ bool dx_iface::writeSectionViewStyleRaw(DRW_RawDxfObject* raw,
             output.groups.emplace_back(330,
                                        proxyHandleString(typed->parentHandle));
             output.groups.emplace_back(100, "AcDbModelDocViewStyle");
+            appendViewStyleFields(output, {70, 3, 290});
             output.groups.emplace_back(100, "AcDbSectionViewStyle");
-            // The overlay uses the DXF occurrence grammar for group-4 hatch
-            // values: scale, transparency, declared angle count, then angles.
-            // Seed the empty/default count slots so typed angle vectors can
-            // grow through the same bounded path as a captured DXF carrier.
+            appendViewStyleFields(output, {70, 71, 90});
+            output.groups.emplace_back(71, 1);
+            appendViewStyleFields(output, {340, 62, 40, 340, 340, 62, 40,
+                                           300, 40, 90, 40, 90});
+            output.groups.emplace_back(71, 2);
+            appendViewStyleFields(output, {340, 90, 62, 340, 90, 62, 40, 40, 40});
+            output.groups.emplace_back(71, 3);
+            appendViewStyleFields(output, {340, 62, 40, 90, 40, 90, 300});
             output.groups.emplace_back(71, 4);
-            output.groups.emplace_back(40, 1.0);
-            output.groups.emplace_back(90, 0);
-            output.groups.emplace_back(90, 0);
+            appendViewStyleFields(output, {62, 62, 300, 40, 90, 290, 290, 90});
         } else {
             if (raw->name != "SECTIONVIEWSTYLE"
                 && raw->name != "ACDBSECTIONVIEWSTYLE")
@@ -60841,7 +60869,7 @@ bool dx_iface::inspectDwgModelDocViewStylesOutput(
                 || !detailStyles.emplace(emitted, &source).second
                 || !detailOwners.emplace(emitted, owner).second
                 || !dxfW->dxfWriteRecordHasIdentity(
-                    emitted, "DETAILVIEWSTYLE", "OBJECTS")
+                    emitted, "ACDBDETAILVIEWSTYLE", "OBJECTS")
                 || !dxfW->dxfWriteRecordHasOwner(emitted, owner)
                 || !checkResource(source.m_identifierStyleHandle, "STYLE")
                 || !checkResource(source.m_viewLabelTextStyleHandle, "STYLE")
@@ -60865,7 +60893,7 @@ bool dx_iface::inspectDwgModelDocViewStylesOutput(
                 || !sectionStyles.emplace(emitted, &source).second
                 || !sectionOwners.emplace(emitted, owner).second
                 || !dxfW->dxfWriteRecordHasIdentity(
-                    emitted, "SECTIONVIEWSTYLE", "OBJECTS")
+                    emitted, "ACDBSECTIONVIEWSTYLE", "OBJECTS")
                 || !dxfW->dxfWriteRecordHasOwner(emitted, owner)
                 || !checkResource(source.m_identifierStyleHandle, "STYLE")
                 || !checkResource(source.m_viewLabelTextStyleHandle, "STYLE")
@@ -60898,10 +60926,10 @@ bool dx_iface::inspectDwgModelDocViewStylesOutput(
                 if (xrecord && !asciiIdentifierEquals(name, "XRECORD"))
                     namesMatch = false;
                 if (detail
-                    && !asciiIdentifierEquals(name, "DETAILVIEWSTYLE"))
+                    && !asciiIdentifierEquals(name, "ACDBDETAILVIEWSTYLE"))
                     namesMatch = false;
                 if (section
-                    && !asciiIdentifierEquals(name, "SECTIONVIEWSTYLE"))
+                    && !asciiIdentifierEquals(name, "ACDBSECTIONVIEWSTYLE"))
                     namesMatch = false;
                 return nod || dictionary || xrecord || detail || section;
             },
@@ -92870,6 +92898,39 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         const bool aerialMaterial = !m_extensionMaterialHandles.empty()
             && requiresAc1024AerialDwgByBlockMaterialProof(*cData, selectedAerialMaterial);
         if (aerialMaterial && !hasQualifiedAc1024AerialDwgByBlockMaterial(*cData, &byBlockClass, selectedAerialMaterial))
+            return false;
+        // Preserve existing class ordinals: opaque proxy records can refer to
+        // their positions. Append missing DWG view-style classes only after
+        // rejecting conflicting aliases or metadata.
+        const auto registerViewStyleClass = [&](const char* recordName,
+                                                const char* className,
+                                                std::size_t count) {
+            if (count == 0u) return true;
+            if (count > static_cast<std::size_t>(std::numeric_limits<int>::max()))
+                return false;
+            DRW_Class canonical;
+            if (!dxfRW::dxfClassForRecordName(recordName, canonical)) return false;
+            bool found = false;
+            for (const auto& candidate : classes) {
+                const bool sameRecord = sameAsciiName(candidate.recName, recordName);
+                const bool sameClass = sameAsciiName(candidate.className, className);
+                if (!sameRecord && !sameClass) continue;
+                if (found || !sameRecord || !sameClass
+                    || !sameAsciiName(candidate.appName, canonical.appName)
+                    || candidate.proxyFlag != canonical.proxyFlag
+                    || candidate.entityFlag != canonical.entityFlag
+                    || candidate.wasaProxyFlag != 0
+                    || candidate.instanceCount != static_cast<int>(count))
+                    return false;
+                found = true;
+            }
+            return found || registerClass(recordName, className, count);
+        };
+        if (cData->sourceFormat == dx_source_format::DWG
+            && (!registerViewStyleClass("ACDBDETAILVIEWSTYLE", "AcDbDetailViewStyle",
+                                        m_extensionDetailViewStyleHandles.size())
+                || !registerViewStyleClass("ACDBSECTIONVIEWSTYLE", "AcDbSectionViewStyle",
+                                           m_extensionSectionViewStyleHandles.size())))
             return false;
         return registerClass("MATERIAL", "AcDbMaterial",
                              materialHandles.size(), aerialMaterial ? &byBlockClass : nullptr)

@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-modeldoc-canonical-dxf-grammar-2026-11-27",
+  "supportClaimEffect": "none",
+  "problem": "The DWG-to-DXF writer emitted unprefixed ModelDoc view-style object tokens and omitted default/null fields. ezdxf pruned the dictionary members; changing names alone made ODA preserve them as proxies rather than typed styles.",
+  "implementation": "Emit canonical ACDBDETAILVIEWSTYLE and ACDBSECTIONVIEWSTYLE records, matching CLASS entries, and the complete observed ordered field grammar. Reuse the typed overlay, retain captured DXF-carrier spellings, preserve pre-existing class ordinals, and reject conflicting class metadata.",
+  "source": {
+    "sha256": "3e2732452a4b669c5b3dce4d145e5249a73548400d80ded8bd8d0a1e98632ff2",
+    "provenance": "Locally authored DXF converted to AC1024 using ODA File Converter 27.10 on Linux."
+  },
+  "checks": [
+    "PASS generated typed-only DWG route in ASCII and binary: canonical object names and CLASS counts, complete field order, typed and raw graph readback, class-conflict refusal with destination preservation and corrected retry, owner and cross-version refusal.",
+    "PASS physical AC1021 selected graph source/readback for four view styles, rooted dictionaries, extension dictionaries and XRECORDs in both encodings; injected late failure preserves destination and corrected retry succeeds.",
+    "PASS explicit-partial AC1024 ASCII and binary output independently read by ezdxf 1.4.5 with zero audit errors and fixes; both style dictionary members and owner identities remain present.",
+    "PASS ODA File Converter 27.1.0 on macOS reopened both output encodings with audit disabled. LibreDWG 0.14 decoded both resulting view styles as typed objects, not proxies; their selected scalar fields match the original, while remapped STYLE and LTYPE references resolve to Standard and Continuous.",
+    "The name-only intermediate produced proxy objects in ODA; a control using the ODA-produced ordered record layout remained typed."
+  ],
+  "outputSha256": {
+    "ascii": "bce8bc1274da851fb1e7ce9f11e5c927dca1e1b37a84b0c06e684a80a8292178",
+    "binary": "66ceb2340e5c4819ef5dbdd07fb6f653bd830f26f6b621c9a02efcf742056946",
+    "asciiPeerJson": "418b51d73e0addba4091d85774208fa24027182cc8aae5ed8c7695023908995f",
+    "binaryPeerJson": "26c16d0609c1ac8ac3e800c6a705d00e37e51f8a6c1b412ff1655f1ce77557a3"
+  },
+  "limits": [
+    "The external converter is related to the source producer; this is not native AutoCAD qualification or proof of all fields/versions.",
+    "The source header suffix remains unclassified; strict conversion is refused and partial output is not a whole-file completeness claim.",
+    "No DWG or DXF fixture was committed."
+  ]
+}

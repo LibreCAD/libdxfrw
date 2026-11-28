@@ -38666,6 +38666,31 @@ bool retainModelDocViewStyleCallbacks() {
                                 &data, true)
             && typedDwgReadbackIface.fileImport(
                 typedDwgOutput.string(), &typedDwgReadback, false);
+        const auto completeViewStyleGrammar = [](const DRW_RawDxfObject& raw,
+                                                  const char* subclass,
+                                                  std::vector<int> expected) {
+            bool inSubclass = false;
+            std::vector<int> actual;
+            for (const auto& group : raw.groups) {
+                if (group.code() == 100 && group.c_str() != nullptr) {
+                    if (inSubclass) break;
+                    inSubclass = std::string(group.c_str()) == subclass;
+                } else if (inSubclass) {
+                    actual.push_back(group.code());
+                }
+            }
+            return inSubclass && actual == expected;
+        };
+        const std::vector<int> detailGrammar{
+            70, 71, 90, 71, 340, 62, 40, 340, 62, 40, 300, 40, 280,
+            71, 340, 90, 62, 71, 340, 62, 40, 90, 40, 90, 300,
+            71, 340, 90, 62, 340, 90, 62, 280};
+        std::vector<int> sectionGrammar{
+            70, 71, 90, 71, 340, 62, 40, 340, 340, 62, 40, 300, 40, 90, 40, 90,
+            71, 340, 90, 62, 340, 90, 62, 40, 40, 40,
+            71, 340, 62, 40, 90, 40, 90, 300, 71, 62, 62, 300, 40, 90, 290, 290, 90};
+        sectionGrammar.insert(sectionGrammar.end(),
+            data.sectionViewStyles.front().m_hatchAngles.size(), 40);
         const bool typedDwgReadbackMatches = typedDwgExported
             && typedDwgReadback.detailViewStyles.size() == 2u
             && typedDwgReadback.sectionViewStyles.size() == 1u
@@ -38733,6 +38758,26 @@ bool retainModelDocViewStyleCallbacks() {
             && typedDwgResourceReferencesMatch(typedDwgReadback)
             && typedDwgReadback.rawDetailViewStyles.size() == 2u
             && typedDwgReadback.rawSectionViewStyles.size() == 1u
+            && std::all_of(typedDwgReadback.rawDetailViewStyles.begin(),
+                typedDwgReadback.rawDetailViewStyles.end(), [&](const auto& raw) {
+                    return raw.name == "ACDBDETAILVIEWSTYLE"
+                        && completeViewStyleGrammar(raw, "AcDbDetailViewStyle", detailGrammar);
+                })
+            && std::all_of(typedDwgReadback.rawSectionViewStyles.begin(),
+                typedDwgReadback.rawSectionViewStyles.end(), [&](const auto& raw) {
+                    return raw.name == "ACDBSECTIONVIEWSTYLE"
+                        && completeViewStyleGrammar(raw, "AcDbSectionViewStyle", sectionGrammar);
+                })
+            && std::count_if(typedDwgReadback.dxfClasses.begin(),
+                typedDwgReadback.dxfClasses.end(), [](const DRW_Class& cls) {
+                    return cls.recName == "ACDBDETAILVIEWSTYLE"
+                        && cls.className == "AcDbDetailViewStyle" && cls.instanceCount == 2;
+                }) == 1
+            && std::count_if(typedDwgReadback.dxfClasses.begin(),
+                typedDwgReadback.dxfClasses.end(), [](const DRW_Class& cls) {
+                    return cls.recName == "ACDBSECTIONVIEWSTYLE"
+                        && cls.className == "AcDbSectionViewStyle" && cls.instanceCount == 1;
+                }) == 1
             && detailTypedValuesMatch(data.detailViewStyles.front(),
                 typedDwgReadback.detailViewStyles.front())
             && detailTypedValuesMatch(data.detailViewStyles.back(),
@@ -38787,6 +38832,26 @@ bool retainModelDocViewStyleCallbacks() {
             std::filesystem::remove(output, ignored);
             return fail("typed-only DWG ModelDocViewStyle path allowed cross-version export or replaced the existing destination");
         }
+        DRW_Class conflictingViewClass;
+        if (!dxfRW::dxfClassForRecordName("DETAILVIEWSTYLE", conflictingViewClass))
+            return fail("could not create conflicting view-style CLASS control");
+        conflictingViewClass.instanceCount = 2;
+        data.dxfClasses.push_back(conflictingViewClass);
+        {
+            std::ofstream previous(typedDwgOutput, std::ios::binary | std::ios::trunc);
+            previous << typedDwgSentinel;
+        }
+        const bool conflictingClassRejected = !iface.fileExport(
+            typedDwgOutput.string(), DRW::AC1027, binary, &data, true);
+        data.dxfClasses.pop_back();
+        std::ifstream classSentinelInput(typedDwgOutput, std::ios::binary);
+        const std::string classSentinel(
+            (std::istreambuf_iterator<char>(classSentinelInput)),
+            std::istreambuf_iterator<char>());
+        if (!conflictingClassRejected || classSentinel != typedDwgSentinel
+            || !iface.fileExport(typedDwgOutput.string(), DRW::AC1027, binary, &data, true))
+            return fail("view-style CLASS conflict did not refuse and retry atomically");
+        std::filesystem::remove(typedDwgOutput, typedDwgCleanupError);
         DRW_DetailViewStyle& firstDwgStyle = data.detailViewStyles.front();
         const std::uint32_t savedDwgStyleOwner = firstDwgStyle.parentHandle;
         firstDwgStyle.parentHandle = 0x10Bu;
