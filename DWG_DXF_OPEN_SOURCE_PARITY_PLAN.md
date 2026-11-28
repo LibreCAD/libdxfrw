@@ -142,8 +142,9 @@ below is still open, and its linked evidence defines the present boundary.
    then freeze it before broad suites and release claims. The [36-patch
    platform run](docs/research/p8-freecad-36-platforms-2026-11-28.json) passes
    selected Linux/Windows headless checks. The current 47-patch [platform run](https://github.com/dxli/libdxfrw/actions/runs/46161593587)
-   has passed [Linux headless, GUI and selected framebuffer checks](docs/research/p8-freecad-47-linux-gui-2026-11-28.json);
-   Windows is still running. It supersedes the cancelled 45-patch GUI run. Do not carry earlier results across
+   passed [47 headless tests, 10 GUI cases and selected framebuffer checks on
+   Linux and Windows](docs/research/p8-freecad-47-platforms-gui-2026-11-28.json),
+   with Windows using software OpenGL. It supersedes the cancelled 45-patch GUI run. Do not carry earlier results across
    changed importer code.
 
 The remote ObjectARX host's release, OS, SDK and access route remain unknown.
