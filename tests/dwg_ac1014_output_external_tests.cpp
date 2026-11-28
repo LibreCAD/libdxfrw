@@ -1759,7 +1759,7 @@ bool legacyClassFrameCensus(const std::string& source) {
     dx_iface adapter;
     dx_data data;
     if (!adapter.fileImport(source, &data, false)
-        || data.sourceVersion != DRW::AC1012)
+        || (data.sourceVersion != DRW::AC1012 && data.sourceVersion != DRW::AC1014))
         return false;
     const auto findClass = [&data](const char* name) {
         return std::find_if(data.dwgClassCoverage.m_entries.begin(),
@@ -1768,14 +1768,22 @@ bool legacyClassFrameCensus(const std::string& source) {
             });
     };
     const auto geodata = findClass("GEODATA");
+    const auto raster = findClass("RASTERVARIABLES");
+    const auto wipeout = findClass("WIPEOUTVARIABLES");
     const auto layout = findClass("LAYOUT");
     const auto dictionary = findClass("ACDBDICTIONARYWDFLT");
     if (geodata == data.dwgClassCoverage.m_entries.end()
+        || raster == data.dwgClassCoverage.m_entries.end()
+        || wipeout == data.dwgClassCoverage.m_entries.end()
         || layout == data.dwgClassCoverage.m_entries.end()
         || dictionary == data.dwgClassCoverage.m_entries.end())
         return false;
     std::size_t count = 99u;
     if (!DxIfaceStandardDwgCaptureTestAccess::legacyClassCount(data, geodata->m_classNumber, count)
+        || count != 0u
+        || !DxIfaceStandardDwgCaptureTestAccess::legacyClassCount(data, raster->m_classNumber, count)
+        || count != 0u
+        || !DxIfaceStandardDwgCaptureTestAccess::legacyClassCount(data, wipeout->m_classNumber, count)
         || count != 0u
         || !DxIfaceStandardDwgCaptureTestAccess::legacyClassCount(data, layout->m_classNumber, count)
         || count != 2u

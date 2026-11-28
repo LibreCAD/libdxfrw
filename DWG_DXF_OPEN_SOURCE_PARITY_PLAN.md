@@ -15,7 +15,7 @@ advisory, and excluded. Completed slice history and validation remain in
 `docs/research/` and Git history.
 
 The current test-inclusive implementation digest is
-`3aaaeffe6add01e0af53a3f9dec6479fbe8bbd2b2e9b62530c7bb57ef28766a9`
+`a5c3d89ea657cbe39b294d56e28243f3418f1c20a8a96c81a169265673897bac`
 (786 inputs, including the shared layout and class-family identity checks). Earlier hosted runs bind prior digests; current-head hosted results are pending. The [latest source-release inventory repair](docs/research/p8-freecad-3dface-source-release-inventory-repair-2026-11-27.json) adds the tracked FreeCAD report patch omitted from the manifest; the local inventory and self-test pass and a new hosted run is pending. The [current CI repair and focused requalification](docs/research/p8-ci-repair-3e681e-2026-11-27.json) tracks completed and pending platform jobs at commit 3e681e694. The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
 and the [FreeCAD handoff matrix](docs/research/p8-native-freecad-2e4ae17b-2026-11-27.json) passed on earlier production inputs. The current [FreeCAD recheck](docs/research/p8-ci-repair-3e681e-2026-11-27.json) passes 16 Linux and 17 Windows tests, covering specified CLI and legacy importer profiles, not GUI or general 3D parity; hosted focused native and installed shared/static package checks also pass on Linux, Windows and macOS for matching production inputs.
 The fast CI inventory now includes the legacy dictionary wire audit; verify the
@@ -96,8 +96,8 @@ below is still open, and its linked evidence defines the present boundary.
    instead reaches a proxy GEODATA CLASS refusal. The R13 CLASS record has no
    instance-count field, so LibreDWG's zero is not a measured count. A
    [bounded physical census](docs/research/p6-ac1012-proxy-class-map-census-2026-11-28.json)
-   finds no mapped GEODATA class frames in those two samples and no mapped
-   RASTERVARIABLES or WIPEOUTVARIABLES frames in the destination. A second
+   finds no mapped GEODATA, RASTERVARIABLES or WIPEOUTVARIABLES frames in
+   either R13 sample; the [R14 sample and adapter comparison](docs/research/p6-legacy-proxy-class-r13-r14-census-2026-11-28.json) agrees for all three families. A second
    diagnostic-only bypass reaches the RASTERVARIABLES class guard. The
    [bounded reader census](docs/research/p6-legacy-reader-frame-census-2026-11-28.json)
    now binds complete AC1012/AC1014 publications to the import generation,
