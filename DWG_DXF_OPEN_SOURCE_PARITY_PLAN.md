@@ -20,7 +20,8 @@ The current test-inclusive implementation digest is
 and the [FreeCAD handoff matrix](docs/research/p8-native-freecad-2e4ae17b-2026-11-27.json) passed on earlier production inputs. The current [FreeCAD recheck](docs/research/p8-ci-repair-3e681e-2026-11-27.json) passes 16 Linux and 17 Windows tests, covering specified CLI and legacy importer profiles, not GUI or general 3D parity; hosted focused native and installed shared/static package checks also pass on Linux, Windows and macOS for matching production inputs.
 The fast CI inventory now includes the legacy dictionary wire audit; verify the
 new hosted run. After registering a CTest, refresh the frozen inventory from a
-clean checkout using the hosted configuration and verify the exact name delta.
+clean checkout using the hosted configuration, verify the exact name delta, and
+refresh the implementation digest because the frozen inventory is an input.
 Recheck affected profiles against the frozen candidate.
 All support claims remain experimental.
 
@@ -33,6 +34,7 @@ below is still open, and its linked evidence defines the present boundary.
 1. **LibreCAD MATERIAL graphs.** Extend ordinary same-version replay beyond the
    [current bounded entity and color profiles](docs/research/p8d-librecad-sparse-material-exact-truecolor-2026-11-27.json), [explicit POINT, LINE, CIRCLE and ARC defaults](docs/research/p8d-librecad-sparse-material-curved-defaults-2026-11-27.json), [ELLIPSE/LWPOLYLINE default extrusion](docs/research/p8d-librecad-sparse-material-ellipse-polyline-defaults-2026-11-27.json), and [explicit model-space, visibility and linetype-scale defaults](docs/research/p8d-librecad-sparse-material-common-defaults-2026-11-27.json).
    The selected [sparse POINT profile](docs/research/p8d-librecad-material-point-four-versions-2026-11-28.json) now passes same-version consumer replay and independent readback on AC1021, AC1024, AC1027 and AC1032; AC1024/AC1027 use the [opaque codec route](docs/research/p5-minimal-material-ac1024-ac1027-opaque-2026-11-28.json). Extend beyond POINT on later versions only with corresponding source, graph, edit and output proof.
+   A [native macOS save and reopen](docs/research/p8d-librecad-native-material-point-2026-11-28.json) also preserves the selected AC1024 graph; native edits and other platforms remain open.
    The [ODA AC1024 compact-material import](docs/research/p8d-ac1024-oda-compact-material-import-2026-11-28.json)
    is raw-only; qualify its source graph and output before allowing replay.
    Prove complete ACAD_MATERIAL dictionaries, carriers, identities, ownership,
