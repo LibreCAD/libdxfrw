@@ -91126,6 +91126,35 @@ bool geodataDwgAdapterTransport(bool preflightOnly = false) {
              std::make_pair(asciiPath, false),
              std::make_pair(binaryPath, true)}) {
         const std::string sentinel = "GEODATA_ATOMIC_DESTINATION";
+        // AC1027 strict export is intentionally gated until source references
+        // are qualified. Exercise that contract separately so it cannot mask
+        // the GEODATA-specific refusal and retry controls below.
+        {
+            {
+                std::ofstream previous(target.first, std::ios::binary);
+                if (!(previous << sentinel))
+                    return fail("could not create strict AC1027 destination");
+            }
+            std::ostringstream diagnostics;
+            bool strictWrite = false;
+            {
+                struct Redirect {
+                    std::streambuf* old;
+                    ~Redirect() { std::cerr.rdbuf(old); }
+                } redirect{std::cerr.rdbuf(diagnostics.rdbuf())};
+                strictWrite = exporter.fileExport(
+                    target.first.string(), DRW::AC1027, target.second, &imported,
+                    false, true);
+            }
+            std::ifstream previous(target.first, std::ios::binary);
+            const std::string previousBytes{
+                std::istreambuf_iterator<char>{previous},
+                std::istreambuf_iterator<char>{}};
+            if (strictWrite || previousBytes != sentinel
+                || diagnostics.str().find("AC1027 DWG source references are not fully qualified")
+                    == std::string::npos)
+                return fail("strict AC1027 GEODATA export was not refused atomically");
+        }
         const auto refusesMutation = [&](auto corrupt, auto repair) {
             {
                 std::ofstream previous(target.first, std::ios::binary);
@@ -91138,7 +91167,7 @@ bool geodataDwgAdapterTransport(bool preflightOnly = false) {
             corrupt();
             const bool invalidWrite = exporter.fileExport(
                 target.first.string(), DRW::AC1027, target.second, &imported,
-                false, true);
+                false, false);
             std::ifstream previous(target.first, std::ios::binary);
             const std::string previousBytes{
                 std::istreambuf_iterator<char>{previous},
@@ -91156,7 +91185,7 @@ bool geodataDwgAdapterTransport(bool preflightOnly = false) {
             return fail("invalid GEODATA host-block target was not refused atomically");
 
         if (!exporter.fileExport(target.first.string(), DRW::AC1027,
-                                 target.second, &imported, false, true))
+                                 target.second, &imported, false, false))
             return fail("corrected GEODATA host-block profile failed same-adapter retry");
         if (!DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
                 imported, imported.importGeneration, author.geo.handle))

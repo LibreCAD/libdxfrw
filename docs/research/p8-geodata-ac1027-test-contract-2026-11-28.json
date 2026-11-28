@@ -1,0 +1,22 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-geodata-ac1027-test-contract-2026-11-28",
+  "date": "2026-11-28",
+  "gate": "P8",
+  "supportClaimEffect": "none",
+  "baseCommit": "1cee7f73fba9400a996a15527f5482bf0b4853f7",
+  "problem": "The existing generated AC1027 GEODATA adapter test expected strict export to succeed, but the deliberate strict source-reference guard refused before its GEODATA-specific mutation/retry assertions. The failure reproduced on the unchanged base.",
+  "change": "The test now independently asserts the exact strict AC1027 guard and destination preservation, then uses the existing legacy export policy to exercise the GEODATA-specific invalid-host refusal, destination preservation, corrected same-adapter retry and typed readback in ASCII and binary. No production guard or export policy changed.",
+  "validation": {
+    "focused": "dwg2dxf_geodata_dwg_adapter_transport and three related raster/wipeout adapter tests passed",
+    "baseline": "an isolated unchanged-code experiment using the legacy policy passed; the original strict expectation failed",
+    "digest": "c876ad8a16901029b23c87d8b0d3ab6fa6d70a0e8fa282d482c787f935b8a1e6",
+    "inputCount": 785,
+    "testSourceSha256": "4caba41f7e2012d51a7fdc3f30a02052ea280ac2986853d7cd2f143949bf57a4"
+  },
+  "limits": [
+    "Legacy export is a bounded compatibility mode and is not a complete or strict AC1027 support claim.",
+    "The generated in-tree writer/reader control is not independent native producer evidence.",
+    "Hosted checks for the new test-inclusive digest remain pending."
+  ]
+}
