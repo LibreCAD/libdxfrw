@@ -76,7 +76,7 @@ def sharp_values(data):
     return fields
 
 
-def remaining_spans(records, covered, frames, peer):
+def remaining_spans(records, covered, frames, peer, owner_encoding="relative"):
     profiles, examples = Counter(), {}
     total_values = 0
     for handle, record in records.items():
@@ -147,7 +147,9 @@ def remaining_spans(records, covered, frames, peer):
         paths = [path for path in paths if path and path[-1][-1] == body_end]
         span.require(len(paths) == 1, f"{handle:X}: ambiguous ordered spans")
         token, after = span.handle(bits, object_end)
-        span.require(token == (8, 0) and len(bits) - after < 8,
+        span.require(owner_encoding in ("relative", "absolute"), "unsupported owner profile")
+        expected_owner = (8, 0) if owner_encoding == "relative" else (4, owner)
+        span.require(token == expected_owner and len(bits) - after < 8,
                      f"{handle:X}: owner role or handle tail mismatch")
         profile = (evaluator, flags, data_type, len(values))
         profiles[profile] += 1

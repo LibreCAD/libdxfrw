@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1021-field-oda-resave-spans-2026-11-28",
+  "supportClaimEffect": "none",
+  "candidateCommit": "c2b8070c3",
+  "implementationDigestSha256": "ad5b209a8d7087b49f00070533616bfd91628ea6a80be07f7156bbe4d0ef0640",
+  "scope": "Compare the existing AutoCAD 2007 metric FIELD source with an ODA 27.1.0.0 macOS ARM64 AC1021 resaved derivative and its DXF.",
+  "sources": {
+    "odaSpecification": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "acadsharpReader": "https://github.com/DomCR/ACadSharp/blob/3a52a52047e84670759c1f9ad3916ec3ce85ff56/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.Entities.cs",
+    "libreDwgComparison": "https://github.com/LibreDWG/libredwg/blob/6d6a33987a1a97095b069c799c3d8a793320f812/doc/ODA-5.4.2-libredwg-diff.pdf"
+  },
+  "checks": [
+    "The ODA-resaved AC1021 file has all 162 original FIELD handles and 162 changed raw frames. ODA DXF retains 162 FIELDs and one FIELDLIST; ezdxf 1.4.5 reports zero audit errors and fixes.",
+    "For 42 selected AcObjProp carriers, both original and resaved source frames contain matching candidate in-body UTF-16 byte arrays at bits 309\u2013564 with the same decoded values and two object references. The resaved frames use absolute role-4 owners where the originals use relative role-8 owners.",
+    "The other 24 selected raw-only carriers have 58 candidate value spans in both sources and match the ODA DXF and ACadSharp 3a52a520 peer. Some spans shift by eight bits after resave; they are checked independently, not assumed byte-identical.",
+    "The shared observer explicitly checks relative versus absolute owner roles; wrong roles, payload changes, an invalid input digest and corrected retries are tested. The prior original-source verifier still passes.",
+    "Fresh libdxfrw strict and explicit-partial conversions of the derivative refuse before replacing the destination; the latter reports that FIELD/FIELDLIST carriers lack a qualified serializer. Source release inventory check and self-test pass."
+  ],
+  "producer": {
+    "odaConverterVersion": "27.1.0.0",
+    "odaExecutableSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "acadsharpAssemblySha256": "99f24d71403ecdbda2272473ebd995d5d2e773b4a6e887bcdb404293cbf18b77",
+    "acadsharpProbeSha256": "3bbc45412b1cf59f6e2dae061a9589d3eb5fdf627eb3fa3215306f66f8ffa984"
+  },
+  "hashes": {
+    "originalDwg": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "resavedDwg": "6643525fe5cd126536daa30a76bc9718226ddfc92d25e4a8037e821d2102922b",
+    "odaDxf": "481f24f4f7d8cdcc054a02b5894322acdd51335db3e5597a7330ab981b61d580",
+    "acadsharpLog": "8cad03797c54d447d9b3709205bc298a65774d287dc0695b9096e4a4f6f0da6c",
+    "observer": "9fe24bf47da9c8eb2550d86b3726d87022a02ef3f4876e46defde1740485c94b",
+    "profileVerifier": "94ce0cd4474ebd3b0035df7899de16a43c27c62a4f533931e359095062db5fd6",
+    "resaveVerifier": "79691260fc5c28013bf61b7e8c1485b8e31219911bf25d6fc2bd1e1703448cd4",
+    "proof": "6b20de1be3d44da8940e719acf9caca2e20032b1fa40bc58801ac13f79cdc2e0",
+    "peerComparison": "9729ac1ed3df870fd3d6315629112f9f433db9afea512ea77b183d51782858b0",
+    "strictLog": "6645f1f2e58d931b035139ca63a3f5317746d2f56862228358a972e17bf460b6",
+    "partialLog": "57475d0f6a8adb7a3bd93858ad3c12c3376684108f85f15a277ce580468d4a74"
+  },
+  "limits": [
+    "The ODA file is a resaved derivative, and the converter could preserve encoded source values. It is not an independent authored witness and does not establish AutoCAD/native semantics.",
+    "ODA v5.4.1 remains the repository authority: the observed in-body byte-array interpretation conflicts with its R2007+ Unicode string-stream rule. The LibreDWG diff also proposes BL for FIELD group 98 where v5.4.1 prints TV; that is a non-authoritative implementation comparison and does not resolve the value-stream conflict.",
+    "No raw-only FIELD is promoted, no serializer is admitted, and no external DWG/DXF fixture is committed."
+  ]
+}

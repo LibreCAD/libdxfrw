@@ -57,7 +57,7 @@ def handle(bits, position):
     return (code, int.from_bytes(bit_bytes(bits, position + 8, length), "big")), position + 8 + length * 8
 
 
-def inspect_frame(data, field, owner, target, name, flags):
+def inspect_frame(data, field, owner, target, name, flags, owner_encoding='relative'):
     require(len(data) <= 1024 * 1024, "oversized FIELD frame")
     bits = ''.join(f"{value:08b}" for value in data)
     require(len(bits) >= 64 and bits[:18] == '001111110000000001', "unexpected FIELD type framing")
@@ -90,8 +90,10 @@ def inspect_frame(data, field, owner, target, name, flags):
     h1, p = handle(bits, object_end)
     h2, p = handle(bits, p)
     h3, p = handle(bits, p)
-    require(h1 == (8, 0) and owner == field - 1,
-            f"{field:X}: relative owner role mismatch")
+    require(owner_encoding in ('relative', 'absolute') and owner == field - 1,
+            f"{field:X}: unsupported owner profile")
+    expected_owner = (8, 0) if owner_encoding == 'relative' else (4, owner)
+    require(h1 == expected_owner, f"{field:X}: {owner_encoding} owner role mismatch")
     require(h2 == (4, target) and h3 == (4, target),
             f"{field:X}: FIELD value/object soft-pointer mismatch")
     require(0 <= len(bits) - p < 8, f"{field:X}: unexplained handle tail")

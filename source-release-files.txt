@@ -1407,6 +1407,7 @@ tools/research/tablegeometry_physical_span_verify.py
 tools/research/test_decode_dxf_sat1.py
 tools/research/test_freecad_candidate_gui_diagnostics.py
 tools/research/verify_ac1018_mline_source.py
+tools/research/verify_ac1021_field_oda_resave.py
 tools/research/verify_ac1021_metric_field_spans.py
 tools/research/verify_ac1021_mlinestyle_peer_spans.py
 tools/research/verify_ac1024_civil_assoc_edge_profile.py
