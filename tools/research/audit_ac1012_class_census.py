@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Independently census addressable AC1012 frame types from a bounded object map.
+"""Independently census AC1012/AC1014 frame types from a bounded object map.
 
 This single-data-page observer is for generated research samples. It does not
 prove native acceptance, semantics, or completeness of unaddressable bytes.
@@ -31,7 +31,8 @@ def modular(data, pos, end, signed):
 
 
 def census(data):
-    require(data.startswith(b'AC1012') and len(data) >= 25, 'expected AC1012 source')
+    require(len(data) >= 25 and data[:6] in (b'AC1012', b'AC1014'),
+            'expected AC1012 or AC1014 source')
     count = int.from_bytes(data[21:25], 'little')
     require(count <= 64 and 25 + count * 9 <= len(data), 'bad section locator count')
     locators = []
@@ -116,15 +117,18 @@ def main():
     require(len(decoded) == len(peer['OBJECTS']) and mapped == decoded,
             'physical map and peer decoded census differ')
     count = sum(row['type'] == selected[0]['number'] for row in proof['frames'])
-    report = {'schema': 'libdxfrw.ac1012-class-census.v1', 'sourceSha256': args.sha256,
+    version = data[:6].decode('ascii')
+    report = {'schema': ('libdxfrw.ac1012-class-census.v1' if version == 'AC1012'
+                         else 'libdxfrw.ac1014-class-census.v1'),
+              'sourceVersion': version, 'sourceSha256': args.sha256,
               'classSection': class_proof, 'selectedClassMapFrameCount': count,
               'objectMap': proof, 'peerDecodedCount': len(decoded), 'supportClaimEffect': 'none',
-              'limits': ['Single data page, bounded short object frames, and AC1012 only.',
+              'limits': ['Single data page, bounded short object frames, AC1012/AC1014 only.',
                          'Absence from the addressable object map does not prove native semantics or output CLASS behavior.']}
     with args.output.open('x', encoding='utf-8') as stream:
         json.dump(report, stream, indent=2, sort_keys=True)
         stream.write('\n')
-    print(f'AC1012 class census: PASS ({len(mapped)} mapped frames; {count} selected)')
+    print(f'{version} class census: PASS ({len(mapped)} mapped frames; {count} selected)')
 
 
 if __name__ == '__main__':

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Synthetic bounds and corruption controls for the AC1012 map census."""
+"""Synthetic bounds and corruption controls for the AC1012/AC1014 map census."""
 import unittest
 
 from audit_ac1012_class_census import census, modular
@@ -16,9 +16,9 @@ def frame(kind, handle):
     return result + crc16(result).to_bytes(2, 'little')
 
 
-def sample():
+def sample(version=b'AC1012'):
     data = bytearray(140)
-    data[:6] = b'AC1012'
+    data[:6] = version
     data[21:25] = (1).to_bytes(4, 'little')
     data[25:34] = b'\x02' + (128).to_bytes(4, 'little') + (12).to_bytes(4, 'little')
     first, second = frame(531, 1), frame(42, 2)
@@ -31,6 +31,11 @@ def sample():
 
 
 class ObjectMapControls(unittest.TestCase):
+    def test_supported_versions(self):
+        self.assertEqual(census(sample(b'AC1012')), census(sample(b'AC1014')))
+        with self.assertRaises(ValueError):
+            census(sample(b'AC1015'))
+
     def test_modular_values_and_bounds(self):
         self.assertEqual(modular(b'\x81\x01', 0, 2, False), (129, 2))
         self.assertEqual(modular(b'\x81\x41', 0, 2, True), (-129, 2))
