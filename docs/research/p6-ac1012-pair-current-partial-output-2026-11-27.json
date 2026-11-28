@@ -8,12 +8,14 @@
   "checks": [
     "Strict ASCII and binary conversion of both inputs refuses at the unresolved AC1012 MLINESTYLE duplicate-merge gate and preserves a pre-existing destination sentinel.",
     "Explicit partial mode succeeds in all four input/encoding combinations. An independent physical DXF walker confirms the selected dictionary owner, selected style identities, source-specific angles and two elements; ezdxf 1.4.5 confirms one model LINE and selected Standard DIMSTYLE values, with zero audit errors or fixes.",
+    "ezdxf independently reads matching selected HEADER dimension scalars, current layer/linetype/text/dimension/MLINESTYLE names, insertion base and UCS origin/axes in all four outputs. Source comparison uses the generated DWG's LibreDWG JSON and previously observed target identities; this is not a complete physical HEADER proof.",
     "The strict and partial operations are separate CLI invocations; this receipt does not claim same-adapter retry. No drawing fixture was committed."
   ],
   "hashes": {
     "dwg2dxf": "dea0881b3170b159376b8f28c3c2deb81e8c9f0dd8f4ebd83615113d6be2a77b",
     "operationResults": "ccea25c45a07cddd075f62b21a405bff2b38e84b98fdf1acd008e4a3acecf4f1",
     "peerResults": "1c10cf8e166dc99036e16ac459dc3b57de53c2d12a3084acdbded69f3d9c4675",
+    "headerPeerResults": "4565415d3cce42741363bcd4a77b52020b7d69df3092be2bf84688a32fe58b80",
     "strictDiagnostic": "102803898eb919447d679142f47964a53845651a8c5895c811c6fd88a0dd8e23"
   },
   "limits": [
