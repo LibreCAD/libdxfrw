@@ -105,13 +105,10 @@ below is still open, and its linked evidence defines the present boundary.
    nested-array geometry expansion, on large producer drawings; qualify MINSERT attributes, identity and zero-spacing
    behavior. Split and
    review the candidate, follow FreeCAD's contributor-authored submission policy,
-   then freeze it before broad suites and release claims. The 36-patch candidate's
-   [Linux and Windows headless run](https://github.com/dxli/libdxfrw/actions/runs/46157961230)
-   has passed Linux and is still running on Windows. The current 42-patch
-   [platform run](https://github.com/dxli/libdxfrw/actions/runs/46159919285)
-   is in progress; later OCS-overflow, circular-geometry and lightweight-
-   polyline changes still need a matching recheck.
-   Do not carry earlier results across changed importer code.
+   then freeze it before broad suites and release claims. The [36-patch
+   platform run](docs/research/p8-freecad-36-platforms-2026-11-28.json) passes
+   selected Linux/Windows headless checks; the current 45-patch [platform run](https://github.com/dxli/libdxfrw/actions/runs/46160971025)
+   is in progress. Do not carry earlier results across changed importer code.
 
 The remote ObjectARX host's release, OS, SDK and access route remain unknown.
 Use the [profile intake](tools/research/OBJECTARX_HOST_PROFILE_INTAKE.md) when
