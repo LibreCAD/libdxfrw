@@ -32922,6 +32922,12 @@ bool dx_iface::hasBoundLegacyLayoutSources() const noexcept {
         if (layoutClass == 0u
             || !dx_legacy_layout_wire::matchesClass(cData->dwgClassCoverage, layoutClass))
             return false;
+        std::size_t publishedLayoutFrames = 0u;
+        if (layoutClass > std::numeric_limits<std::uint16_t>::max()
+            || !cData->legacyClassFrameCount(
+                static_cast<std::uint16_t>(layoutClass), publishedLayoutFrames)
+            || publishedLayoutFrames != cData->layouts.size())
+            return false;
         std::map<std::uint32_t, const DRW_Layout*> layouts;
         std::map<std::uint32_t, const DRW_Block_Record*> records;
         std::set<std::uint32_t> offsets;

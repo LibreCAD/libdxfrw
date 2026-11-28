@@ -15,7 +15,7 @@ advisory, and excluded. Completed slice history and validation remain in
 `docs/research/` and Git history.
 
 The current test-inclusive implementation digest is
-`2e36479488e82f045b1735f9a4cbe143a89ccc4469e0c595af2d241bd4a29519`
+`3aaaeffe6add01e0af53a3f9dec6479fbe8bbd2b2e9b62530c7bb57ef28766a9`
 (786 inputs, including the shared layout and class-family identity checks). Earlier hosted runs bind prior digests; current-head hosted results are pending. The [latest source-release inventory repair](docs/research/p8-freecad-3dface-source-release-inventory-repair-2026-11-27.json) adds the tracked FreeCAD report patch omitted from the manifest; the local inventory and self-test pass and a new hosted run is pending. The [current CI repair and focused requalification](docs/research/p8-ci-repair-3e681e-2026-11-27.json) tracks completed and pending platform jobs at commit 3e681e694. The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
 and the [FreeCAD handoff matrix](docs/research/p8-native-freecad-2e4ae17b-2026-11-27.json) passed on earlier production inputs. The current [FreeCAD recheck](docs/research/p8-ci-repair-3e681e-2026-11-27.json) passes 16 Linux and 17 Windows tests, covering specified CLI and legacy importer profiles, not GUI or general 3D parity; hosted focused native and installed shared/static package checks also pass on Linux, Windows and macOS for matching production inputs.
 The fast CI inventory now includes the legacy dictionary wire audit; verify the
@@ -102,7 +102,7 @@ below is still open, and its linked evidence defines the present boundary.
    [bounded reader census](docs/research/p6-legacy-reader-frame-census-2026-11-28.json)
    now binds complete AC1012/AC1014 publications to the import generation,
    CLASS report and frame coverage; selected AC1012 counts agree with an
-   independent physical object-map walk. Determine how each of the three
+   independent physical object-map walk. The [legacy layout source proof](docs/research/p6-legacy-layout-complete-class-census-2026-11-28.json) now also requires the complete LAYOUT frame count to match the retained graph. Determine how each of the three
    guards may safely consume that evidence. The [ODA comparison](docs/research/p6-ac1012-target-class-peer-comparison-2026-11-28.json) shows that the diagnostic output omits LAYOUT and three unused proxy-family CLASS rows while ODA writes them. The [LAYOUT CLASS registration](docs/research/p6-layout-dxf-class-registration-2026-11-28.json) now appends the documented default for emitted graphs without shifting existing class ordinals; generated R2000–R2013 ASCII and binary controls pass independent physical and peer checks. Establish whether and when the three unused proxy-family rows may be omitted, preserving proxy ordinals. Inspect target CLASS emission,
    and prove output refusal, rollback and retry before changing the guards.
    The [shared raw-frame family counter](docs/research/p6-dwg-class-family-raw-census-2026-11-28.json)

@@ -1,0 +1,17 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-layout-complete-class-census-2026-11-28",
+  "supportClaimEffect": "none",
+  "implementation": "The legacy source-layout graph proof requires the existing complete, unchanged, generation/attempt-bound CLASS and reader-frame census to count exactly the retained LAYOUT records before proving each raw layout frame and dictionary association. This does not enable output.",
+  "checks": [
+    "The new missing-census control fails against the previous implementation.",
+    "Both locally authored rooted AC1012 resaves have 44 independently mapped frames, including two LAYOUT class frames, and pass the source graph proof.",
+    "Missing census and a complete synthetic census reporting no LAYOUT frames each refuse the source proof; restoring the original evidence permits retry. Existing changed body, generation, class, dictionary, owner, association, destination preservation, failed import and retry controls also pass.",
+    "A derived failure-injection adapter can still read and recover captured block data, but cannot mint the exact-adapter trusted census. A fresh ordinary adapter reimport establishes the source proof."
+  ],
+  "samples": [
+    {"role": "source", "sha256": "93cb1e6c0d62c53ef485b9c74eda41151e28db60c1514cecd0607bbcf30b77aa"},
+    {"role": "destination", "sha256": "7d2a2c7a201a96bf2c5c9623c2d2bd7536976d8e684d8a62074f0d124db208e5"}
+  ],
+  "limits": ["The independent walker covers the selected AC1012 sources; no real AC1014 witness, native cloning, target graph or production export qualification follows.", "No drawing fixture was committed."]
+}

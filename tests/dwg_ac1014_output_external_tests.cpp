@@ -18,6 +18,27 @@
 
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
+    static dx_legacy_frame_census::Capture& legacyCensus(dx_data& data) {
+        return data.m_legacyFrameTypeCensus;
+    }
+    static dx_legacy_frame_census::Capture emptyLayoutCensus(const dx_data& data) {
+        dx_legacy_frame_census::Capture capture;
+        capture.begin(data.importGeneration, data.m_classEvidenceAttempt);
+        DRW_DwgFramePublication row;
+        row.m_version = data.sourceVersion;
+        row.m_handle = 1u;
+        row.m_encodedType = 42;
+        row.m_hasSourceLocation = true;
+        row.m_sourceOffset = 100u;
+        row.m_sourceOffsetSpace = DRW_DwgFrameOffsetSpace::PhysicalFile;
+        capture.observe(row, data.importGeneration, data.m_classEvidenceAttempt);
+        DwgReadFrameObservations report;
+        report.status = DRW_DwgFrameCoverageStatus::FinalizedComplete;
+        report.sourceFrames = 1u;
+        report.dispositions[static_cast<std::size_t>(DRW_DwgFrameDisposition::Published)] = 1u;
+        capture.seal(data.sourceVersion, true, report);
+        return capture;
+    }
     static bool legacyClassCount(const dx_data& data, std::uint16_t number,
                                  std::size_t& count) {
         return data.legacyClassFrameCount(number, count);
@@ -1418,10 +1439,14 @@ bool checkLegacyLayoutGraph(const std::string& input) {
     };
     auto& rawLayout = DxIfaceStandardDwgCaptureTestAccess::layoutBytes(data, data.layouts.front().handle);
     auto& rawDictionary = DxIfaceStandardDwgCaptureTestAccess::dictionaryBytes(data, dictionaryHandle);
+    dx_legacy_frame_census::Capture missingCensus;
+    auto emptyCensus = DxIfaceStandardDwgCaptureTestAccess::emptyLayoutCensus(data);
     if (rawLayout.empty() || rawDictionary.empty()) return false;
     double changedBase = record->basePoint.x + 1.0;
     std::string changedName = record->name + "_changed";
     const bool ok = check([&]() { capturedBlock.front() ^= 0x80u; })
+        && check([&]() { std::swap(DxIfaceStandardDwgCaptureTestAccess::legacyCensus(data), missingCensus); })
+        && check([&]() { std::swap(DxIfaceStandardDwgCaptureTestAccess::legacyCensus(data), emptyCensus); })
         && check([&]() { capturedGeneration ^= 1u; })
         && check([&]() { std::swap(record->basePoint.x, changedBase); })
         && check([&]() { std::swap(record->name, changedName); })
@@ -1454,9 +1479,14 @@ bool checkLegacyLayoutGraph(const std::string& input) {
     dx_data recovered;
     const bool recoveredRead = tolerantRead && failing.fileImport(input, &recovered, false)
         && DxIfaceStandardDwgCaptureTestAccess::legacyBlockFrames(recovered, source)
-        && DxIfaceStandardDwgCaptureTestAccess::boundLegacyLayout(failing);
+        && !DxIfaceStandardDwgCaptureTestAccess::boundLegacyLayout(failing);
+    dx_iface trusted;
+    dx_data trustedData;
+    const bool trustedRetry = recoveredRead && trusted.fileImport(input, &trustedData, false)
+        && DxIfaceStandardDwgCaptureTestAccess::legacyBlockFrames(trustedData, source)
+        && DxIfaceStandardDwgCaptureTestAccess::boundLegacyLayout(trusted);
     std::filesystem::remove_all(scratch, error);
-    return recoveredRead && !error;
+    return trustedRetry && !error;
 }
 
 bool strictOutputRefuses(dx_iface& reader, dx_data& data) {
