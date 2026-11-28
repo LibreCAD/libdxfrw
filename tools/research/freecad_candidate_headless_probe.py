@@ -57,6 +57,7 @@ EXTRA_TESTS = {
         "test_nested_text_own_ocs",
         "test_insert_malformed_normals_are_skipped_and_retry",
         "test_block_text_height_and_transform_loss",
+        "test_nested_block_text_shear_is_reported",
     ),
 }
 
