@@ -80,6 +80,7 @@ EXTRA_PATCHES = {
         "freecad-p8-insert-normal-units-2026-11-28.patch",
         "freecad-p8-block-text-ocs-2026-11-28.patch",
         "freecad-p8-insert-normal-validation-2026-11-28.patch",
+        "freecad-p8-strict-number-helper-2026-11-28.patch",
     ),
 }
 

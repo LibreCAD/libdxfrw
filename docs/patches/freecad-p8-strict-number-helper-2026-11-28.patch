@@ -1,0 +1,67 @@
+diff --git a/src/Mod/Import/App/dxf/dxf.cpp b/src/Mod/Import/App/dxf/dxf.cpp
+--- a/src/Mod/Import/App/dxf/dxf.cpp
++++ b/src/Mod/Import/App/dxf/dxf.cpp
+@@ -33,0 +34,8 @@
++template<typename T>
++bool parseCompleteNumber(const std::string& text, T& value)
++{
++    std::istringstream stream(text);
++    stream.imbue(std::locale("C"));
++    return static_cast<bool>(stream >> value) && (stream >> std::ws).eof();
++}
++
+@@ -43,2 +50,0 @@
+-    std::istringstream stream(value);
+-    stream.imbue(std::locale("C"));
+@@ -46,2 +52 @@
+-    return static_cast<bool>(stream >> lineweight) && (stream >> std::ws).eof()
+-        && lineweight == -1;
++    return parseCompleteNumber(value, lineweight) && lineweight == -1;
+@@ -2252,2 +2256,0 @@
+-    std::istringstream stream(object->m_record_data);
+-    stream.imbue(std::locale("C"));
+@@ -2255 +2258 @@
+-    if (!(stream >> value) || !(stream >> std::ws).eof() || !std::isfinite(value)) {
++    if (!parseCompleteNumber(object->m_record_data, value) || !std::isfinite(value)) {
+@@ -2269,2 +2271,0 @@
+-    std::istringstream stream(object->m_record_data);
+-    stream.imbue(std::locale("C"));
+@@ -2272 +2273 @@
+-    if (!(stream >> value) || !(stream >> std::ws).eof() || value < 0 || value > 15) {
++    if (!parseCompleteNumber(object->m_record_data, value) || value < 0 || value > 15) {
+@@ -2429,2 +2429,0 @@
+-    std::istringstream stream(object->m_record_data);
+-    stream.imbue(std::locale("C"));
+@@ -2432 +2431 @@
+-    if (!(stream >> value) || !(stream >> std::ws).eof() || value < 0 || value > 32767) {
++    if (!parseCompleteNumber(object->m_record_data, value) || value < 0 || value > 32767) {
+@@ -2708,2 +2706,0 @@
+-                std::istringstream stream(m_record_data);
+-                stream.imbue(std::locale("C"));
+@@ -2711 +2708 @@
+-                if (!(stream >> value) || !(stream >> std::ws).eof() || value < 0) {
++                if (!parseCompleteNumber(m_record_data, value) || value < 0) {
+@@ -2732,2 +2728,0 @@
+-                std::istringstream stream(m_record_data);
+-                stream.imbue(std::locale("C"));
+@@ -2735 +2730 @@
+-                if (!(stream >> value) || !(stream >> std::ws).eof() || value != 0.0) {
++                if (!parseCompleteNumber(m_record_data, value) || value != 0.0) {
+@@ -2859,2 +2853,0 @@
+-        std::istringstream input(m_record_data);
+-        input.imbue(std::locale::classic());
+@@ -2862,6 +2855,2 @@
+-        input >> value;
+-        const bool parsed = !input.fail() && std::isfinite(value);
+-        if (parsed) {
+-            input >> std::ws;
+-        }
+-        if (!parsed || !input.eof() || seenNormal[component]) {
++        if (!parseCompleteNumber(m_record_data, value) || !std::isfinite(value)
++            || seenNormal[component]) {
+@@ -3652,2 +3640,0 @@
+-            std::istringstream stream(m_record_data);
+-            stream.imbue(std::locale("C"));
+@@ -3655 +3642 @@
+-            if (!(stream >> parsed) || !(stream >> std::ws).eof()
++            if (!parseCompleteNumber(m_record_data, parsed)
