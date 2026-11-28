@@ -55,6 +55,7 @@ EXTRA_TESTS = {
         "test_nested_insert_ocs_annotation",
         "test_insert_direction_units_and_invalid_retry",
         "test_nested_text_own_ocs",
+        "test_insert_malformed_normals_are_skipped_and_retry",
     ),
 }
 

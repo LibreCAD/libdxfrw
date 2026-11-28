@@ -1,0 +1,80 @@
+diff --git a/src/Mod/Import/App/dxf/dxf.cpp b/src/Mod/Import/App/dxf/dxf.cpp
+--- a/src/Mod/Import/App/dxf/dxf.cpp
++++ b/src/Mod/Import/App/dxf/dxf.cpp
+@@ -2840 +2840,37 @@
+-    ProcessAllAttributes();
++    // A malformed or repeated component cannot safely define an OCS. Handle
++    // these three tags here so invalid input cannot silently become a default.
++    bool invalidNormal = false;
++    bool seenNormal[3] = {};
++    while (get_next_record() && m_record_type != eObjectType) {
++        int component = -1;
++        if (m_record_type == eExtrusionDirection + eXOffset) {
++            component = 0;
++        }
++        else if (m_record_type == eExtrusionDirection + eYOffset) {
++            component = 1;
++        }
++        else if (m_record_type == eExtrusionDirection + eZOffset) {
++            component = 2;
++        }
++        if (component < 0) {
++            ProcessAttribute();
++            continue;
++        }
++        std::istringstream input(m_record_data);
++        input.imbue(std::locale::classic());
++        double value = 0;
++        input >> value;
++        const bool parsed = !input.fail() && std::isfinite(value);
++        if (parsed) {
++            input >> std::ws;
++        }
++        if (!parsed || !input.eof() || seenNormal[component]) {
++            invalidNormal = true;
++        }
++        else {
++            double* coordinates[] = {&EntityNormalVector.x, &EntityNormalVector.y, &EntityNormalVector.z};
++            *coordinates[component] = value;
++        }
++        seenNormal[component] = true;
++    }
++    repeat_last_record();
+@@ -2842 +2878 @@
+-    if (!std::isfinite(normalLength) || normalLength == 0.0) {
++    if (invalidNormal || !std::isfinite(normalLength) || normalLength == 0.0) {
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -1499,0 +1500,31 @@
++    def test_insert_malformed_normals_are_skipped_and_retry(self):
++        """Reject malformed, duplicate and overflowing normals without losing later INSERTs."""
++        options = FreeCAD.ParamGet(self.option_source)
++        tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"), (2, "BLOCKS"),
++                (0, "BLOCK"), (8, "0"), (2, "B"), (70, 0), (10, 0), (20, 0), (30, 0),
++                (0, "LINE"), (8, "0"), (10, 0), (20, 0), (30, 0), (11, 1), (21, 0), (31, 0),
++                (0, "ENDBLK"), (8, "0"), (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES")]
++        normals = [[(210, "bad")], [(210, "1junk")], [(210, "1e309")],
++                   [(210, 1), (210, 1)], [(210, 0), (220, 0), (230, 0)],
++                   [(210, " 0 "), (220, " 0 "), (230, " 1 ")], []]
++        for normal in normals:
++            tags.extend([(0, "INSERT"), (8, "0"), (2, "B"), (10, 0), (20, 0), (30, 0)])
++            tags.extend(normal)
++        tags.extend([(0, "ENDSEC"), (0, "EOF")])
++        path = os.path.join(self.temp_dir, "malformed-insert-normals.dxf")
++        with open(path, "w", encoding="ascii", newline="\n") as stream:
++            stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++        for mode in (2, 3):
++            with self.subTest(mode=mode):
++                options.SetInt("DxfImportMode", mode)
++                previous = set(self.document.Objects)
++                stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                self.document.recompute()
++                links = [obj for obj in self.document.Objects if obj not in previous
++                         and obj.Name.startswith("Link_B")]
++                self.assertEqual(len(stats["unsupportedFeatures"]["INSERT invalid extrusion direction"]), 5)
++                self.assertEqual(len(links), 2)
++                for link in links:
++                    self.assertAlmostEqual(link.Shape.Edges[0].Length, 1)
++
