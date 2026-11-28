@@ -37,14 +37,14 @@ below is still open, and its linked evidence defines the present boundary.
    only with aggregate memory accounting. Recheck native LibreCAD and FreeCAD.
 2. **LibreCAD IMAGE and plot graphs.** Extend the checked
    [384-image profile](docs/research/p8d-librecad-384-image-graphs-2026-11-28.json)
-   and [single- and multi-image clipping controls](docs/research/p8d-librecad-single-image-polygon-2026-11-28.json), with [selected native clipping render checks](docs/research/p8d-librecad-image-clipping-render-2026-11-28.json),
+   and [single- and multi-image clipping controls](docs/research/p8d-librecad-single-image-polygon-2026-11-28.json), with [selected native clipping render checks](docs/research/p8d-librecad-image-clipping-render-2026-11-28.json) and a later [affine pixel-basis fix](docs/research/p8d-librecad-image-affine-basis-2026-11-28.json),
    to larger drawings, more graph shapes, layers, versions, clipping and
    references. Preserve the 385-image, legacy MATERIAL, orphan and
    cross-version refusals until their respective bounds, output closure and
    independent readback are proved. Current capture uses a shared 4 MiB logical
    raster-source budget, 512 IMAGEDEF groups, 542 IMAGE groups and a 256 KiB source-file gate;
    raise limits only with aggregate accounting. Qualify rendering and platforms
-   separately; clipping beyond 256 vertices, GUI picking and printing remain open.
+   separately; recheck native rendering after the affine change. Clipping beyond 256 vertices, GUI picking and printing remain open.
 3. **Legacy HEADER and versions.** Resolve R12/R14 `$FACETRES`, `$ISOLINES`,
    `$PELLIPSE`, `$TEXTQLTY`, field presence and extension semantics using
    [versioned authority](docs/research/p8d-r14-display-header-authority-2026-11-26.json)
