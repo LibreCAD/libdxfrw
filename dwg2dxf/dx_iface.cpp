@@ -83503,6 +83503,68 @@ bool validateLayoutGraph(const dx_data& data, DRW::Version targetVersion,
 
 } // namespace
 
+bool dx_iface::projectLegacyOutputBlockLayouts(
+        DRW::Version version, std::vector<DRW_Block_Record>& identities,
+        std::string& failure) const {
+    if (cData == nullptr) {
+        failure = "missing adapter data";
+        return false;
+    }
+    if (cData->sourceFormat != dx_source_format::DWG
+        || !dx_legacy_dwg_wire::supported(cData->sourceVersion)
+        || cData->layouts.empty())
+        return true;
+    if (!hasBoundLegacyLayoutSources()) {
+        failure = "R13/R14 LAYOUT source graph is unbound or changed";
+        return false;
+    }
+    try {
+        std::map<std::uint32_t, const DRW_Layout*> layouts;
+        std::map<std::uint32_t, const DRW_Block_Record*> records;
+        for (const DRW_Layout& layout : cData->layouts)
+            if (!layouts.emplace(layout.handle, &layout).second)
+                return false;
+        for (const DRW_Block_Record& record : cData->blockRecords)
+            if (!records.emplace(record.handle, &record).second)
+                return false;
+        std::vector<dx_layout_associations::BlockRecordProjection> projection;
+        if (!dx_layout_associations::projectLegacyToR2000(
+                layouts, records, version, projection, failure))
+            return false;
+        if (identities.size() != projection.size()) {
+            failure = "legacy BLOCK_RECORD writer identity count differs";
+            return false;
+        }
+        std::map<std::uint32_t, const dx_layout_associations::BlockRecordProjection*> byHandle;
+        for (const auto& row : projection)
+            byHandle.emplace(row.handle, &row);
+        auto staged = identities;
+        for (DRW_Block_Record& identity : staged) {
+            const auto source = records.find(identity.handle);
+            const auto target = byHandle.find(identity.handle);
+            if (source == records.end() || target == byHandle.end()
+                || identity.name != source->second->name
+                || identity.layoutHandle != source->second->layoutHandle
+                || (source->second->xDictHandle != 0u
+                    && identity.xDictHandle != source->second->xDictHandle)) {
+                failure = "legacy BLOCK_RECORD writer identity differs from source";
+                return false;
+            }
+            identity.layoutHandle = target->second->layoutHandle;
+            byHandle.erase(target);
+        }
+        if (!byHandle.empty()) {
+            failure = "legacy BLOCK_RECORD writer identities are incomplete";
+            return false;
+        }
+        identities.swap(staged);
+        return true;
+    } catch (...) {
+        failure = "legacy BLOCK_RECORD projection failed";
+        return false;
+    }
+}
+
 bool dx_iface::validateOutputLayoutGraph(DRW::Version version, std::string& failure) {
     if (cData == nullptr) {
         failure = "missing adapter data";
@@ -93524,6 +93586,14 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         if (selected != selectedBlockRecordXdicts.end())
             identity.xDictHandle = selected->second;
         sourceBlockRecords.push_back(std::move(identity));
+    }
+    std::string blockLayoutProjectionFailure;
+    if (!projectLegacyOutputBlockLayouts(v, sourceBlockRecords,
+                                         blockLayoutProjectionFailure)) {
+        reportPreflightFailure(blockLayoutProjectionFailure);
+        delete dxfW;
+        dxfW = nullptr;
+        return false;
     }
     for (const dx_ifaceBlock* block : cData->blocks) {
         if (block == nullptr || block->parentHandle == DRW::NoHandle)

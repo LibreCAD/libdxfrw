@@ -1,0 +1,12 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-writer-block-layout-projection-2026-11-28",
+  "supportClaimEffect": "none",
+  "implementation": "The writer identity setup now calls a shared-helper-based projection for source-bound AC1012/AC1014 LAYOUT graphs targeting R2000. It validates one source identity per retained BLOCK_RECORD, stages reciprocal layout handles in a copy, preserves selected extension-dictionary identities, and leaves the caller and source unchanged on refusal. The earlier legacy validation still refuses export before this setup is reached.",
+  "controls": [
+    "Two locally authored AC1012 resaves and a regenerated AC1014 resave pass the bound source proof and direct writer-identity projection. Each associated layout is linked to the matching writer identity while all source BLOCK_RECORD layout handles remain zero.",
+    "Wrong target, modified or duplicate writer identities and modified source layout associations refuse without changing the complete caller identity vector; restoring the source and retrying succeeds. An explicit selected extension-dictionary override survives projection.",
+    "Existing source graph, viewport, ASCII/binary destination preservation, missing-input and trusted-adapter retry controls pass. Five focused graph and adapter CTests pass; separate R2000–R2013 ASCII/binary generated output passes physical and ezdxf checks."
+  ],
+  "limits": ["This stage is not reached by an ordinary legacy export while the existing refusal is active. It is not an end-to-end staged-output, proxy CLASS, native AutoCAD or semantic qualification.", "The extension-dictionary override is a writer-identity control, not independent proof of an arbitrary extension graph.", "No generated drawing was committed."]
+}

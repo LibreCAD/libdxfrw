@@ -15,7 +15,7 @@ advisory, and excluded. Completed slice history and validation remain in
 `docs/research/` and Git history.
 
 The current test-inclusive implementation digest is
-`edc65a1e2f7acd72ab81b44e828f2a2e2ca071982a358cb0390d7e9a278854a2`
+`bdaf52b086bc732b2501c614bdd91b1c88bccd2b3bfd6d03c6255b4f9ac5be49`
 (786 inputs, including the shared layout and class-family identity checks). Earlier hosted runs bind prior digests; current-head hosted results are pending. The [latest source-release inventory repair](docs/research/p8-freecad-3dface-source-release-inventory-repair-2026-11-27.json) adds the tracked FreeCAD report patch omitted from the manifest; the local inventory and self-test pass and a new hosted run is pending. The [current CI repair and focused requalification](docs/research/p8-ci-repair-3e681e-2026-11-27.json) tracks completed and pending platform jobs at commit 3e681e694. The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
 and the [FreeCAD handoff matrix](docs/research/p8-native-freecad-2e4ae17b-2026-11-27.json) passed on earlier production inputs. The current [FreeCAD recheck](docs/research/p8-ci-repair-3e681e-2026-11-27.json) passes 16 Linux and 17 Windows tests, covering specified CLI and legacy importer profiles, not GUI or general 3D parity; hosted focused native and installed shared/static package checks also pass on Linux, Windows and macOS for matching production inputs.
 The fast CI inventory now includes the legacy dictionary wire audit; verify the
@@ -112,17 +112,14 @@ below is still open, and its linked evidence defines the present boundary.
    semantics. Qualify each source and its target mapping separately; peer repair
    is not source-graph evidence. In the [unsafe bypass experiment](docs/research/p6-ac1012-unsafe-projection-link-loss-2026-11-28.json),
    both encodings omit physical BLOCK_RECORD 340 backlinks even though ezdxf
-   reconstructs them without an audit fix. Project the uniquely resolved legacy
-   links into writer-only identities. A [scratch-only projection](docs/research/p6-ac1012-scratch-projected-layout-links-2026-11-28.json)
+   reconstructs them without an audit fix. A [scratch-only projection](docs/research/p6-ac1012-scratch-projected-layout-links-2026-11-28.json)
    restores the physical reciprocal links in four outputs; it bypasses guards
-   and does not qualify export. Integrate the bounded projection and verify
-   the original physical links,
-   source snapshots, staged output, rollback and corrected retry before admitting
+   and does not qualify export. The [writer identity preparation](docs/research/p6-legacy-writer-block-layout-projection-2026-11-28.json) now stages those links transactionally after binding the source graph; the legacy export refusal still prevents that path from publishing. Verify
+   the original physical links, source snapshots, staged output, rollback and corrected retry before admitting
    any profile. The [shared association
    identity checks](docs/research/p6-layout-association-identity-guards-2026-11-28.json)
    reject malformed source identities transactionally in both legacy and
-   reciprocal modes. [Forward-only viewport validation](docs/research/p6-legacy-forward-layout-viewport-2026-11-28.json) now checks model VPORT and current-paper VIEWPORT ownership against the resolved association while retaining the export refusal. The target projection must still be integrated with
-   writer identities and staged-output proof. Obtain native normal-open
+   reciprocal modes. [Forward-only viewport validation](docs/research/p6-legacy-forward-layout-viewport-2026-11-28.json) now checks model VPORT and current-paper VIEWPORT ownership against the resolved association while retaining the export refusal. Complete staged-output proof. Obtain native normal-open
    and cloning results using the [witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md);
    the [hash-checked handoff](docs/research/p6-ac1012-two-element-handoff-2026-11-27.json)
    is ready; the [updated packet](docs/research/p6-ac1012-pair-vport-wire-2026-11-27.json) includes the selected active VPORT frame and earlier checked frames, and notes the [presence-aware DIMSTYLE discrimination](docs/research/p6-ac1012-dimstyle-default-discriminator-2026-11-28.json): ODA omits four groups for the selected legacy values, while ezdxf supplies different defaults; explicit distinct values survive the tested ODA conversion. The [unit and HEADER matrix](docs/research/p6-ac1012-dimstyle-omitted-measurement-matrix-2026-11-28.json) shows ODA writes the same selected style values across four variants, while the current reader and ezdxf report a different DIMTIH. Resolve native and producer-specific missing-group semantics before changing that default globally, and qualify the broader drawing before whole-file claims. The ODA source also needs EED, empty-name root, extension/XRECORD

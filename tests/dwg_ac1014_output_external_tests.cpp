@@ -51,6 +51,11 @@ public:
         return adapter.validateOutputLayoutGraph(DRW::AC1015, failure)
             ? std::string{} : failure;
     }
+    static bool projectLegacyBlocks(dx_iface& adapter, DRW::Version version,
+                                    std::vector<DRW_Block_Record>& identities) {
+        std::string failure;
+        return adapter.projectLegacyOutputBlockLayouts(version, identities, failure);
+    }
     static bool legacyBlockFrames(const dx_data& data, const std::string& input) {
         if (data.m_legacyBlockRecordSourceFailed || data.blockRecords.empty()
             || data.m_legacyBlockRecordSources.size() != data.blockRecords.size()) return false;
@@ -1425,6 +1430,71 @@ bool checkLegacyLayoutGraph(const std::string& input) {
         std::cerr << "legacy paper viewport validation: valid=" << validPaper
                   << "; invalid=" << invalidPaper << '\n';
         return false;
+    }
+    std::vector<DRW_Block_Record> identities;
+    for (const DRW_Block_Record& source : data.blockRecords) {
+        DRW_Block_Record identity;
+        identity.handle = source.handle;
+        identity.name = source.name;
+        identity.layoutHandle = source.layoutHandle;
+        identity.xDictHandle = source.xDictHandle;
+        identities.push_back(std::move(identity));
+    }
+    if (identities.empty()) return false;
+    auto unchanged = identities;
+    const auto sameIdentities = [](const auto& first, const auto& second) {
+        return first.size() == second.size()
+            && std::equal(first.begin(), first.end(), second.begin(),
+                [](const DRW_Block_Record& a, const DRW_Block_Record& b) {
+                    return a.handle == b.handle && a.name == b.name
+                        && a.layoutHandle == b.layoutHandle
+                        && a.xDictHandle == b.xDictHandle;
+                });
+    };
+    if (DxIfaceStandardDwgCaptureTestAccess::projectLegacyBlocks(
+            adapter, DRW::AC1014, identities)
+        || !sameIdentities(identities, unchanged))
+        return false;
+    identities.front().name += "_changed";
+    const auto invalidIdentity = identities;
+    if (DxIfaceStandardDwgCaptureTestAccess::projectLegacyBlocks(
+            adapter, DRW::AC1015, identities)
+        || !sameIdentities(identities, invalidIdentity))
+        return false;
+    identities = unchanged;
+    if (identities.size() < 2u) return false;
+    identities.back() = identities.front();
+    const auto duplicateIdentities = identities;
+    if (DxIfaceStandardDwgCaptureTestAccess::projectLegacyBlocks(
+            adapter, DRW::AC1015, identities)
+        || !sameIdentities(identities, duplicateIdentities))
+        return false;
+    identities = unchanged;
+    data.layouts.front().paperSpaceBlockRecordHandle.ref ^= 1u;
+    const bool changedSourceRejected = !DxIfaceStandardDwgCaptureTestAccess::projectLegacyBlocks(
+        adapter, DRW::AC1015, identities)
+        && sameIdentities(identities, unchanged);
+    data.layouts.front().paperSpaceBlockRecordHandle.ref ^= 1u;
+    if (!changedSourceRejected) return false;
+    auto emptyXdict = std::find_if(identities.begin(), identities.end(),
+        [](const DRW_Block_Record& row) { return row.xDictHandle == 0u; });
+    if (emptyXdict == identities.end()) return false;
+    const auto overriddenHandle = emptyXdict->handle;
+    emptyXdict->xDictHandle = 0x12345u;
+    if (!DxIfaceStandardDwgCaptureTestAccess::projectLegacyBlocks(
+            adapter, DRW::AC1015, identities)) return false;
+    for (const DRW_Block_Record& source : data.blockRecords) {
+        const auto written = std::find_if(identities.begin(), identities.end(),
+            [&source](const DRW_Block_Record& row) { return row.handle == source.handle; });
+        const auto layout = std::find_if(data.layouts.begin(), data.layouts.end(),
+            [&source](const DRW_Layout& row) {
+                return row.paperSpaceBlockRecordHandle.ref == source.handle;
+            });
+        const auto expected = layout == data.layouts.end() ? 0u : layout->handle;
+        if (written == identities.end() || source.layoutHandle != 0u
+            || written->layoutHandle != expected
+            || written->xDictHandle != (source.handle == overriddenHandle
+                ? 0x12345u : source.xDictHandle)) return false;
     }
     const auto source = bytes(input);
     if (!DxIfaceStandardDwgCaptureTestAccess::legacyBlockFrames(data, source)
