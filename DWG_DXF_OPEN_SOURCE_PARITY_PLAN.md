@@ -90,8 +90,10 @@ below is still open, and its linked evidence defines the present boundary.
    and ModelDocViewStyle closure. Do not regenerate unchanged pairs without a
    discriminating question or infer native merge behavior from peer conversion.
 8. **Integration and FreeCAD.** Recheck affected profiles against final heads
-   of LibreCAD PR #3289, LibreCAD_3 PRs #460–#463 and the codec. Finish the
-   native GUI, Linux/Windows, package and FreeCAD handoff gates. The [selected
+   of LibreCAD PR #3289, LibreCAD_3 PRs #460–#463 and the codec. The [current
+   LibreCAD consumer CI](docs/research/p8-librecad-3289-ci-7d175ccf-2026-11-28.json)
+   passes its selected hosted builds and focused lanes. Finish the native GUI,
+   Linux/Windows, package and FreeCAD handoff gates. The [selected
    AC1024 array partial handoff](docs/research/p8-freecad-ac1024-minsert-partial-handoff-2026-11-28.json)
    checks six lines in both FreeCAD modes; strict conversion remains blocked by
    the HEADER suffix and partial output is not whole-file proof. For the local
