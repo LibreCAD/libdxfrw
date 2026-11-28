@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1024-three-layer-source-binding-2026-11-27",
+  "supportClaimEffect": "none",
+  "scope": "Bounded AC1024 three-layer source and default material/plot-style output profile; no general three-layer or whole-file support claim.",
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.4.53-20.4.54: LAYER_CONTROL and LAYER handle streams.",
+  "odaSource": {
+    "provenance": "Locally authored R2010 DXF converted with ODA File Converter 27.10 on Linux; scratch only.",
+    "sha256": "3e2732452a4b669c5b3dce4d145e5249a73548400d80ded8bd8d0a1e98632ff2",
+    "layerControlHandle": 1,
+    "layerHandles": [
+      39,
+      40,
+      138
+    ],
+    "independentPeer": "LibreDWG 0.14 JSON reports missing extension dictionary, null soft-pointer owner and the three ordered soft-owner references."
+  },
+  "checks": [
+    "PASS libdxfrw_dwg_ac1024_layer_source_binding and libdxfrw_dwg_ac1024_layer_control_source CTests; generated three-layer case exercises ASCII and binary output, layer/material/plot identity, source mutations, destination preservation and corrected retry.",
+    "PASS physical source and mutation binding for the ODA-derived three-layer source, including its absent-extension control frame. The generated profile instead uses an explicit null hard-owner dictionary handle.",
+    "PASS strict conversion refuses the unexplained header suffix and preserves a pre-existing destination.",
+    "PASS explicit partial conversion reaches the DIMSTYLE table after the LAYER table and safely refuses dimstyle-text-style-identity-mismatch at source handle 137; it preserves a pre-existing destination."
+  ],
+  "limits": [
+    "The ODA drawing does not produce a DXF yet; the DIMSTYLE identity failure remains to be investigated. The post-sentinel header suffix remains unclassified and strict conversion remains refused.",
+    "Generated codec/output checks do not establish independent producer semantics for all three-layer graphs. No DWG or DXF fixture was committed."
+  ]
+}

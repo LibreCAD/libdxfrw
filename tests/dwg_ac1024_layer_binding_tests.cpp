@@ -16,6 +16,23 @@ public:
     static bool complete(const dx_iface& iface, const dx_data& data) {
         return iface.hasCompleteAc1024LayerSourceEvidence(data);
     }
+    static void diagnose(const dx_iface& iface, const dx_data& data) {
+        const auto& control = data.m_dwgLayerControlPublication;
+        std::cerr << "layers=" << data.layers.size()
+                  << " sources=" << data.m_ac1024LayerSources.size()
+                  << " publications=" << data.m_ac1024LayerPublications.size()
+                  << " control_seen=" << data.m_dwgLayerControlPublicationSeen
+                  << " control_failed=" << data.m_dwgLayerControlCaptureFailed
+                  << " noext_failed=" << data.m_ac1024NoExtensionLayerControlCaptureFailed
+                  << " noext_seen=" << data.m_ac1024NoExtensionLayerControlSource.has_value()
+                  << " members=" << control.m_controlHandles.size()
+                  << " xdictflag=" << unsigned(control.m_xDictFlag)
+                  << " xdict=" << control.m_xDictHandle
+                  << " complete=" << complete(iface, data) << '\n';
+        for (const auto& layer : data.layers)
+            std::cerr << "layer " << layer.name << " handle=" << layer.handle
+                      << " parent=" << layer.parentHandle << " control=" << control.m_handle << '\n';
+    }
     static bool materialComplete(const dx_iface& iface, const dx_data& data) {
         return iface.hasCompleteAc1024DefaultMaterialSourceEvidence(data);
     }
@@ -31,6 +48,10 @@ public:
     }
     static auto& layerPublication(dx_data& data) {
         return data.m_ac1024LayerPublications.begin()->second;
+    }
+    static DRW_DwgAc1024LayerControlSource* layerControl(dx_data& data) {
+        return data.m_ac1024NoExtensionLayerControlSource
+            ? &*data.m_ac1024NoExtensionLayerControlSource : nullptr;
     }
     static bool checkMaterialMutations(dx_iface& iface, dx_data& data) {
         if (!materialComplete(iface, data) || data.materials.size() != 3u) {
@@ -89,6 +110,40 @@ public:
     static bool checkMutations(dx_iface& iface, dx_data& data) {
         if (!complete(iface, data) || data.m_ac1024LayerSources.empty()
             || data.m_ac1024LayerPublications.empty() || data.layers.empty()) return false;
+        if (data.layers.size() > 2u) {
+            if (!data.m_ac1024NoExtensionLayerControlSource) return false;
+            auto& control = *data.m_ac1024NoExtensionLayerControlSource;
+            auto& publication = data.m_dwgLayerControlPublication;
+            if (!control.matchesAc1024LayerControlWithoutDictionaryFrame(publication)
+                || control.matchesAc1024LayerControlFrame(publication)
+                || control.m_raw.m_rawBytes.empty() || publication.m_controlHandles.empty()) return false;
+            const auto byte = control.m_raw.m_rawBytes.front();
+            control.m_raw.m_rawBytes.front() ^= 0x80u;
+            if (complete(iface, data)) return false;
+            control.m_raw.m_rawBytes.front() = byte;
+            const std::uint64_t roleBit = control.m_raw.m_rawBytes.size() * 8u
+                - control.m_raw.m_bodyBitSize + (control.m_raw.m_xDictFlag == 0u ? 16u : 8u);
+            if (roleBit >= control.m_raw.m_rawBytes.size() * 8u) return false;
+            auto& roleByte = control.m_raw.m_rawBytes[roleBit / 8u];
+            const auto savedRole = roleByte;
+            roleByte ^= static_cast<std::uint8_t>(0x80u >> (roleBit % 8u));
+            if (complete(iface, data)) return false;
+            roleByte = savedRole;
+            const auto handle = publication.m_controlHandles.front();
+            publication.m_controlHandles.front() ^= 1u;
+            if (complete(iface, data)) return false;
+            publication.m_controlHandles.front() = handle;
+            if (!complete(iface, data)) return false;
+        }
+        for (auto& item : data.m_ac1024LayerSources) {
+            auto& raw = item.second.m_raw.m_rawBytes;
+            if (raw.empty()) return false;
+            const auto saved = raw.front();
+            raw.front() ^= 0x80u;
+            if (complete(iface, data)) return false;
+            raw.front() = saved;
+            if (!complete(iface, data)) return false;
+        }
         auto& source = data.m_ac1024LayerSources.begin()->second;
         auto& publication = data.m_ac1024LayerPublications.at(source.m_raw.m_handle);
         const auto oldOffset = publication.offset;
@@ -116,8 +171,8 @@ public:
 class BindingAuthor final : public LC3CompatCheck, public DRW_DwgDefaultMaterialProvider,
                             public DRW_DwgCanonicalLayerProvider {
 public:
-    explicit BindingAuthor(dwgRW& output, bool material = false, int layerShape = 3)
-        : output_(output), material_(material), layerShape_(layerShape) {}
+    explicit BindingAuthor(dwgRW& output, bool material = false, int layerShape = 3, int extraLayers = 0)
+        : output_(output), material_(material), layerShape_(layerShape), extraLayers_(extraLayers) {}
     bool wantsDwgDefaultMaterialGraph() const override { return material_; }
     bool wantsDwgCanonicalLayerNulls(const DRW_Layer&) const override {
         ++canonicalCalls;
@@ -182,6 +237,12 @@ public:
         if (material_ && layerShape_ == 3)
             callerUnchanged = callerUnchanged && layer.extensionDictionaryFlag() == 0u
                 && layer.xrefBlockHandle.code == 0u && layer.xrefBlockHandle.ref == 0u;
+        for (int i = 0; added && i < extraLayers_; ++i) {
+            layer.handle = 0u;
+            layer.name = "TEST_LAYER_" + std::to_string(i);
+            layer.color = 3;
+            added = output_.addLayer(&layer);
+        }
     }
     void writeObjects() override {
         ++objectCalls;
@@ -224,6 +285,7 @@ private:
     dwgRW& output_;
     bool material_;
     int layerShape_;
+    int extraLayers_;
     std::uint32_t global_ = 0u;
     DRW_DictionaryWithDefault plotDictionary_;
     DRW_AcDbPlaceholder plotPlaceholder_;
@@ -237,13 +299,15 @@ static bool checkFile(const std::filesystem::path& path, bool expectMaterial) {
             ? !DxIfaceStandardDwgCaptureTestAccess::checkMaterialMutations(reader, data)
             : DxIfaceStandardDwgCaptureTestAccess::materialComplete(reader, data))) {
         std::cerr << "AC1024 layer source/publication binding failed\n";
+        DxIfaceStandardDwgCaptureTestAccess::diagnose(reader, data);
         return false;
     }
     return true;
 }
 
 static bool checkOutput(const std::filesystem::path& input,
-                        const std::filesystem::path& output, bool binary) {
+                        const std::filesystem::path& output, bool binary,
+                        std::size_t expectedLayers = 2u) {
     dx_data source; dx_iface reader;
     if (!reader.fileImport(input.string(), &source, false)) return false;
     class Writer final : public dx_iface {
@@ -266,7 +330,7 @@ static bool checkOutput(const std::filesystem::path& input,
     const auto verify = [&]() {
         dx_data actual; dx_iface imported;
         if (!imported.fileImport(output.string(), &actual, false)
-            || actual.layers.size() != 2u || actual.dictionaryWithDefaults.size() != 1u
+            || actual.layers.size() != expectedLayers || actual.dictionaryWithDefaults.size() != 1u
             || actual.rawPlaceholders.size() != 1u || actual.materials.size() != 3u) return false;
         const auto& plot = actual.rawPlaceholders.front();
         const auto& dict = actual.dictionaryWithDefaults.front();
@@ -306,6 +370,15 @@ static bool checkOutput(const std::filesystem::path& input,
     ++publication.offset;
     if (!refuse()) return false;
     publication.offset = savedOffset;
+    if (expectedLayers > 2u) {
+        auto* control = DxIfaceStandardDwgCaptureTestAccess::layerControl(source);
+        if (control == nullptr || control->m_raw.m_rawBytes.empty()) return false;
+        auto& controlByte = control->m_raw.m_rawBytes.front();
+        const auto savedControlByte = controlByte;
+        controlByte ^= 0x80u;
+        if (!refuse()) return false;
+        controlByte = savedControlByte;
+    }
     auto& plotRaw = DxIfaceStandardDwgCaptureTestAccess::plotFrame(source).m_rawBytes.front();
     const auto savedPlotRaw = plotRaw;
     plotRaw ^= 0x80u;
@@ -340,14 +413,15 @@ int main(int argc, char** argv) {
     if (!std::filesystem::create_directory(scratch, error)) return 1;
     const auto path = scratch / "generated.dwg";
     const auto materialPath = scratch / "material.dwg";
+    const auto extraPath = scratch / "extra-layer.dwg";
     const auto asciiPath = scratch / "layers-ascii.dxf";
     const auto binaryPath = scratch / "layers-binary.dxf";
-    struct Cleanup { std::filesystem::path file,materialFile,ascii,binary,dir; bool keep; ~Cleanup() {
+    struct Cleanup { std::filesystem::path file,materialFile,extra,ascii,binary,dir; bool keep; ~Cleanup() {
         if (keep) return;
         std::error_code e; std::filesystem::remove(file,e);
-        std::filesystem::remove(materialFile,e); std::filesystem::remove(ascii,e);
+        std::filesystem::remove(materialFile,e); std::filesystem::remove(extra,e); std::filesystem::remove(ascii,e);
         std::filesystem::remove(binary,e); std::filesystem::remove(dir,e);
-    }} cleanup{path,materialPath,asciiPath,binaryPath,scratch,keep};
+    }} cleanup{path,materialPath,extraPath,asciiPath,binaryPath,scratch,keep};
     dwgRW writer(path.string().c_str());
     BindingAuthor author(writer);
     if (!writer.write(&author, DRW::AC1024, false) || !author.added
@@ -399,6 +473,12 @@ int main(int argc, char** argv) {
     }
     if (!checkFile(materialPath, true) || !checkOutput(materialPath, asciiPath, false)
         || !checkOutput(materialPath, binaryPath, true)) return 1;
+    dwgRW extraWriter(extraPath.string().c_str());
+    BindingAuthor extraAuthor(extraWriter, true, 3, 1);
+    if (!extraWriter.reserveHandle(0xA11u) || !extraWriter.write(&extraAuthor, DRW::AC1024, false)
+        || !extraAuthor.added || !extraAuthor.registered_ || !extraAuthor.objects_
+        || !checkFile(extraPath, true) || !checkOutput(extraPath, asciiPath, false, 3u)
+        || !checkOutput(extraPath, binaryPath, true, 3u)) return 1;
     if (keep) std::cout << "AC1024_OUTPUT " << scratch.string() << '\n';
     return 0;
 }

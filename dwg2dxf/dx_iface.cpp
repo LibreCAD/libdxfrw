@@ -107,6 +107,7 @@ struct dx_data::DxfWideProjection {
 };
 
 namespace {
+constexpr std::size_t kMaxAc1024LayerSourceRecords = 3u;
 struct StrictDxfExportLease {
     dx_data* data;
     bool strict;
@@ -29176,7 +29177,7 @@ void dx_iface::addDwgAc1024LayerSource(
             || source.m_raw.m_objectSize != source.m_raw.m_rawBytes.size()
             || source.m_sourceOffset != source.m_raw.m_objectOffset
             || source.m_sourceOffsetSpace == DRW_DwgFrameOffsetSpace::Unknown
-            || cData->m_ac1024LayerSources.size() >= 2u
+            || cData->m_ac1024LayerSources.size() >= kMaxAc1024LayerSourceRecords
             || !cData->m_ac1024LayerSources.emplace(source.m_raw.m_handle, source).second) {
             cData->m_ac1024LayerEvidenceFailed = true;
             cData->m_ac1024LayerSources.clear();
@@ -29191,6 +29192,37 @@ void dx_iface::addDwgAc1024LayerSource(
 
 void dx_iface::addDwgAc1024LayerControlSource(
         const DRW_DwgAc1024LayerControlSource& source) noexcept {
+    if (cData != nullptr && source.m_raw.m_xDictHandle == 0u) {
+        const auto rejectNoExtension = [this]() noexcept {
+            cData->m_ac1024NoExtensionLayerControlSource.reset();
+            cData->m_ac1024NoExtensionLayerControlCaptureFailed = true;
+        };
+        if (typeid(*this) != typeid(dx_iface)
+            || source.m_raw.m_version != DRW::AC1024
+            || cData->sourceFormat != dx_source_format::DWG
+            || m_classEvidenceReadData != cData || !m_classEvidenceReadAttempt
+            || cData->m_classEvidenceOwner != this
+            || cData->m_classEvidenceAttempt != m_classEvidenceReadAttempt
+            || cData->importGeneration != cData->m_classEvidenceGeneration
+            || cData->m_dwgLayerControlCaptureFailed
+            || cData->m_ac1024NoExtensionLayerControlCaptureFailed
+            || !cData->m_dwgLayerControlPublicationSeen
+            || cData->m_dwgLayerControlGeneration != cData->importGeneration
+            || cData->m_ac1024NoExtensionLayerControlSource.has_value()
+            || cData->m_dwgLayerControlPublication.m_controlHandles.size()
+                > kMaxAc1024LayerSourceRecords
+            || !source.matchesAc1024LayerControlWithoutDictionaryFrame(
+                cData->m_dwgLayerControlPublication)) {
+            rejectNoExtension();
+            return;
+        }
+        try {
+            cData->m_ac1024NoExtensionLayerControlSource = source;
+        } catch (...) {
+            rejectNoExtension();
+        }
+        return;
+    }
     const auto reject = [this]() noexcept {
         m_dwgLayerControlSourceProof.reset();
         m_dwgLayerControlSourceOwner = cData;
@@ -29565,7 +29597,7 @@ void dx_iface::addDwgFramePublication(const DRW_DwgFramePublication& data) {
                 && data.m_carrier == DRW_DwgFramePublication::Carrier::Typed
                 && proof.handle != 0u && proof.handle != DRW::NoHandle
                 && proof.space != DRW_DwgFrameOffsetSpace::Unknown;
-            if (!proof.valid || cData->m_ac1024LayerPublications.size() >= 2u
+            if (!proof.valid || cData->m_ac1024LayerPublications.size() >= kMaxAc1024LayerSourceRecords
                 || !cData->m_ac1024LayerPublications.emplace(proof.handle, proof).second) {
                 cData->m_ac1024LayerEvidenceFailed = true;
                 cData->m_ac1024LayerPublications.clear();
@@ -63887,11 +63919,23 @@ bool dx_iface::hasCompleteAc1024LayerSourceEvidence(const dx_data& data) const n
         || !data.dwgReadOutcome.attempted || !data.dwgReadOutcome.operationSucceeded
         || data.importGeneration == 0u
         || data.m_ac1024LayerGeneration != data.importGeneration
-        || data.m_ac1024LayerEvidenceFailed || data.layers.size() != 2u
-        || data.m_ac1024LayerSources.size() != 2u
-        || data.m_ac1024LayerPublications.size() != 2u)
+        || data.m_ac1024LayerEvidenceFailed || data.layers.size() < 2u
+        || data.layers.size() > kMaxAc1024LayerSourceRecords
+        || data.m_ac1024LayerSources.size() != data.layers.size()
+        || data.m_ac1024LayerPublications.size() != data.layers.size())
         return false;
     try {
+        const bool extraLayer = data.layers.size() > 2u;
+        const auto& control = data.m_dwgLayerControlPublication;
+        if (extraLayer && (!data.m_ac1024NoExtensionLayerControlSource
+            || data.m_dwgLayerControlCaptureFailed
+            || data.m_ac1024NoExtensionLayerControlCaptureFailed
+            || !data.m_dwgLayerControlPublicationSeen
+            || data.m_dwgLayerControlGeneration != data.importGeneration
+            || control.m_controlHandles.size() != data.layers.size()
+            || !data.m_ac1024NoExtensionLayerControlSource
+                ->matchesAc1024LayerControlWithoutDictionaryFrame(control)))
+            return false;
         class LayerDecoder final : public DRW_Layer {
         public:
             using DRW_Layer::parseDwg;
@@ -63907,14 +63951,21 @@ bool dx_iface::hasCompleteAc1024LayerSourceEvidence(const dx_data& data) const n
             }
         };
         bool seenZero = false, seenDefpoints = false;
+        std::unordered_set<std::string> names;
         for (const DRW_Layer& layer : data.layers) {
+            const auto key = layoutSymbolKey(layer.name);
+            if (key.empty() || !names.insert(key).second
+                || (extraLayer && (layer.parentHandle != control.m_handle
+                    || std::count(control.m_controlHandles.begin(),
+                                  control.m_controlHandles.end(), layer.handle) != 1)))
+                return false;
             if (layer.name == "0") {
                 if (seenZero) return false;
                 seenZero = true;
             } else if (layer.name == "Defpoints") {
                 if (seenDefpoints) return false;
                 seenDefpoints = true;
-            } else return false;
+            } else if (!extraLayer) return false;
             const auto source = data.m_ac1024LayerSources.find(layer.handle);
             const auto publication = data.m_ac1024LayerPublications.find(layer.handle);
             const auto snapshot = data.m_standardDwgLayerSources.find(
@@ -81771,6 +81822,8 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
     fData->m_dwgLtypeDependencySubsetControl = 0u;
     fData->m_dwgLtypeDependencySubsetSources.clear();
     fData->m_dwgLayerControlPublication = {};
+    fData->m_ac1024NoExtensionLayerControlSource.reset();
+    fData->m_ac1024NoExtensionLayerControlCaptureFailed = false;
     fData->m_dwgLayerControlGeneration = 0u;
     fData->m_dwgLayerControlPublicationSeen = false;
     fData->m_dwgLayerControlCaptureFailed = false;
@@ -97057,7 +97110,8 @@ bool dx_iface::usesAc1024DefaultLayersProfile() const noexcept {
     return cData && hasStrictDxfExportLease(cData)
         && cData->sourceFormat == dx_source_format::DWG
         && cData->sourceVersion == DRW::AC1024
-        && cData->layers.size() == 2u
+        && cData->layers.size() >= 2u
+        && cData->layers.size() <= kMaxAc1024LayerSourceRecords
         && m_extensionMaterialSources.size() == 3u
         && m_dwgDictionaryDefaultOutputSources.size() == 1u;
 }
@@ -97096,7 +97150,7 @@ bool dx_iface::validateAc1024DefaultLayer(const DRW_Layer& layer,
 bool dx_iface::inspectAc1024DefaultLayersOutput(const dxfRW::DxfTablesWriteView& view) noexcept {
     if (!usesAc1024DefaultLayersProfile()) return true;
     if (!cData || !dxfW || view.version != DRW::AC1024
-        || m_ac1024DefaultLayersInspected || cData->layers.size() != 2u) return false;
+        || m_ac1024DefaultLayersInspected) return false;
     try {
         struct Expected { std::uint32_t material; std::uint32_t plot; bool seen; };
         std::map<std::uint32_t, Expected> expected;
@@ -97155,7 +97209,7 @@ bool dx_iface::inspectAc1024DefaultLayersOutput(const dxfRW::DxfTablesWriteView&
 bool dx_iface::finalizeAc1024DefaultLayersOutput() const noexcept {
     if (!usesAc1024DefaultLayersProfile()) return true;
     if (!m_ac1024DefaultLayersInspected || !dxfW || !cData
-        || cData->layers.size() != 2u || !m_dxfMaterialWriteInspected
+        || !m_dxfMaterialWriteInspected
         || !m_dwgDictionaryDefaultOutputInspected) return false;
     for (const DRW_Layer& layer : cData->layers) {
         std::uint32_t plot = 0u;

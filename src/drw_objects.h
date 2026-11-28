@@ -789,6 +789,9 @@ struct DRW_DwgAc1024LayerControlSource {
   //! This does not authenticate the source or authorize graph/output changes.
   [[nodiscard]] bool matchesAc1024LayerControlFrame(
       const DRW_DwgFramePublication &publication) const noexcept;
+  //! Same bounded proof for a missing dictionary or an explicit null handle.
+  [[nodiscard]] bool matchesAc1024LayerControlWithoutDictionaryFrame(
+      const DRW_DwgFramePublication &publication) const noexcept;
 };
 
 //! Optional source-frame snapshot for one AC1024 APPID table record.

@@ -3015,6 +3015,8 @@ private:
     std::uint32_t m_dwgLtypeDependencySubsetControl{0u};
     std::vector<DRW_LType> m_dwgLtypeDependencySubsetSources;
     DRW_DwgFramePublication m_dwgLayerControlPublication;
+    std::optional<DRW_DwgAc1024LayerControlSource> m_ac1024NoExtensionLayerControlSource;
+    bool m_ac1024NoExtensionLayerControlCaptureFailed{false};
     std::uint64_t m_dwgLayerControlGeneration{0u};
     bool m_dwgLayerControlPublicationSeen{false};
     bool m_dwgLayerControlCaptureFailed{false};

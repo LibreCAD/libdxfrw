@@ -8608,8 +8608,9 @@ bool dwgReader::readDwgTables(DRW_Header &hdr, dwgBuffer *dbuf,
       // existing table read unchanged and provides no proof.
       if (version == DRW::AC1024
           && descriptor.controlType == DRW::DwgLayerControlObjectType
-          && control.extensionDictionaryFlag() == 0u
-          && control.xDictHandle != 0u && parent != nullptr && parent->iface != nullptr
+          && (control.extensionDictionaryFlag() == 0u
+              || (control.extensionDictionaryFlag() == 1u && control.xDictHandle == 0u))
+          && parent != nullptr && parent->iface != nullptr
           && dynamic_cast<DRW_DwgAc1024LayerControlSourceHandler *>(parent->iface)) {
         try {
           constexpr std::size_t maxSourceBytes = 4096u;
@@ -9045,6 +9046,7 @@ bool dwgReader::readDwgTables(DRW_Header &hdr, dwgBuffer *dbuf,
   bool ac1024LayerEvidenceInvalid = false;
   bool ac1024LayerZeroSeen = false;
   bool ac1024DefpointsSeen = false;
+  bool ac1024OtherLayerSeen = false;
   bool ac1027LayerZeroSeen = false;
   mit = ObjectMap.find(hdr.layerCtrl);
   if (mit == ObjectMap.end()) {
@@ -9116,9 +9118,9 @@ bool dwgReader::readDwgTables(DRW_Header &hdr, dwgBuffer *dbuf,
           // Keep this evidence optional and bounded. It does not change the
           // ordinary table callback or qualify output for other layer sets.
           if (version == DRW::AC1024
-              && (la->name == "0" || la->name == "Defpoints")
               && !ac1024LayerEvidenceInvalid) {
-            bool& seen = la->name == "0" ? ac1024LayerZeroSeen : ac1024DefpointsSeen;
+            bool& seen = la->name == "0" ? ac1024LayerZeroSeen
+                : (la->name == "Defpoints" ? ac1024DefpointsSeen : ac1024OtherLayerSeen);
             if (seen) {
               ac1024LayerEvidenceInvalid = true;
               m_ac1024LayerSources.clear();
@@ -16264,10 +16266,11 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
   }
 }
 
-bool DRW_DwgAc1024LayerControlSource::matchesAc1024LayerControlFrame(
-    const DRW_DwgFramePublication &publication) const noexcept {
+static bool matchesAc1024LayerControlFrameImpl(
+    const DRW_DwgAc1024LayerControlSource &source,
+    const DRW_DwgFramePublication &publication, bool missingDictionary) noexcept {
   constexpr std::size_t maxBodyBytes = 4096u;
-  const auto &raw = m_raw;
+  const auto &raw = source.m_raw;
   if (raw.m_version != DRW::AC1024
       || raw.m_objectType != DRW::DwgLayerControlObjectType
       || raw.m_handle == 0u || raw.m_handle == DRW::NoHandle
@@ -16278,18 +16281,20 @@ bool DRW_DwgAc1024LayerControlSource::matchesAc1024LayerControlFrame(
       || raw.m_numReactors != 0 || !raw.m_reactorHandles.empty()
       || raw.m_commonHandleDataValidated
       || raw.m_commonLinkEvidence != DRW_DwgCommonLinkEvidence::Unknown
-      || raw.m_xDictFlag != 0u || raw.m_xDictHandle == 0u
-      || raw.m_xDictHandle == DRW::NoHandle || raw.m_rawBytes.empty()
+      || (missingDictionary ? (raw.m_xDictFlag > 1u || raw.m_xDictHandle != 0u)
+                            : (raw.m_xDictFlag != 0u || raw.m_xDictHandle == 0u
+                               || raw.m_xDictHandle == DRW::NoHandle))
+      || raw.m_rawBytes.empty()
       || raw.m_rawBytes.size() > maxBodyBytes || raw.m_rawBytes.size() != raw.m_objectSize
-      || raw.m_objectOffset != m_sourceOffset
+      || raw.m_objectOffset != source.m_sourceOffset
       || raw.m_bodyBitSize >= static_cast<std::uint64_t>(raw.m_objectSize) * 8u
-      || (m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::PhysicalFile
-          && m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::DecodedBuffer))
+      || (source.m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::PhysicalFile
+          && source.m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::DecodedBuffer))
     return false;
   if (publication.m_version != raw.m_version || publication.m_handle != raw.m_handle
-      || !publication.m_hasSourceLocation || publication.m_sourceOffset != m_sourceOffset
-      || publication.m_sourceMapOrdinal != m_sourceMapOrdinal
-      || publication.m_sourceOffsetSpace != m_sourceOffsetSpace
+      || !publication.m_hasSourceLocation || publication.m_sourceOffset != source.m_sourceOffset
+      || publication.m_sourceMapOrdinal != source.m_sourceMapOrdinal
+      || publication.m_sourceOffsetSpace != source.m_sourceOffsetSpace
       || publication.m_encodedType != raw.m_objectType
       || publication.m_resolvedType != raw.m_objectType
       || publication.m_isEntity || publication.m_isCustomClass
@@ -16317,7 +16322,7 @@ bool DRW_DwgAc1024LayerControlSource::matchesAc1024LayerControlFrame(
     if (!parsed.parseDwg(DRW::AC1024, &body, raw.m_bodyBitSize) || !body.isGood()
         || codec.accumulatedDecodeIssues() != 0u || parsed.handle != raw.m_handle
         || parsed.reactorCount() != 0 || !parsed.reactorHandles.empty()
-        || parsed.extensionDictionaryFlag() != 0u || parsed.xDictHandle != raw.m_xDictHandle
+        || parsed.extensionDictionaryFlag() != raw.m_xDictFlag || parsed.xDictHandle != raw.m_xDictHandle
         || parsed.hasDataStorageBinaryData() || !parsed.appData.empty() || !parsed.extData.empty()
         || !parsed.pendingAppIdResolutions.empty() || !parsed.pendingLayerRefResolutions.empty()
         || parsed.orderedHandleSlots != publication.m_controlHandles
@@ -16331,14 +16336,17 @@ bool DRW_DwgAc1024LayerControlSource::matchesAc1024LayerControlFrame(
     if (!handles.setPosition(start >> 3u)) return false;
     handles.setBitPos(static_cast<std::uint8_t>(start & 7u));
     const dwgHandle owner = handles.getHandle();
-    const dwgHandle dictionary = handles.getHandle();
     if (!handles.isGood() || owner.code != DRW::DwgSoftPointer
         || owner.size != 0u || owner.ref != 0u
-        || owner.ref64 != 0u
-        || dictionary.code != DRW::DwgHardOwnership
-        || dictionary.ref != raw.m_xDictHandle
-        || dictionary.ref64 != raw.m_xDictHandle)
+        || owner.ref64 != 0u || owner.rawCode != DRW::DwgSoftPointer)
       return false;
+    if (raw.m_xDictFlag == 0u) {
+      const dwgHandle dictionary = handles.getHandle();
+      if (!handles.isGood() || dictionary.code != DRW::DwgHardOwnership
+          || dictionary.rawCode != DRW::DwgHardOwnership
+          || dictionary.ref != raw.m_xDictHandle || dictionary.ref64 != raw.m_xDictHandle)
+        return false;
+    }
     for (std::size_t i = 0u;
          i < publication.m_controlHandles.size(); ++i) {
       const std::uint32_t expected = publication.m_controlHandles[i];
@@ -16353,12 +16361,20 @@ bool DRW_DwgAc1024LayerControlSource::matchesAc1024LayerControlFrame(
     }
     const std::uint64_t end = static_cast<std::uint64_t>(handles.getPosition()) * 8u
         + handles.getBitPos();
-    return handles.isGood() && end <= total && total - end <= 7u
-        && owner.rawCode == DRW::DwgSoftPointer
-        && dictionary.rawCode == DRW::DwgHardOwnership;
+    return handles.isGood() && end <= total && total - end <= 7u;
   } catch (...) {
     return false;
   }
+}
+
+bool DRW_DwgAc1024LayerControlSource::matchesAc1024LayerControlFrame(
+    const DRW_DwgFramePublication &publication) const noexcept {
+  return matchesAc1024LayerControlFrameImpl(*this, publication, false);
+}
+
+bool DRW_DwgAc1024LayerControlSource::matchesAc1024LayerControlWithoutDictionaryFrame(
+    const DRW_DwgFramePublication &publication) const noexcept {
+  return matchesAc1024LayerControlFrameImpl(*this, publication, true);
 }
 
 bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
