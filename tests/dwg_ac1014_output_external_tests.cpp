@@ -1292,7 +1292,10 @@ bool checkLegacyBlockPairWire(const std::string& input) {
         || DRW_DwgBlockRecordWireAccess::first(*model) != 0x2cu
         || DRW_DwgBlockRecordWireAccess::last(*model) != 0x2cu
         || DRW_DwgBlockRecordWireAccess::first(*paper) != 0u
-        || DRW_DwgBlockRecordWireAccess::last(*paper) != 0u) return false;
+        || DRW_DwgBlockRecordWireAccess::last(*paper) != 0u || !data.mBlock
+        || std::count_if(data.mBlock->ent.begin(), data.mBlock->ent.end(),
+            [](const DRW_Entity* entity) { return entity && entity->handle == 0x2cu
+                && dynamic_cast<const DRW_Line*>(entity) != nullptr; }) != 1) return false;
     auto& captured = DxIfaceStandardDwgCaptureTestAccess::blockBytes(data, model->handle);
     if (captured.empty()) return false;
     captured.front() ^= 0x80u;
