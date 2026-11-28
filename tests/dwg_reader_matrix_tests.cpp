@@ -110,7 +110,7 @@ public:
 
 class DwgHeaderCurrentTestAccess {
 public:
-    static std::array<std::uint32_t, 12> offsets(const dwgWriter& writer) {
+    static std::array<std::uint32_t, 18> offsets(const dwgWriter& writer) {
         return writer.m_headerCurrentReferenceBits;
     }
 };
@@ -19821,6 +19821,14 @@ public:
             && dimStyle->second->type() == DRW_Variant::STRING
             && dimStyle->second->content.s != nullptr)
             dimensionTextStyle = *dimStyle->second->content.s;
+        const std::array<const char*, 6> ucsNames{{"PUCSNAME", "PUCSORTHOREF", "PUCSBASE", "UCSNAME", "UCSORTHOREF", "UCSBASE"}};
+        for (std::size_t i = 0; i < ucsNames.size(); ++i) {
+            const auto found = header->vars.find(ucsNames[i]);
+            if (found != header->vars.end() && found->second != nullptr
+                && found->second->type() == DRW_Variant::STRING
+                && found->second->content.s != nullptr)
+                headerUcs[i] = *found->second->content.s;
+        }
         const std::array<const char*, 3> dimTypeNames{{"DIMLTYPE", "DIMLTEX1", "DIMLTEX2"}};
         for (std::size_t i = 0; i < dimTypeNames.size(); ++i) {
             const auto found = header->vars.find(dimTypeNames[i]);
@@ -19949,6 +19957,7 @@ public:
     std::string dimensionTextStyle;
     std::array<std::string, 4> dimensionArrows{};
     std::array<std::string, 3> dimensionLineTypes{};
+    std::array<std::string, 6> headerUcs{};
     DRW_Coord lineEnd;
     dx_data data;
 };
@@ -21728,6 +21737,9 @@ void testHeaderCurrentReferencesForVersion(TestContext& t, const char* version) 
             header.addStr("$DIMBLK", "Arrow-Main", 1);
             header.addStr("$DIMBLK1", "_Arrow-One", 1);
             header.addStr("$DIMBLK2", "Arrow-Two", 1);
+            const std::array<const char*, 6> ucsKeys{{"$PUCSNAME", "$PUCSORTHOREF", "$PUCSBASE", "$UCSNAME", "$UCSORTHOREF", "$UCSBASE"}};
+            for (std::size_t i = 0; i < ucsKeys.size(); ++i)
+                header.addStr(ucsKeys[i], "Selected-UCS" + std::to_string(i), 2);
             if (supportsDimLineTypes) {
                 header.addStr("$DIMLTYPE", "Dim-Line", 6);
                 header.addStr("$DIMLTEX1", "Dim-Ext1", 6);
@@ -21751,6 +21763,13 @@ void testHeaderCurrentReferencesForVersion(TestContext& t, const char* version) 
             expected[0] = writer.addLayer(layer);
             expected[1] = writer.addTextstyle(style);
             expected[3] = writer.addDimstyle(dim);
+        }
+        std::array<std::uint32_t, 6> ucsHandles{};
+        if (custom) {
+            for (std::size_t i = 0; i < ucsHandles.size(); ++i) {
+                DRW_UCS ucs; ucs.name = "Selected-UCS" + std::to_string(i);
+                if (writer.addUcs(ucs)) ucsHandles[i] = ucs.handle;
+            }
         }
         std::array<std::uint32_t, 3> dimLineHandles{};
         if (custom && supportsDimLineTypes) {
@@ -21794,6 +21813,10 @@ void testHeaderCurrentReferencesForVersion(TestContext& t, const char* version) 
                          && readHeaderReferenceBits(writer.buffer(), offsets[i + 9u])
                              == dimLineHandles[i],
                      std::string(version) + " dimension linetype resolves or is null");
+        for (std::size_t i = 0; i < ucsHandles.size(); ++i)
+            t.expect((!custom || ucsHandles[i] != 0u)
+                         && readHeaderReferenceBits(writer.buffer(), offsets[i + 12u]) == ucsHandles[i],
+                     std::string(version) + " HEADER UCS resolves or is null");
         const auto once = writer.buffer();
         t.expect(writer.finalizeHeaderHandseed() && writer.buffer() == once,
                  std::string(version) + " current-reference finalization is idempotent");
@@ -21822,6 +21845,11 @@ void testHeaderCurrentReferencesForVersion(TestContext& t, const char* version) 
             : std::array<std::string, 3>{};
         t.expect(sink.dimensionLineTypes == expectedLineTypes,
                  std::string(version) + " dimension linetype names read back");
+        const std::array<std::string, 6> expectedUcs = custom
+            ? std::array<std::string, 6>{{"Selected-UCS0", "Selected-UCS1", "Selected-UCS2", "Selected-UCS3", "Selected-UCS4", "Selected-UCS5"}}
+            : std::array<std::string, 6>{};
+        t.expect(sink.headerUcs == expectedUcs,
+                 std::string(version) + " HEADER UCS names read back");
     }
 }
 
@@ -21836,6 +21864,7 @@ public:
         if (dimension) header.addStr("$DIMTXSTY", "selected-style", 7);
         if (arrow) header.addStr("$DIMBLK", "selected-block", 1);
         if (dimLine) header.addStr("$DIMLTYPE", "selected-type", 6);
+        if (useUcs) header.addStr("$UCSNAME", "selected-ucs", 2);
     }
     void writeLTypes() override {
         if (includeType) {
@@ -21854,6 +21883,12 @@ public:
         if (includeStyle) {
             DRW_Textstyle style; style.name = "selected-style";
             wrote = writer_.addTextstyle(&style) && wrote;
+        }
+    }
+    void writeUCSs() override {
+        if (includeUcs) {
+            DRW_UCS ucs; ucs.name = "selected-ucs";
+            wrote = writer_.addUCS(&ucs) && wrote;
         }
     }
     void writeVports() override {}
@@ -21878,6 +21913,8 @@ public:
     bool includeBlock{false};
     bool dimLine{false};
     bool includeType{false};
+    bool useUcs{false};
+    bool includeUcs{false};
     bool wrote{true};
 private:
     dwgRW& writer_;
@@ -22200,7 +22237,7 @@ void testHeaderCurrentReferences(TestContext& t) {
 
     // Every failure must precede any HEADER mutation; repairing the caller's
     // value must make the same writer succeed and reseal its CRC.
-    for (int failure = 0; failure != 18; ++failure) {
+    for (int failure = 0; failure != 24; ++failure) {
         std::stringbuf output(std::ios::out | std::ios::binary);
         std::ofstream stream;
         static_cast<std::ostream&>(stream).rdbuf(&output);
@@ -22225,7 +22262,9 @@ void testHeaderCurrentReferences(TestContext& t) {
         const std::array<const char*, 4> arrowKeys{{"$DIMLDRBLK", "$DIMBLK", "$DIMBLK1", "$DIMBLK2"}};
         const std::array<const char*, 3> dimLineKeys{{"$DIMLTYPE", "$DIMLTEX1", "$DIMLTEX2"}};
         if (failure >= 11 && failure <= 14) header.addStr(arrowKeys[failure - 11], "missing-block", 1);
-        if (failure >= 15) header.addStr(dimLineKeys[failure - 15], "missing-type", 6);
+        const std::array<const char*, 6> ucsKeys{{"$PUCSNAME", "$PUCSORTHOREF", "$PUCSBASE", "$UCSNAME", "$UCSORTHOREF", "$UCSBASE"}};
+        if (failure >= 15 && failure <= 17) header.addStr(dimLineKeys[failure - 15], "missing-type", 6);
+        if (failure >= 18) header.addStr(ucsKeys[failure - 18], "missing-ucs", 2);
         dwgWriter21 writer(&stream, &header);
         const bool prepared = writer.prepareDwgClassManifest() && writer.writeFileHeaderStub()
             && writer.writeDwgHeader() && writer.writeDwgClasses();
@@ -22259,7 +22298,8 @@ void testHeaderCurrentReferences(TestContext& t) {
         }
         if (failure >= 6 && failure <= 10) header.addStr("$DIMTXSTY", "STANDARD", 7);
         if (failure >= 11 && failure <= 14) header.addStr(arrowKeys[failure - 11], "", 1);
-        if (failure >= 15) header.addStr(dimLineKeys[failure - 15], "BYLAYER", 6);
+        if (failure >= 15 && failure <= 17) header.addStr(dimLineKeys[failure - 15], "BYLAYER", 6);
+        if (failure >= 18) header.addStr(ucsKeys[failure - 18], "", 2);
         header.addStr("$CLAYER", "0", 8);
         t.expect(writer.finalizeHeaderHandseed()
                      && readHeaderReferenceBits(writer.buffer(),
@@ -22393,6 +22433,31 @@ void testHeaderCurrentReferences(TestContext& t) {
                  && typeReader.readBuffer(typeFile.data(), typeFile.size(), &typeSink, false)
                  && typeSink.dimensionLineTypes[0] == "selected-type",
              "dimension linetype retry publishes the selected LTYPE");
+    {
+        std::ofstream existingUcs(path, std::ios::binary | std::ios::trunc);
+        existingUcs << "existing output sentinel";
+    }
+    dwgRW ucsWriter(path.string().c_str());
+    HeaderCurrentWriteAdapter ucsAdapter(ucsWriter);
+    ucsAdapter.useUcs = true;
+    ucsAdapter.includeLayer = true;
+    const bool ucsRefused = !ucsWriter.write(&ucsAdapter, DRW::AC1021, true);
+    std::ifstream existingUcs(path, std::ios::binary);
+    const std::string retainedUcs((std::istreambuf_iterator<char>(existingUcs)), {});
+    existingUcs.close();
+    t.expect(ucsRefused && retainedUcs == "existing output sentinel",
+             "missing HEADER UCS preserves an existing DWG destination");
+    ucsAdapter.includeUcs = true;
+    t.expect(ucsWriter.write(&ucsAdapter, DRW::AC1021, true) && ucsAdapter.wrote,
+             "adding the HEADER UCS lets the same DWG writer retry");
+    std::ifstream publishedUcs(path, std::ios::binary);
+    const std::vector<std::uint8_t> ucsFile((std::istreambuf_iterator<char>(publishedUcs)), {});
+    HeaderPublicationSink ucsSink;
+    dwgRW ucsReader("");
+    t.expect(!ucsFile.empty()
+                 && ucsReader.readBuffer(ucsFile.data(), ucsFile.size(), &ucsSink, false)
+                 && ucsSink.headerUcs[3] == "selected-ucs",
+             "HEADER UCS retry publishes the selected UCS");
 }
 
 // Optional local physical-producer regression; the caller supplies the

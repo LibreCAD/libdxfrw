@@ -4367,7 +4367,7 @@ bool DRW_Header::encodeDwgForWriter(
         DRW::Version version, dwgBufferW *buf, dwgBufferW *hBbuf,
         dwgBufferW *strBuf, std::uint32_t namedObjectDictionaryHandle,
         std::uint32_t plotSettingsDictionaryHandle,
-        std::array<std::uint64_t, 12>* currentReferenceBits,
+        std::array<std::uint64_t, 18>* currentReferenceBits,
         std::uint32_t groupDictionaryHandle,
         std::uint32_t plotStyleDictionaryHandle) {
     return encodeDwgForWriterMaterial(version, buf, hBbuf, strBuf,
@@ -4379,7 +4379,7 @@ bool DRW_Header::encodeDwgForWriterMaterial(
         DRW::Version version, dwgBufferW *buf, dwgBufferW *hBbuf,
         dwgBufferW *strBuf, std::uint32_t namedObjectDictionaryHandle,
         std::uint32_t plotSettingsDictionaryHandle,
-        std::array<std::uint64_t, 12>* currentReferenceBits,
+        std::array<std::uint64_t, 18>* currentReferenceBits,
         std::uint32_t groupDictionaryHandle, std::uint32_t plotStyleDictionaryHandle,
         std::uint32_t materialDictionaryHandle, std::uint32_t currentMaterialHandle) {
     if (version != DRW::AC1015 && version != DRW::AC1018 &&
@@ -4623,6 +4623,23 @@ bool DRW_Header::encodeDwgForWriterMaterial(
         (*currentReferenceBits)[index] = hBbuf->bitCount() + 8u;
         hBbuf->putFixedHandle(DRW::DwgHardPointer, 4u, 0u);
     };
+    // Preserve the established compact null when no value was supplied.
+    // A supplied value reserves a patchable slot, even if it later fails
+    // validation, so the caller can correct it and retry.
+    const auto putOptionalReference = [&](std::size_t index, const char* name) {
+        const bool supplied = std::any_of(vars.begin(), vars.end(), [name](const auto& item) {
+            const auto& key = item.first;
+            const std::size_t start = !key.empty() && key.front() == '$' ? 1u : 0u;
+            return key.size() - start == std::strlen(name)
+                && std::equal(key.begin() + start, key.end(), name, [](char a, char b) {
+                    return std::toupper(static_cast<unsigned char>(a)) == b;
+                });
+        });
+        if (currentReferenceBits != nullptr && supplied)
+            putCurrentReference(index);
+        else
+            hBbuf->putHandle(makeHardPtr(0));
+    };
     putCurrentReference(0);           // CLAYER
     putCurrentReference(1);           // TEXTSTYLE
     putCurrentReference(2);           // CELTYPE
@@ -4643,10 +4660,10 @@ bool DRW_Header::encodeDwgForWriterMaterial(
     buf->put3BitDouble(coordVar(*this, "PUCSORG"));
     buf->put3BitDouble(coordVar(*this, "PUCSXDIR"));
     buf->put3BitDouble(coordVar(*this, "PUCSYDIR"));
-    hBbuf->putHandle(makeHardPtr(0));  // PUCSNAME
-    hBbuf->putHandle(makeHardPtr(0));  // PUCSORTHOREF
+    putOptionalReference(12, "PUCSNAME");
+    putOptionalReference(13, "PUCSORTHOREF");
     buf->putBitShort(static_cast<std::uint16_t>(intVar(*this, "PUCSORTHOVIEW")));
-    hBbuf->putHandle(makeHardPtr(0));  // PUCSBASE
+    putOptionalReference(14, "PUCSBASE");
     buf->put3BitDouble(coordVar(*this, "PUCSORGTOP"));
     buf->put3BitDouble(coordVar(*this, "PUCSORGBOTTOM"));
     buf->put3BitDouble(coordVar(*this, "PUCSORGLEFT"));
@@ -4664,10 +4681,10 @@ bool DRW_Header::encodeDwgForWriterMaterial(
     buf->put3BitDouble(coordVar(*this, "UCSORG"));
     buf->put3BitDouble(coordVar(*this, "UCSXDIR"));
     buf->put3BitDouble(coordVar(*this, "UCSYDIR"));
-    hBbuf->putHandle(makeHardPtr(0));  // UCSNAME
-    hBbuf->putHandle(makeHardPtr(0));  // UCSORTHOREF
+    putOptionalReference(15, "UCSNAME");
+    putOptionalReference(16, "UCSORTHOREF");
     buf->putBitShort(static_cast<std::uint16_t>(intVar(*this, "UCSORTHOVIEW")));
-    hBbuf->putHandle(makeHardPtr(0));  // UCSBASE
+    putOptionalReference(17, "UCSBASE");
     buf->put3BitDouble(coordVar(*this, "UCSORGTOP"));
     buf->put3BitDouble(coordVar(*this, "UCSORGBOTTOM"));
     buf->put3BitDouble(coordVar(*this, "UCSORGLEFT"));
@@ -4760,23 +4777,6 @@ bool DRW_Header::encodeDwgForWriterMaterial(
     }
 
     // -------- DIM handles (R2000+: 5 handles) (parseDwg:2139-2148) ----------
-    // Preserve the established compact null when no value was supplied.
-    // A supplied value reserves a patchable slot, even if it later fails
-    // validation, so the caller can correct it and retry.
-    const auto putOptionalReference = [&](std::size_t index, const char* name) {
-        const bool supplied = std::any_of(vars.begin(), vars.end(), [name](const auto& item) {
-            const auto& key = item.first;
-            const std::size_t start = !key.empty() && key.front() == '$' ? 1u : 0u;
-            return key.size() - start == std::strlen(name)
-                && std::equal(key.begin() + start, key.end(), name, [](char a, char b) {
-                    return std::toupper(static_cast<unsigned char>(a)) == b;
-                });
-        });
-        if (currentReferenceBits != nullptr && supplied)
-            putCurrentReference(index);
-        else
-            hBbuf->putHandle(makeHardPtr(0));
-    };
     putOptionalReference(4, "DIMTXSTY");
     putOptionalReference(5, "DIMLDRBLK");
     putOptionalReference(6, "DIMBLK");
