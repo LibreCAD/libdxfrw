@@ -1,0 +1,133 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-unsafe-projection-link-loss-2026-11-28",
+  "date": "2026-11-28",
+  "gate": "P6-F",
+  "supportClaimEffect": "none",
+  "method": "On two scratch-only AC1012 resaves, compare normal guarded conversion with a separate diagnostic build that bypasses the legacy layout validator and the zero-callback GEODATA, RASTERVARIABLES and WIPEOUTVARIABLES guards. Inspect both encodings using original DXF tags and ezdxf. Never publish diagnostic outputs.",
+  "observations": [
+    {
+      "source": "destination-resaved.dwg",
+      "sourceSha256": "7d2a2c7a201a96bf2c5c9623c2d2bd7536976d8e684d8a62074f0d124db208e5",
+      "encoding": "ascii",
+      "guardedRefusedAndPreserved": true,
+      "unsafeScratchSucceeded": true,
+      "scratchOutputSha256": "7d04f51bc28305bbe5651e37bcccee9eb597c1e19e8ed4b6d368e93b67a4d958",
+      "physicalBlockRecordLinks": {
+        "*Model_Space": [],
+        "*Paper_Space": []
+      },
+      "physicalObserverRefused": true,
+      "ezdxfLoadedGraph": {
+        "Model": {
+          "handle": "2E",
+          "block": "1F",
+          "blockName": "*Model_Space"
+        },
+        "Layout1": {
+          "handle": "2F",
+          "block": "1E",
+          "blockName": "*Paper_Space"
+        }
+      },
+      "auditErrors": 0,
+      "auditFixes": 0,
+      "selectedLineAndStyleMatched": true,
+      "uninstantiatedClassesInOutput": []
+    },
+    {
+      "source": "destination-resaved.dwg",
+      "sourceSha256": "7d2a2c7a201a96bf2c5c9623c2d2bd7536976d8e684d8a62074f0d124db208e5",
+      "encoding": "binary",
+      "guardedRefusedAndPreserved": true,
+      "unsafeScratchSucceeded": true,
+      "scratchOutputSha256": "b9657520728251eea7037c69328fd5a4e66e670a450ded0dac27aa630065ba24",
+      "physicalBlockRecordLinks": {
+        "*Model_Space": [],
+        "*Paper_Space": []
+      },
+      "physicalObserverRefused": true,
+      "ezdxfLoadedGraph": {
+        "Model": {
+          "handle": "2E",
+          "block": "1F",
+          "blockName": "*Model_Space"
+        },
+        "Layout1": {
+          "handle": "2F",
+          "block": "1E",
+          "blockName": "*Paper_Space"
+        }
+      },
+      "auditErrors": 0,
+      "auditFixes": 0,
+      "selectedLineAndStyleMatched": true,
+      "uninstantiatedClassesInOutput": []
+    },
+    {
+      "source": "source-resaved.dwg",
+      "sourceSha256": "93cb1e6c0d62c53ef485b9c74eda41151e28db60c1514cecd0607bbcf30b77aa",
+      "encoding": "ascii",
+      "guardedRefusedAndPreserved": true,
+      "unsafeScratchSucceeded": true,
+      "scratchOutputSha256": "846658ffdcb5d19dc367d74531e4ab2f04b91851ac007cf0f6356bf291eba074",
+      "physicalBlockRecordLinks": {
+        "*Model_Space": [],
+        "*Paper_Space": []
+      },
+      "physicalObserverRefused": true,
+      "ezdxfLoadedGraph": {
+        "Model": {
+          "handle": "2E",
+          "block": "1F",
+          "blockName": "*Model_Space"
+        },
+        "Layout1": {
+          "handle": "2F",
+          "block": "1E",
+          "blockName": "*Paper_Space"
+        }
+      },
+      "auditErrors": 0,
+      "auditFixes": 0,
+      "selectedLineAndStyleMatched": true,
+      "uninstantiatedClassesInOutput": []
+    },
+    {
+      "source": "source-resaved.dwg",
+      "sourceSha256": "93cb1e6c0d62c53ef485b9c74eda41151e28db60c1514cecd0607bbcf30b77aa",
+      "encoding": "binary",
+      "guardedRefusedAndPreserved": true,
+      "unsafeScratchSucceeded": true,
+      "scratchOutputSha256": "54ace6458d5814db51766d8937f11c803cf2f7aa1d044dad14fa7574adc9cb9c",
+      "physicalBlockRecordLinks": {
+        "*Model_Space": [],
+        "*Paper_Space": []
+      },
+      "physicalObserverRefused": true,
+      "ezdxfLoadedGraph": {
+        "Model": {
+          "handle": "2E",
+          "block": "1F",
+          "blockName": "*Model_Space"
+        },
+        "Layout1": {
+          "handle": "2F",
+          "block": "1E",
+          "blockName": "*Paper_Space"
+        }
+      },
+      "auditErrors": 0,
+      "auditFixes": 0,
+      "selectedLineAndStyleMatched": true,
+      "uninstantiatedClassesInOutput": []
+    }
+  ],
+  "conclusion": "The diagnostic outputs omit both physical BLOCK_RECORD 340 backlinks. ezdxf creates the links in memory while reporting zero audit fixes; therefore peer-loaded graphs and clean audits alone cannot establish physical graph closure. The three zero-callback class names are absent from the selected outputs.",
+  "limits": [
+    "Scratch bypass skips required validation and does not qualify output.",
+    "The selected source graph is locally altered and not validated by native AutoCAD.",
+    "Remaining layout fields, dictionary semantics, output CLASS behavior in general, collisions and late mutation were not proven.",
+    "No generated drawing or diagnostic executable is committed."
+  ]
+}

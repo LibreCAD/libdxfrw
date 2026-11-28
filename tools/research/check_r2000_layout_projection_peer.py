@@ -29,7 +29,10 @@ def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def physical_graph(path: Path, binary: bool) -> dict:
+def physical_graph(path: Path, binary: bool, expected_blocks=None) -> dict:
+    if expected_blocks is None:
+        expected_blocks = {'Model': '*Model_Space', 'Sheet A': '*Paper_Space',
+                           'Sheet B': '*Paper_Space0'}
     data = path.read_bytes()
     if binary:
         pairs = read_pairs(data)
@@ -61,17 +64,15 @@ def physical_graph(path: Path, binary: bool) -> dict:
                     'invalid physical LAYOUT identity or block link')
             layouts[row['name']] = {'handle': row['handle'],
                                     'block': links[0]}
-    require(set(layouts) == {'Model', 'Sheet A', 'Sheet B'}
-            and len(blocks) == 3, 'unexpected generated layout profile')
+    require(set(layouts) == set(expected_blocks)
+            and len(blocks) == len(expected_blocks), 'unexpected layout profile')
     for row in layouts.values():
         block = blocks.get(row['block'])
         require(block is not None and block['layout'] == row['handle'],
                 'physical layout links do not agree')
         row['blockName'] = block['name']
-    require(len({row['handle'] for row in layouts.values()}) == 3
-            and {name: row['blockName'] for name, row in layouts.items()} == {
-                'Model': '*Model_Space', 'Sheet A': '*Paper_Space',
-                'Sheet B': '*Paper_Space0'},
+    require(len({row['handle'] for row in layouts.values()}) == len(expected_blocks)
+            and {name: row['blockName'] for name, row in layouts.items()} == expected_blocks,
             'physical layout handles or block roles are wrong')
     return layouts
 

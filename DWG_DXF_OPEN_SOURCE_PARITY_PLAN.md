@@ -103,7 +103,12 @@ below is still open, and its linked evidence defines the present boundary.
    then inspect target CLASS emission and refusal/retry before changing guards. Neither
    scratch variant proves valid native
    semantics. Qualify each source and its target mapping separately; peer repair
-   is not source-graph evidence. The [shared association
+   is not source-graph evidence. In the [unsafe bypass experiment](docs/research/p6-ac1012-unsafe-projection-link-loss-2026-11-28.json),
+   both encodings omit physical BLOCK_RECORD 340 backlinks even though ezdxf
+   reconstructs them without an audit fix. Project the uniquely resolved legacy
+   links into writer-only identities and verify the original physical links,
+   source snapshots, staged output, rollback and corrected retry before admitting
+   any profile. The [shared association
    identity checks](docs/research/p6-layout-association-identity-guards-2026-11-28.json)
    reject malformed source identities transactionally in both legacy and
    reciprocal modes. The target projection must still be integrated with
