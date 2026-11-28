@@ -73,7 +73,7 @@ below is still open, and its linked evidence defines the present boundary.
    and [ODA-generated pair](docs/research/p6-ac1012-oda-root-case-pair-2026-11-25.json).
    Obtain native normal-open and cloning results using the [witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md);
    the [hash-checked handoff](docs/research/p6-ac1012-two-element-handoff-2026-11-27.json)
-   is ready; the [updated packet](docs/research/p6-ac1012-pair-dimstyle-wire-2026-11-27.json) includes the checked frames and warns that ODA DXF reopens change four selected Standard DIMSTYLE values. The same [divergence occurs on ODA-generated AC1012 inputs](docs/research/p6-ac1012-oda-generated-dimstyle-divergence-2026-11-27.json). Resolve the interpretation and check the native result before using either pair for whole-drawing evidence. The ODA source also needs EED, empty-name root, extension/XRECORD
+   is ready; the [updated packet](docs/research/p6-ac1012-pair-dimstyle-wire-2026-11-27.json) includes the checked frames and warns that ODA DXF reopens differ on four selected Standard DIMSTYLE values. The same [divergence occurs on ODA-generated AC1012 inputs](docs/research/p6-ac1012-oda-generated-dimstyle-divergence-2026-11-27.json), whose input and reopened DXFs agree despite different intervening DWG values. Resolve the interpretation and check the native result before using either pair for whole-drawing evidence. The ODA source also needs EED, empty-name root, extension/XRECORD
    and ModelDocViewStyle closure. Do not regenerate unchanged pairs without a
    discriminating question or infer native merge behavior from peer conversion.
 8. **Integration and FreeCAD.** Recheck affected profiles against final heads
