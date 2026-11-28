@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-pair-style-appid-wire-2026-11-27",
+  "supportClaimEffect": "none",
+  "candidateCommit": "845614f07",
+  "implementationDigestSha256": "bbbb408d31e54ad33a3ebaffdff4bff555b77919983c49e6d04f6396f5e44996",
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.1, 20.4.55, 20.4.56, 20.4.65 and 20.4.66",
+  "scope": "STYLE_CONTROL 0x3, Standard STYLE 0x11, APPID_CONTROL 0x9 and ACAD APPID 0x12 in the locally generated AC1012 pair.",
+  "checks": [
+    "CRC-checked physical frames and exact data/handle boundaries are bound for both drawings. The controls have one role-2 entry each; both rows have relative role-12 control owners and typed null extension/xref. STYLE fields include font txt, zero fixed height, width 1 and last height 0.2; APPID's undocumented byte is zero.",
+    "Every wrong-role mutation and byte-prefix truncation is refused, followed by successful original-frame retry. The adapter's corresponding style and application names, handles, owners and selected style values match; both generated inputs and the shared vector CTest pass.",
+    "Independent cadkit-dwg 0.5.4 decodes the selected source STYLE fields and APPID name. The peer labels R13 untested; its APPID result is not claimed as an independent interpretation of the undocumented byte. The updated handoff packet includes four frame hashes. No drawing fixture was committed."
+  ],
+  "scratchPacket": "/private/tmp/ac1012-native-two-element-style-appid-20261127",
+  "hashes": {
+    "observer": "df3672187849088041b59ecf9288227db04f75ab01242ac802941592819dba7e",
+    "observerResults": "e47032f3884e355c9dfcf6a6ae85b82ba9b36b5544de24249a2246f07f5bb6ea",
+    "ctestLog": "f3f47bdeb1580cc346959844387b2622ab0f983bee3cbb431339e91f325a202b",
+    "cadkitStyleLog": "04b95b4779bc048b76780e37aca014237f3c0c0149ecfa34059d7076a61fcbd1",
+    "cadkitAppidLog": "fc71d6f61a9545680803fc4863d55bef1d79f1ff2a13d40001b3de638c9b9610",
+    "packetManifest": "7477ad6eb22b86f75fa91fcc086ce484be136c5b91a6aa6ea253796be436c380"
+  },
+  "limits": [
+    "Decoded font spelling and fields do not establish native font availability, style validity, AutoCAD normal-open, dictionary cloning behavior, whole-file closure or output support."
+  ]
+}

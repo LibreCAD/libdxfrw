@@ -15,8 +15,8 @@ advisory, and excluded. Completed slice history and validation remain in
 `docs/research/` and Git history.
 
 The current test-inclusive implementation digest is
-`6adc57729f04a31c47bddf2fab648ff658b14f4432b15107a2d14bf8b6840f46`
-(784 inputs; test harness through `f8ec349f7`; production implementation through `1a1e502af`). Earlier hosted runs bind prior digests; current-head hosted results are pending. The [latest source-release inventory repair](docs/research/p8-freecad-3dface-source-release-inventory-repair-2026-11-27.json) adds the tracked FreeCAD report patch omitted from the manifest; the local inventory and self-test pass and a new hosted run is pending. The [current CI repair and focused requalification](docs/research/p8-ci-repair-3e681e-2026-11-27.json) tracks completed and pending platform jobs at commit 3e681e694. The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
+`bbbb408d31e54ad33a3ebaffdff4bff555b77919983c49e6d04f6396f5e44996`
+(784 inputs; test harness through `845614f07`; production implementation through `1a1e502af`). Earlier hosted runs bind prior digests; current-head hosted results are pending. The [latest source-release inventory repair](docs/research/p8-freecad-3dface-source-release-inventory-repair-2026-11-27.json) adds the tracked FreeCAD report patch omitted from the manifest; the local inventory and self-test pass and a new hosted run is pending. The [current CI repair and focused requalification](docs/research/p8-ci-repair-3e681e-2026-11-27.json) tracks completed and pending platform jobs at commit 3e681e694. The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
 and the [FreeCAD handoff matrix](docs/research/p8-native-freecad-2e4ae17b-2026-11-27.json) passed on earlier production inputs. The current [FreeCAD recheck](docs/research/p8-ci-repair-3e681e-2026-11-27.json) passes 16 Linux and 17 Windows tests, covering specified CLI and legacy importer profiles, not GUI or general 3D parity; hosted focused native and installed shared/static package checks also pass on Linux, Windows and macOS for matching production inputs.
 Recheck affected profiles against the frozen candidate.
 All support claims remain experimental.
@@ -69,11 +69,11 @@ below is still open, and its linked evidence defines the present boundary.
    gradients, additional colors, tilted/elevated planes, native edits,
    rendering and independent producers. Reuse the [binary layout profile](docs/research/p8d-librecad3-checked-binary-replay-2026-11-26.json).
 7. **AC1012 and legacy source semantics.** Qualify the remaining graphs of the
-   [two-element generated pair](docs/research/p6-ac1012-populated-style-wire-2026-11-27.json), whose [model/paper BLOCK_HEADER frames](docs/research/p6-ac1012-pair-block-wire-2026-11-27.json), [BLOCK/ENDBLK boundaries](docs/research/p6-ac1012-pair-block-entity-wire-2026-11-27.json), [BLOCK_CONTROL membership](docs/research/p6-ac1012-pair-block-control-wire-2026-11-27.json), [layer dependencies](docs/research/p6-ac1012-pair-layer-wire-2026-11-27.json), and [standard linetypes](docs/research/p6-ac1012-pair-linetype-wire-2026-11-27.json) pass source and role observers,
+   [two-element generated pair](docs/research/p6-ac1012-populated-style-wire-2026-11-27.json), whose [model/paper BLOCK_HEADER frames](docs/research/p6-ac1012-pair-block-wire-2026-11-27.json), [BLOCK/ENDBLK boundaries](docs/research/p6-ac1012-pair-block-entity-wire-2026-11-27.json), [BLOCK_CONTROL membership](docs/research/p6-ac1012-pair-block-control-wire-2026-11-27.json), [layer dependencies](docs/research/p6-ac1012-pair-layer-wire-2026-11-27.json), [standard linetypes](docs/research/p6-ac1012-pair-linetype-wire-2026-11-27.json), and [STYLE/APPID tables](docs/research/p6-ac1012-pair-style-appid-wire-2026-11-27.json) pass source and role observers,
    and [ODA-generated pair](docs/research/p6-ac1012-oda-root-case-pair-2026-11-25.json).
    Obtain native normal-open and cloning results using the [witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md);
    the [hash-checked handoff](docs/research/p6-ac1012-two-element-handoff-2026-11-27.json)
-   is ready; the [updated packet](docs/research/p6-ac1012-pair-linetype-wire-2026-11-27.json) adds block, layer and standard-linetype frame hashes. The ODA source also needs EED, empty-name root, extension/XRECORD
+   is ready; the [updated packet](docs/research/p6-ac1012-pair-style-appid-wire-2026-11-27.json) adds block, layer, linetype and STYLE/APPID frame hashes. The ODA source also needs EED, empty-name root, extension/XRECORD
    and ModelDocViewStyle closure. Do not regenerate unchanged pairs without a
    discriminating question or infer native merge behavior from peer conversion.
 8. **Integration and FreeCAD.** Recheck affected profiles against final heads
