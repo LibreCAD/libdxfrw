@@ -1,0 +1,34 @@
+{
+  "kind": "librecad-hatch-physical-geometry-snapshot",
+  "date": "2026-11-28",
+  "consumerCommit": "2ee914b28268f15aae9c54db752e32f7c4fde57c",
+  "codecCommit": "7a76eb16c4dd201264b8c4bde6e8dc984193618a",
+  "scope": "For the previously byte-bound selected ASCII HATCH/LWPOLYLINE pair, compare an exact straight closed solid HATCH polyline path and LWPOLYLINE body against each other and the delivered live and cached geometry. Retain the canonical original edge snapshot separately from source-role and model-space evidence.",
+  "checks": {
+    "systemCodec": {
+      "cases": 6,
+      "assertions": 382,
+      "result": "pass",
+      "logSha256": "14cc7c5e682afc5e76e4699c18a97a53ed15ab22f03e787cb3d01bf327675cb6"
+    },
+    "bundledCodec": {
+      "cases": 4,
+      "assertions": 225,
+      "result": "pass; optional source observer absent",
+      "logSha256": "bc977f44c659caa85fcafe3a3b68ca67f655c0f3fe7793b2cc5aeb1ddb21bf15"
+    }
+  },
+  "controls": [
+    "Locally authored full AC1024 drawing checks rotated boundary ordering and exact four-edge snapshot.",
+    "Changed typed coordinates or closed flag and differing source boundary coordinates suppress the geometry witness while leaving independently validated role evidence separate.",
+    "Moving both live objects yields a changed matching snapshot while the retained source snapshot remains unchanged.",
+    "Earlier observer fault, source-byte, duplicate, truncated import, corrected retry, ODA-peer import and selected mixed IMAGE/MATERIAL controls pass."
+  ],
+  "limits": [
+    "Only a narrow exact ASCII single-loop solid straight planar profile with no more than 4096 vertices is checked; polygon simplicity and graph closure are not established.",
+    "No final export check or association replay is enabled, and native producer or editing behavior is not qualified.",
+    "The ODA-converted peer exceeds the retained source byte limit and does not obtain this snapshot."
+  ],
+  "fixtures": "Locally authored drawing; no DXF or DWG committed",
+  "supportClaimsPromoted": false
+}
