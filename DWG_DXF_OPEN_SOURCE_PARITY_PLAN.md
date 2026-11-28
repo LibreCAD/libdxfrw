@@ -90,8 +90,14 @@ below is still open, and its linked evidence defines the present boundary.
    comparison](docs/research/p6-ac1012-acadrust-layout-peer-2026-11-28.json)
    distinguishes the unrooted originals from the rooted resaves: ODA creates
    new layout identities for the former and fills a model viewport in both.
-   Qualify each source and its target mapping separately; peer repair is not
-   source-graph evidence. The [shared association
+   The resaves still lack the plot-style root; a [diagnostic-only guard
+   bypass](docs/research/p6-ac1012-layout-next-refusal-2026-11-28.json) reaches
+   that refusal. An [explicitly rooted scratch variant](docs/research/p6-ac1012-rooted-plotstyle-probe-2026-11-28.json)
+   instead reaches a proxy GEODATA CLASS refusal despite LibreDWG reporting
+   zero instances. Verify complete class/frame census and output-class behavior
+   before changing that guard; neither scratch variant proves valid native
+   semantics. Qualify each source and its target mapping separately; peer repair
+   is not source-graph evidence. The [shared association
    identity checks](docs/research/p6-layout-association-identity-guards-2026-11-28.json)
    reject malformed source identities transactionally in both legacy and
    reciprocal modes. The target projection must still be integrated with

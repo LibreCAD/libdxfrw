@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-rooted-plotstyle-probe-2026-11-28",
+  "date": "2026-11-28",
+  "gate": "P6-F",
+  "supportClaimEffect": "none",
+  "baseCommit": "3feab932b",
+  "method": "Scratch-only mutation of the prior ACadRust witness generator: read each locally generated AC1012 original, explicitly add ACAD_PLOTSTYLENAME to the retained DICTIONARYWDFLT in its named-object dictionary, and resave using the same pinned writer. A separate diagnostic build bypassed only the entire legacy layout graph validator branch. The PR implementation retained all guards.",
+  "generatorSha256": "db593ba3a2795f8a2acb57b47790671ee36d62e5df00e07b14211b76a0eb1551",
+  "producerCommit": "d7c71f5032fc2d8844142ad7df7a6f0ee5ac535f",
+  "observations": [
+    {
+      "side": "destination",
+      "sourceSha256": "7d2a2c7a201a96bf2c5c9623c2d2bd7536976d8e684d8a62074f0d124db208e5",
+      "build": "guarded",
+      "encoding": "ascii",
+      "exit": 1,
+      "destinationPreserved": true,
+      "refusal": "R13/R14 DWG LAYOUT forward references need a qualified target projection"
+    },
+    {
+      "side": "destination",
+      "sourceSha256": "7d2a2c7a201a96bf2c5c9623c2d2bd7536976d8e684d8a62074f0d124db208e5",
+      "build": "guarded",
+      "encoding": "binary",
+      "exit": 1,
+      "destinationPreserved": true,
+      "refusal": "R13/R14 DWG LAYOUT forward references need a qualified target projection"
+    },
+    {
+      "side": "destination",
+      "sourceSha256": "7d2a2c7a201a96bf2c5c9623c2d2bd7536976d8e684d8a62074f0d124db208e5",
+      "build": "scratch-bypass",
+      "encoding": "ascii",
+      "exit": 1,
+      "destinationPreserved": true,
+      "refusal": "GEODATA source CLASS, owner, host-block, or body profile"
+    },
+    {
+      "side": "destination",
+      "sourceSha256": "7d2a2c7a201a96bf2c5c9623c2d2bd7536976d8e684d8a62074f0d124db208e5",
+      "build": "scratch-bypass",
+      "encoding": "binary",
+      "exit": 1,
+      "destinationPreserved": true,
+      "refusal": "GEODATA source CLASS, owner, host-block, or body profile"
+    },
+    {
+      "side": "source",
+      "sourceSha256": "93cb1e6c0d62c53ef485b9c74eda41151e28db60c1514cecd0607bbcf30b77aa",
+      "build": "guarded",
+      "encoding": "ascii",
+      "exit": 1,
+      "destinationPreserved": true,
+      "refusal": "R13/R14 DWG LAYOUT forward references need a qualified target projection"
+    },
+    {
+      "side": "source",
+      "sourceSha256": "93cb1e6c0d62c53ef485b9c74eda41151e28db60c1514cecd0607bbcf30b77aa",
+      "build": "guarded",
+      "encoding": "binary",
+      "exit": 1,
+      "destinationPreserved": true,
+      "refusal": "R13/R14 DWG LAYOUT forward references need a qualified target projection"
+    },
+    {
+      "side": "source",
+      "sourceSha256": "93cb1e6c0d62c53ef485b9c74eda41151e28db60c1514cecd0607bbcf30b77aa",
+      "build": "scratch-bypass",
+      "encoding": "ascii",
+      "exit": 1,
+      "destinationPreserved": true,
+      "refusal": "GEODATA source CLASS, owner, host-block, or body profile"
+    },
+    {
+      "side": "source",
+      "sourceSha256": "93cb1e6c0d62c53ef485b9c74eda41151e28db60c1514cecd0607bbcf30b77aa",
+      "build": "scratch-bypass",
+      "encoding": "binary",
+      "exit": 1,
+      "destinationPreserved": true,
+      "refusal": "GEODATA source CLASS, owner, host-block, or body profile"
+    }
+  ],
+  "independentPeerObservation": "LibreDWG 0.14 locates ACAD_LAYOUT -> 0x23 and ACAD_PLOTSTYLENAME -> 0x25 in each modified root. Its GEODATA CLASS row is marked proxy and reports zero instances; no native producer semantics are implied. The diagnostic build reaches a GEODATA CLASS profile refusal after the unsafe layout bypass.",
+  "limitations": [
+    "This is a locally altered generated graph; its validity in AutoCAD is not established.",
+    "Zero observed instances and a proxy CLASS do not by themselves prove it is safe to relax the CLASS guard; establish complete frame inventory and output CLASS behavior first.",
+    "All eight attempts refused and preserved destinations; no end-to-end export was validated.",
+    "No generated DWG/DXF files were committed."
+  ]
+}
