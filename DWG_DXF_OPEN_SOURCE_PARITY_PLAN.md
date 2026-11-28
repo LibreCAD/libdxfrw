@@ -45,9 +45,7 @@ below is still open, and its linked evidence defines the present boundary.
    and cross-version refusals until their respective bounds, output closure and
    independent readback are proved. The [512 KiB raster-only source slice](docs/research/p8d-librecad-raster-512k-source-2026-11-28.json)
    checks a 512-image, 256-definition AC1024 graph and exact size-boundary retry.
-   Mixed raster/material sources retain the 256 KiB gate; 512 distinct definitions
-   still hit a retained-source guard. The shared 4 MiB logical raster budget,
-   640 IMAGEDEF groups and 542 IMAGE groups remain in force; raise limits only
+   The [512-distinct-definition slice](docs/research/p8d-librecad-raster-512-distinct-definitions-2026-11-28.json) retains the selected AC1024 graph with independently checked output and a shared 6 MiB logical source budget. Mixed raster/material sources retain the 256 KiB gate. The 640 IMAGEDEF groups and 542 IMAGE groups remain in force; raise limits only
    with aggregate accounting. Qualify rendering and platforms
    separately; one native skewed-image save/reopen, [selected pointer picks](docs/research/p8d-librecad-native-image-picking-2026-11-28.json), and [one macOS print-to-PDF check](docs/research/p8d-librecad-image-skew-print-pdf-2026-11-28.json) are checked after the affine change. Clipping beyond 256 vertices, broader GUI picking and printing remain open.
 3. **Legacy HEADER and versions.** Resolve R12/R14 `$FACETRES`, `$ISOLINES`,

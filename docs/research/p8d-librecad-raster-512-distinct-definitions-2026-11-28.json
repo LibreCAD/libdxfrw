@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-raster-512-distinct-definitions-2026-11-28",
+  "supportClaimEffect": "none",
+  "consumerCommit": "76f265bbe3465fdc66771784d028fe979d68bc31",
+  "scope": "Selected same-version AC1024 ASCII LibreCAD IMAGE graph with 512 distinct IMAGEDEFs; no general raster support claim.",
+  "implementation": "Raise the shared logical retained-source cap for IMAGE and IMAGEDEF maps from 4 MiB to 6 MiB while retaining the existing per-source payload, group-count, source-file and 512-record-per-kind bounds. The accounting includes both maps' fixed elements, group variants, raw values and retained payloads; it is not a total process-memory or allocator-capacity bound.",
+  "checks": [
+    "The locally generated 323185-byte source retains 512 IMAGE, 512 IMAGEDEF and 512 IMAGEDEF_REACTOR records. On macOS ARM64 the existing logical accounting measured 4717423 bytes for its source records, exceeding the previous 4 MiB cap and remaining below 6 MiB.",
+    "Fresh library readback and repeat save pass. A late image-position mutation preserves the existing destination, followed by a corrected same-filter retry. The shared-budget test still rejects excessive combined IMAGE/IMAGEDEF data and clears for retry; 513-image and source-file-size refusal controls remain in the focused suite.",
+    "The fully rebuilt shared-codec suite passes 2316 assertions in five cases. A targeted AddressSanitizer build of the modified consumer filter and test units passes 1789 assertions in three cases; the codec and other linked units retain their existing instrumentation, and leak detection was disabled.",
+    "The bundled-codec filter translation unit compiles; its previously built focused HATCH fallback suite passes 236 assertions. The 6 MiB constant is compiled only with the shared raster-source API, so this is not a newly rebuilt bundled executable qualification.",
+    "ezdxf 1.4.5 independently validates all 512 image and definition fields, unique reactor ownership and reciprocal links, model-space ownership and clipping paths, with no audit errors or fixes. Source and output observations agree exactly, as does an ODA File Converter 27.1.0 AC1024 DXF round trip."
+  ],
+  "sha256": {
+    "sourceDxf": "72dde891428c28db824a3d06138521c47efb365c176933453aabc8257fa00ef7",
+    "outputDxf": "bd246210cb183b4da999fc7cc94a9cbf436d5ae92a64436f61ed813f660f48f4",
+    "odaDxf": "0e7bc7f3ba7da39487b41f180dc578cd079f9ed8294ba7e5d2c91cf2ced39806",
+    "peerAudit": "437ff5e549330043ac310cc51539b8789b50ff9beca9e0db9ae2bc8c3f1b7123",
+    "systemTestLog": "fe6d3ea2da3fc5c77cc04660378e7fa86a81722c6fe0d0795c4817af0b424551",
+    "systemTestBinary": "24289ddeb0e3d8560eae96f6d50118990c9e81fe7253ccb2516c1f8fb142b9e5",
+    "sharedCodecBinary": "c69aa4c72c5a2113d73a822be8782f8ccfe53a85473b935acf353bf5ca90aa02",
+    "targetedAsanLog": "48192fe5738cba958f042670b6198649d418263a30662fcb6791f623e08cd601"
+  },
+  "limits": [
+    "Only the selected AC1024 source and target graph is independently checked. Different versions, larger graphs, nondefault dependencies, native GUI rendering and other platforms remain unqualified.",
+    "The existing 512 KiB raster-only source, 256 KiB mixed material source, 512 records per kind, 640 IMAGEDEF groups and 542 IMAGE groups remain in force. No generated drawing is committed."
+  ]
+}
