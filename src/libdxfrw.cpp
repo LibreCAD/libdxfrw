@@ -5175,10 +5175,10 @@ bool dxfRW::inspectDxfOutputHandleIsolation(
         static const std::map<std::string_view, std::set<int>> tables{
             {"TABLE", {2,5,70,71,100,330,340}}, {"ENDTAB", {}},
             {"BLOCK_RECORD", {2,5,70,100,280,281,330}}, {"APPID", {2,5,70,100,330}},
-            {"DIMSTYLE", {2,40,41,42,43,44,45,46,47,48,49,69,70,71,72,73,74,75,76,77,78,79,
+            {"DIMSTYLE", {2,3,4,40,41,42,43,44,45,46,47,48,49,69,70,71,72,73,74,75,76,77,78,79,
                 90,100,105,140,141,142,143,144,145,146,147,148,170,171,172,173,174,175,176,
                 177,178,179,271,272,273,274,275,276,277,278,279,280,281,282,283,284,285,286,
-                288,289,295,330,340,371,372}},
+                288,289,290,295,330,340,371,372}},
             {"LAYER", {2,5,6,62,70,100,290,330,370,390}}, {"LTYPE", {2,3,5,40,49,70,72,73,74,100,330}},
             {"STYLE", {2,3,4,5,40,41,42,50,70,71,100,330}},
             {"VPORT", {2,5,10,11,12,13,14,15,16,17,20,21,22,23,24,25,26,27,36,37,40,41,42,43,44,
@@ -5210,7 +5210,16 @@ bool dxfRW::inspectDxfOutputHandleIsolation(
                 dx_raster_output::Cursor cursor(body, view.binary, profile);
                 dx_raster_output::Token token;
                 while (!cursor.done()) {
-                    if (!cursor.next(token) || !fields->second.count(token.code)) return false;
+                    if (!cursor.next(token)) return false;
+                    if (name == "DIMSTYLE" && token.code == 1001) {
+                        // LibreCAD's modeled DIMTALN trailer is exactly two
+                        // 16-bit values and cannot contain a handle.
+                        if (token.text != "ACAD_DSTYLE_DIMTALN" || !cursor.next(token) ||
+                            token.code != 1070 || token.number != 392 || !cursor.next(token) ||
+                            token.code != 1070 || !cursor.done()) return false;
+                        break;
+                    }
+                    if (!fields->second.count(token.code)) return false;
                     if (name == "LTYPE" && token.code == 74 && token.number != 0) return false;
                     if (token.code == 100) {
                         const auto classes = subclasses.find(name);

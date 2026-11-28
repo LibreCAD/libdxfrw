@@ -227,6 +227,21 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
             if (mode == 32) { mutationApplied = true; return result; }
             if (!result) return false;
         }
+        if (section == dxfRW::DxfIsolationSection::Tables && (mode == 0 || mode == 35)) {
+            auto styled = std::string(view.bytes);
+            appendText(styled, binary, 0, "DIMSTYLE");
+            appendText(styled, binary, 105, "F00");
+            appendText(styled, binary, 100, "AcDbDimStyleTableRecord");
+            appendText(styled, binary, 1001, "ACAD_DSTYLE_DIMTALN");
+            appendInt16(styled, binary, 1070, 392);
+            appendInt16(styled, binary, 1070, 0);
+            if (mode == 35) appendText(styled, binary, 1005, "FFF004");
+            auto candidate = view;
+            candidate.bytes = styled;
+            const bool result = writer.inspectDxfOutputHandleIsolation(candidate, section, otherTargets);
+            if (mode == 35) { mutationApplied = true; return result; }
+            if (!result) return false;
+        }
         if (section == dxfRW::DxfIsolationSection::Objects && (mode == 0 || mode == 33 || mode == 34)) {
             auto plotted = std::string(view.bytes);
             appendText(plotted, binary, 0, "PLOTSETTINGS");
@@ -358,7 +373,7 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
         return writer.inspectDxfHatchOutputIsolation(view, links, true);
     })) return false;
     const std::string sentinel = "preserve destination";
-    for (unsigned fault = 1; fault <= 34; ++fault) {
+    for (unsigned fault = 1; fault <= 35; ++fault) {
         if (fault == 27 && version < DRW::AC1018) continue; // true color is not written before R2004
         mode = fault;
         adapter.extraReference = fault >= 24 && fault <= 27 ? fault - 23u : 0u;
