@@ -96,9 +96,11 @@ below is still open, and its linked evidence defines the present boundary.
    instead reaches a proxy GEODATA CLASS refusal. The R13 CLASS record has no
    instance-count field, so LibreDWG's zero is not a measured count. A
    [bounded physical census](docs/research/p6-ac1012-proxy-class-map-census-2026-11-28.json)
-   finds no mapped GEODATA class frames in those two samples; bind equivalent
-   complete source-frame and class-number evidence in the adapter, then inspect
-   target CLASS emission and refusal/retry before changing that guard. Neither
+   finds no mapped GEODATA class frames in those two samples and no mapped
+   RASTERVARIABLES or WIPEOUTVARIABLES frames in the destination. A second
+   diagnostic-only bypass reaches the RASTERVARIABLES class guard. Bind shared
+   complete source-frame and class-number evidence for all three in the adapter,
+   then inspect target CLASS emission and refusal/retry before changing guards. Neither
    scratch variant proves valid native
    semantics. Qualify each source and its target mapping separately; peer repair
    is not source-graph evidence. The [shared association

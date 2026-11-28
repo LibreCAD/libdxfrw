@@ -2,7 +2,7 @@
 """Synthetic bounds and corruption controls for the AC1012 map census."""
 import unittest
 
-from audit_ac1012_class_census import census
+from audit_ac1012_class_census import census, modular
 from legacy_dwg_dictionary_wire import crc16
 
 
@@ -31,6 +31,14 @@ def sample():
 
 
 class ObjectMapControls(unittest.TestCase):
+    def test_modular_values_and_bounds(self):
+        self.assertEqual(modular(b'\x81\x01', 0, 2, False), (129, 2))
+        self.assertEqual(modular(b'\x81\x41', 0, 2, True), (-129, 2))
+        for encoded in (b'\x40', b'\x80', b'\x80\x80\x80\x80\x80\x00'):
+            with self.subTest(encoded=encoded):
+                with self.assertRaises(ValueError):
+                    modular(encoded, 0, len(encoded), True)
+
     def test_identity_crc_bounds_and_retry(self):
         original = sample()
         expected = census(original)
