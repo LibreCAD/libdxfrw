@@ -110,7 +110,7 @@ public:
 
 class DwgHeaderCurrentTestAccess {
 public:
-    static std::array<std::uint32_t, 18> offsets(const dwgWriter& writer) {
+    static std::array<std::uint32_t, 19> offsets(const dwgWriter& writer) {
         return writer.m_headerCurrentReferenceBits;
     }
 };
@@ -19816,6 +19816,11 @@ public:
     void addHeader(const DRW_Header* header) override {
         ++headers;
         handseed = header->getHandSeed();
+        const auto currentMLine = header->vars.find("CMLSTYLE");
+        if (currentMLine != header->vars.end() && currentMLine->second != nullptr
+            && currentMLine->second->type() == DRW_Variant::STRING
+            && currentMLine->second->content.s != nullptr)
+            currentMLineStyle = *currentMLine->second->content.s;
         const auto dimStyle = header->vars.find("DIMTXSTY");
         if (dimStyle != header->vars.end() && dimStyle->second != nullptr
             && dimStyle->second->type() == DRW_Variant::STRING
@@ -19955,6 +19960,7 @@ public:
     std::uint32_t handseed{0};
     std::array<std::string, 4> currentNames{};
     std::string dimensionTextStyle;
+    std::string currentMLineStyle;
     std::array<std::string, 4> dimensionArrows{};
     std::array<std::string, 3> dimensionLineTypes{};
     std::array<std::string, 6> headerUcs{};
@@ -21733,6 +21739,7 @@ void testHeaderCurrentReferencesForVersion(TestContext& t, const char* version) 
             header.addStr("$CELTYPE", "drawing-type", 6);
             header.addStr("$DIMSTYLE", "drawing-dim", 2);
             header.addStr("$DIMTXSTY", "drawing-style", 7);
+            header.addStr("$CMLSTYLE", "CML-Test", 2);
             header.addStr("$DIMLDRBLK", "Arrow-Leader", 1);
             header.addStr("$DIMBLK", "Arrow-Main", 1);
             header.addStr("$DIMBLK1", "_Arrow-One", 1);
@@ -21784,7 +21791,28 @@ void testHeaderCurrentReferencesForVersion(TestContext& t, const char* version) 
             arrowHandles[2] = writer.defineBlock("_Arrow-One", DRW_Coord());
             arrowHandles[3] = writer.defineBlock("Arrow-Two", DRW_Coord());
         }
-        const bool objects = writer.writeDwgObjects() && writer.emitDeferredBlockControl();
+        const bool registered = !custom
+            || writer.registerDwgNamedObjectDictionaryEntry("ACAD_MLINESTYLE", 0x7000u);
+        const bool tablesWritten = registered && writer.writeDwgObjects();
+        bool styleWritten = true;
+        if (custom && tablesWritten) {
+            DRW_Dictionary dictionary;
+            dictionary.handle = 0x7000u;
+            dictionary.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+            dictionary.m_entries.push_back({"CML-Test", 0x7001u});
+            DRW_MLineStyle style; style.handle = 0x7001u;
+            style.parentHandle = dictionary.handle; style.name = "CML-Test";
+            DRW_MLineElement element; element.offset = 0.5; element.color = 256;
+            style.elements.push_back(element);
+            styleWritten = writer.writeDictionary(dictionary) && writer.writeMLineStyle(style);
+            if (styleWritten) {
+                const auto beforeDuplicate = writer.buffer();
+                DRW_MLineStyle duplicate = style; duplicate.handle = 0x7002u;
+                t.expect(!writer.writeMLineStyle(duplicate) && writer.buffer() == beforeDuplicate,
+                         std::string(version) + " duplicate MLINESTYLE identity refuses without mutation");
+            }
+        }
+        const bool objects = tablesWritten && styleWritten && writer.emitDeferredBlockControl();
         t.expect(objects, std::string(version) + " current-reference targets emitted");
         if (!objects)
             continue;
@@ -21817,6 +21845,8 @@ void testHeaderCurrentReferencesForVersion(TestContext& t, const char* version) 
             t.expect((!custom || ucsHandles[i] != 0u)
                          && readHeaderReferenceBits(writer.buffer(), offsets[i + 12u]) == ucsHandles[i],
                      std::string(version) + " HEADER UCS resolves or is null");
+        t.expect(readHeaderReferenceBits(writer.buffer(), offsets[18]) == (custom ? 0x7001u : 0u),
+                 std::string(version) + " current multiline style resolves or is null");
         const auto once = writer.buffer();
         t.expect(writer.finalizeHeaderHandseed() && writer.buffer() == once,
                  std::string(version) + " current-reference finalization is idempotent");
@@ -21850,6 +21880,8 @@ void testHeaderCurrentReferencesForVersion(TestContext& t, const char* version) 
             : std::array<std::string, 6>{};
         t.expect(sink.headerUcs == expectedUcs,
                  std::string(version) + " HEADER UCS names read back");
+        t.expect(sink.currentMLineStyle == (custom ? "CML-Test" : ""),
+                 std::string(version) + " current multiline style name reads back");
     }
 }
 
@@ -21865,6 +21897,11 @@ public:
         if (arrow) header.addStr("$DIMBLK", "selected-block", 1);
         if (dimLine) header.addStr("$DIMLTYPE", "selected-type", 6);
         if (useUcs) header.addStr("$UCSNAME", "selected-ucs", 2);
+        if (useMLine) header.addStr("$CMLSTYLE", "selected-mline", 2);
+    }
+    void writeDwgClasses() override {
+        if (includeMLine)
+            wrote = writer_.registerDwgNamedObjectDictionaryEntry("ACAD_MLINESTYLE", 0x7200u) && wrote;
     }
     void writeLTypes() override {
         if (includeType) {
@@ -21899,7 +21936,16 @@ public:
             wrote = writer_.defineBlock("selected-block", DRW_Coord()) != 0u && wrote;
     }
     void writeBlockRecords() override {}
-    void writeObjects() override {}
+    void writeObjects() override {
+        if (includeMLine) {
+            dictionary.handle = 0x7200u; dictionary.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+            dictionary.m_entries = {{"selected-mline", 0x7201u}};
+            mline.handle = 0x7201u; mline.parentHandle = 0x7200u; mline.name = "selected-mline";
+            DRW_MLineElement element; element.offset = 0.5; element.color = 256;
+            mline.elements = {element};
+            wrote = writer_.writeDictionary(&dictionary) && writer_.writeMLineStyle(&mline) && wrote;
+        }
+    }
     void writeEntities() override {
         DRW_Line line;
         line.basePoint = {1, 2, 3};
@@ -21915,10 +21961,14 @@ public:
     bool includeType{false};
     bool useUcs{false};
     bool includeUcs{false};
+    bool useMLine{false};
+    bool includeMLine{false};
     bool wrote{true};
 private:
     dwgRW& writer_;
     dx_data data_;
+    DRW_Dictionary dictionary;
+    DRW_MLineStyle mline;
 };
 
 class HeaderCurrentReaderProbe final : public dwgReader15 {
@@ -22290,7 +22340,7 @@ void testHeaderCurrentReferences(TestContext& t) {
 
     // Every failure must precede any HEADER mutation; repairing the caller's
     // value must make the same writer succeed and reseal its CRC.
-    for (int failure = 0; failure != 24; ++failure) {
+    for (int failure = 0; failure != 25; ++failure) {
         std::stringbuf output(std::ios::out | std::ios::binary);
         std::ofstream stream;
         static_cast<std::ostream&>(stream).rdbuf(&output);
@@ -22317,7 +22367,8 @@ void testHeaderCurrentReferences(TestContext& t) {
         if (failure >= 11 && failure <= 14) header.addStr(arrowKeys[failure - 11], "missing-block", 1);
         const std::array<const char*, 6> ucsKeys{{"$PUCSNAME", "$PUCSORTHOREF", "$PUCSBASE", "$UCSNAME", "$UCSORTHOREF", "$UCSBASE"}};
         if (failure >= 15 && failure <= 17) header.addStr(dimLineKeys[failure - 15], "missing-type", 6);
-        if (failure >= 18) header.addStr(ucsKeys[failure - 18], "missing-ucs", 2);
+        if (failure >= 18 && failure <= 23) header.addStr(ucsKeys[failure - 18], "missing-ucs", 2);
+        if (failure == 24) header.addStr("$CMLSTYLE", "missing-mline", 2);
         dwgWriter21 writer(&stream, &header);
         const bool prepared = writer.prepareDwgClassManifest() && writer.writeFileHeaderStub()
             && writer.writeDwgHeader() && writer.writeDwgClasses();
@@ -22352,12 +22403,46 @@ void testHeaderCurrentReferences(TestContext& t) {
         if (failure >= 6 && failure <= 10) header.addStr("$DIMTXSTY", "STANDARD", 7);
         if (failure >= 11 && failure <= 14) header.addStr(arrowKeys[failure - 11], "", 1);
         if (failure >= 15 && failure <= 17) header.addStr(dimLineKeys[failure - 15], "BYLAYER", 6);
-        if (failure >= 18) header.addStr(ucsKeys[failure - 18], "", 2);
+        if (failure >= 18 && failure <= 23) header.addStr(ucsKeys[failure - 18], "", 2);
+        if (failure == 24) header.addStr("$CMLSTYLE", "", 2);
         header.addStr("$CLAYER", "0", 8);
         t.expect(writer.finalizeHeaderHandseed()
                      && readHeaderReferenceBits(writer.buffer(),
                             DwgHeaderCurrentTestAccess::offsets(writer)[0]) == 0x12u,
                  "corrected current reference retries on same writer");
+    }
+
+    for (int failure = 0; failure != 6; ++failure) {
+        std::stringbuf output(std::ios::out | std::ios::binary);
+        std::ofstream stream;
+        static_cast<std::ostream&>(stream).rdbuf(&output);
+        DRW_Header header; header.addStr("$CMLSTYLE", "GraphStyle", 2);
+        dwgWriter21 writer(&stream, &header);
+        bool prepared = writer.prepareDwgClassManifest() && writer.writeFileHeaderStub()
+            && writer.writeDwgHeader() && writer.writeDwgClasses();
+        if (failure != 0)
+            prepared = prepared && writer.registerDwgNamedObjectDictionaryEntry("ACAD_MLINESTYLE", 0x7100u);
+        prepared = prepared && writer.writeDwgObjects();
+        if (failure != 0 && failure != 1) {
+            DRW_Dictionary dictionary; dictionary.handle = 0x7100u;
+            dictionary.parentHandle = failure == 4 ? 0x7102u : DRW::DwgNamedObjectsDictionaryHandle;
+            dictionary.m_entries.push_back({failure == 2 ? "OtherStyle" : "GraphStyle",
+                                            failure == 3 ? 0x7102u : 0x7101u});
+            prepared = prepared && writer.writeDictionary(dictionary);
+        }
+        DRW_MLineStyle style; style.handle = 0x7101u;
+        style.parentHandle = failure == 5 ? 0x7102u : 0x7100u; style.name = "GraphStyle";
+        DRW_MLineElement element; element.offset = 0.5; element.color = 256;
+        style.elements.push_back(element);
+        prepared = prepared && writer.writeMLineStyle(style) && writer.emitDeferredBlockControl();
+        t.expect(prepared, "invalid current multiline style graph prepared");
+        if (!prepared) continue;
+        const auto before = writer.buffer();
+        t.expect(!writer.finalizeHeaderHandseed() && writer.buffer() == before && output.str().empty(),
+                 "invalid current multiline style graph refuses before mutation");
+        header.addStr("$CMLSTYLE", "", 2);
+        t.expect(writer.finalizeHeaderHandseed(),
+                 "clearing invalid current multiline style allows same-writer retry");
     }
 
     for (const auto* key : {"$DIMLTYPE", "$DIMLTEX1", "$DIMLTEX2"}) {
@@ -22511,6 +22596,32 @@ void testHeaderCurrentReferences(TestContext& t) {
                  && ucsReader.readBuffer(ucsFile.data(), ucsFile.size(), &ucsSink, false)
                  && ucsSink.headerUcs[3] == "selected-ucs",
              "HEADER UCS retry publishes the selected UCS");
+    {
+        std::ofstream existingMLine(path, std::ios::binary | std::ios::trunc);
+        existingMLine << "existing output sentinel";
+    }
+    dwgRW mlineWriter(path.string().c_str());
+    HeaderCurrentWriteAdapter mlineAdapter(mlineWriter);
+    t.expect(mlineWriter.reserveHandle(0x7201u), "reserve selected MLINESTYLE identity");
+    mlineAdapter.useMLine = true;
+    mlineAdapter.includeLayer = true;
+    const bool mlineRefused = !mlineWriter.write(&mlineAdapter, DRW::AC1021, true);
+    std::ifstream existingMLine(path, std::ios::binary);
+    const std::string retainedMLine((std::istreambuf_iterator<char>(existingMLine)), {});
+    existingMLine.close();
+    t.expect(mlineRefused && retainedMLine == "existing output sentinel",
+             "missing current MLINESTYLE preserves an existing DWG destination");
+    mlineAdapter.includeMLine = true;
+    t.expect(mlineWriter.write(&mlineAdapter, DRW::AC1021, true) && mlineAdapter.wrote,
+             "adding the rooted MLINESTYLE lets the same DWG writer retry");
+    std::ifstream publishedMLine(path, std::ios::binary);
+    const std::vector<std::uint8_t> mlineFile((std::istreambuf_iterator<char>(publishedMLine)), {});
+    HeaderPublicationSink mlineSink;
+    dwgRW mlineReader("");
+    t.expect(!mlineFile.empty()
+                 && mlineReader.readBuffer(mlineFile.data(), mlineFile.size(), &mlineSink, false)
+                 && mlineSink.currentMLineStyle == "selected-mline",
+             "current MLINESTYLE retry publishes the selected style");
 }
 
 // Optional local physical-producer regression; the caller supplies the

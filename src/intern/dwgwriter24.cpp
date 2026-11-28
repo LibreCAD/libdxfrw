@@ -107,7 +107,7 @@ bool dwgWriter24::writeDwgHeader() {
         dwgBufferW dataBuf;
         dwgBufferW handleBuf;
         dwgBufferW strBuf;
-        std::array<std::uint64_t, 18> currentReferenceBits{};
+        std::array<std::uint64_t, 19> currentReferenceBits{};
         currentReferenceBits.fill((std::numeric_limits<std::uint64_t>::max)());
         std::uint32_t currentMaterial = 0;
         if (defaultDwgMaterialGraphActive()) {

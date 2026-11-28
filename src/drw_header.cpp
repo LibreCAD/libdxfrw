@@ -4369,7 +4369,7 @@ bool DRW_Header::encodeDwgForWriter(
         DRW::Version version, dwgBufferW *buf, dwgBufferW *hBbuf,
         dwgBufferW *strBuf, std::uint32_t namedObjectDictionaryHandle,
         std::uint32_t plotSettingsDictionaryHandle,
-        std::array<std::uint64_t, 18>* currentReferenceBits,
+        std::array<std::uint64_t, 19>* currentReferenceBits,
         std::uint32_t groupDictionaryHandle,
         std::uint32_t plotStyleDictionaryHandle) {
     return encodeDwgForWriterMaterial(version, buf, hBbuf, strBuf,
@@ -4381,7 +4381,7 @@ bool DRW_Header::encodeDwgForWriterMaterial(
         DRW::Version version, dwgBufferW *buf, dwgBufferW *hBbuf,
         dwgBufferW *strBuf, std::uint32_t namedObjectDictionaryHandle,
         std::uint32_t plotSettingsDictionaryHandle,
-        std::array<std::uint64_t, 18>* currentReferenceBits,
+        std::array<std::uint64_t, 19>* currentReferenceBits,
         std::uint32_t groupDictionaryHandle, std::uint32_t plotStyleDictionaryHandle,
         std::uint32_t materialDictionaryHandle, std::uint32_t currentMaterialHandle) {
     if (version != DRW::AC1015 && version != DRW::AC1018 &&
@@ -4649,7 +4649,7 @@ bool DRW_Header::encodeDwgForWriterMaterial(
         hBbuf->putHandle(makeHardPtr(currentMaterialHandle));
     }
     putCurrentReference(3);           // DIMSTYLE
-    hBbuf->putHandle(makeHardPtr(0));  // CMLSTYLE
+    putOptionalReference(18, "CMLSTYLE");
 
     // -------- Paper-space view block (parseDwg:1965-1989) -------------------
     buf->putBitDouble(dblVar(*this, "PSVPSCALE", 1.0));

@@ -858,8 +858,70 @@ void dwgWriter15::initHeaderControlHandles() {
                    reservedHandle::VPORT_ENTITY_HEADER_CONTROL);
 }
 
+bool dwgWriter15::validateHeaderMLineStyleTarget(
+        const std::string& name, std::uint32_t handle) const {
+    const auto ascii = [](const std::string& value) {
+        return std::all_of(value.begin(), value.end(), [](unsigned char c) {
+            return c > 0u && c < 0x80u;
+        });
+    };
+    if (!ascii(name) || !m_dwgNamedObjectDictionaryComplete
+        || !hasEmittedDwgObjectHandle(handle))
+        return false;
+    const auto root = std::find_if(m_emittedDwgNamedObjectDictionaryEntries.begin(),
+                                   m_emittedDwgNamedObjectDictionaryEntries.end(),
+        [](const DRW::DwgNamedObjectDictionaryEntry& entry) {
+            return entry.name == "ACAD_MLINESTYLE";
+        });
+    if (root == m_emittedDwgNamedObjectDictionaryEntries.end()
+        || root->childHandle == 0u || !hasEmittedDwgObjectHandle(root->childHandle))
+        return false;
+    const auto dictionary = std::find_if(m_emittedDwgDictionaries.begin(),
+                                         m_emittedDwgDictionaries.end(),
+        [root](const EmittedDwgDictionary& candidate) {
+            return candidate.handle == root->childHandle;
+        });
+    if (dictionary == m_emittedDwgDictionaries.end()
+        || dictionary->parentHandle != DRW::DwgNamedObjectsDictionaryHandle)
+        return false;
+    const auto key = toUpperCase(name);
+    std::size_t named = 0u;
+    std::size_t referenced = 0u;
+    for (const auto& entry : dictionary->entries) {
+        if (!ascii(entry.name))
+            return false; // Unicode collation is not established here.
+        if (toUpperCase(entry.name) == key) {
+            ++named;
+            if (entry.childHandle != handle)
+                return false;
+        }
+        if (entry.childHandle == handle)
+            ++referenced;
+    }
+    if (named != 1u || referenced != 1u)
+        return false;
+    const auto object = std::find_if(m_objectMap.begin(), m_objectMap.end(),
+        [handle](const auto& entry) { return entry.first == handle; });
+    if (object == m_objectMap.end())
+        return false;
+    DRW_TextCodec decoder;
+    decoder.setVersion(m_version, false);
+    dwgBuffer bytes(m_buf.data().data(), m_buf.data().size(), &decoder);
+    DwgObjectFrame frame;
+    if (!frame.readAt(bytes, m_version, object->second))
+        return false;
+    dwgBuffer type(frame.body().data(), frame.body().size(), &decoder);
+    if (type.getObjType(m_version) != dwgObjType::MLINESTYLE || !type.isGood())
+        return false;
+    dwgBuffer body(frame.body().data(), frame.body().size(), &decoder);
+    DRW_MLineStyle style;
+    return style.parseDwg(m_version, &body, frame.bodyBitSize()) && body.isGood()
+        && style.handle == handle && style.parentHandle == dictionary->handle
+        && ascii(style.name) && toUpperCase(style.name) == key;
+}
+
 bool dwgWriter15::planHeaderCurrentReferences(
-        std::array<std::uint32_t, 18>& references) const {
+        std::array<std::uint32_t, 19>& references) const {
     if (m_header == nullptr || !m_dwgTableRecordsComplete)
         return false;
     struct RequestedReference {
@@ -868,7 +930,7 @@ bool dwgWriter15::planHeaderCurrentReferences(
         int group;
         const std::map<std::string, std::uint32_t>* table;
     };
-    const std::array<RequestedReference, 18> requests{{
+    const std::array<RequestedReference, 19> requests{{
         {"CLAYER", "0", 8, &m_writingCtx.layerMap},
         {"TEXTSTYLE", "STANDARD", 7, &m_writingCtx.styleMap},
         {"CELTYPE", "BYLAYER", 6, &m_writingCtx.ltypeMap},
@@ -886,8 +948,9 @@ bool dwgWriter15::planHeaderCurrentReferences(
         {"PUCSBASE", "", 2, &m_writingCtx.ucsMap},
         {"UCSNAME", "", 2, &m_writingCtx.ucsMap},
         {"UCSORTHOREF", "", 2, &m_writingCtx.ucsMap},
-        {"UCSBASE", "", 2, &m_writingCtx.ucsMap}}};
-    std::array<std::uint32_t, 18> result{};
+        {"UCSBASE", "", 2, &m_writingCtx.ucsMap},
+        {"CMLSTYLE", "", 2, &m_writingCtx.mlineStyleMap}}};
+    std::array<std::uint32_t, 19> result{};
     for (std::size_t i = 0; i < requests.size(); ++i) {
         const auto& request = requests[i];
         const std::string canonicalBare(request.name);
@@ -921,10 +984,15 @@ bool dwgWriter15::planHeaderCurrentReferences(
             return false;
         if (request.table != nullptr) {
             const auto target = request.table->find(toUpperCase(name));
-            if (target == request.table->end() || target->second == 0u
-                || m_emittedDwgTableRecordHandles.find(target->second)
-                    == m_emittedDwgTableRecordHandles.end())
+            if (target == request.table->end() || target->second == 0u)
                 return false;
+            if (i == 18u) {
+                if (!validateHeaderMLineStyleTarget(name, target->second))
+                    return false;
+            } else if (m_emittedDwgTableRecordHandles.find(target->second)
+                       == m_emittedDwgTableRecordHandles.end()) {
+                return false;
+            }
             result[i] = target->second;
         } else {
             const auto target = m_userBlockHandles.find(toUpperCase(name));
@@ -959,7 +1027,7 @@ bool dwgWriter15::writeDwgHeader() {
     // the same accumulator for both buf and hBbuf.
     if (m_header != nullptr) {
         const std::uint64_t dataStartBit = m_buf.bitCount();
-        std::array<std::uint64_t, 18> currentReferenceBits{};
+        std::array<std::uint64_t, 19> currentReferenceBits{};
         currentReferenceBits.fill((std::numeric_limits<std::uint64_t>::max)());
         // Propagate encode failure: writeDwgHeader reports success as a bool.
         if (!m_header->encodeDwgForWriter(
@@ -5893,6 +5961,7 @@ bool dwgWriter15::writeMLineStyle(const DRW_MLineStyle& style) {
             }
             return true;
         }
+        return false; // A second identity with the same style name is ambiguous.
     }
     if (object.handle == 0) {
         object.handle = m_handles.next();

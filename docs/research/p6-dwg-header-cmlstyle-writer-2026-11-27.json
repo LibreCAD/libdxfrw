@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dwg-header-cmlstyle-writer-2026-11-27",
+  "supportClaimEffect": "none",
+  "authority": [
+    "ODA Open Design Specification v5.4.1 section 9 CMLSTYLE hard pointer and sections 20.4.44/20.4.73 dictionary and MLINESTYLE object encoding."
+  ],
+  "change": "Reuse the HEADER patch/CRC planner. For a supplied current style require one emitted ACAD_MLINESTYLE root entry, an emitted child dictionary owned by NOD with exactly one matching name and target, and a CRC-checked emitted MLINESTYLE frame with matching name, identity and dictionary owner. Restrict the proof to ASCII names until Unicode collation is established. Reject a second MLINESTYLE identity using the same name.",
+  "generatedScratchOnly": {
+    "path": "/private/tmp/p6-header-cmlstyle-20261127/writer.dwg",
+    "sha256": "36a4847998e16eeb3876438df9549346caed395c5e4801e18edce0b89e26775b",
+    "libredwg014": "HEADER CMLSTYLE [5,4,28929,28929]; root 0xC maps ACAD_MLINESTYLE to dictionary 0x7100; dictionary maps P6_CURRENT to 0x7101; MLINESTYLE 0x7101 has owner 0x7100."
+  },
+  "checks": [
+    "Focused HEADER writer matrix passes generated AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 controls, nulls, readback, CRC and duplicate-style identity refusal.",
+    "Missing root, missing dictionary, wrong key, wrong target, wrong dictionary owner and wrong style owner refuse before header mutation. Clearing the current style allows same-writer retry.",
+    "Public writer preserves an existing destination for a missing style and succeeds on the same writer after the caller reserves the style handle and supplies the rooted graph.",
+    "LibreDWG 0.14 independently decodes the generated AC1021 graph. libdxfrw explicit-partial DXF reimport retains P6_CURRENT; ezdxf audit reports zero errors and fixes."
+  ],
+  "limits": [
+    "Non-ASCII style names and broader dictionary or producer profiles remain unqualified.",
+    "ODA File Converter does not currently open the generated AC1021 writer baseline because of existing unrelated object-frame failures; native current-style behavior is not established. No generated fixture was committed."
+  ]
+}
