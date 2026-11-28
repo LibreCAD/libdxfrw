@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-pair-other-controls-wire-2026-11-27",
+  "supportClaimEffect": "none",
+  "candidateCommit": "8f35a8216",
+  "implementationDigestSha256": "28b631e8875edfc5bfb7fcd4b1828b6b066fbc45eefbaac8f08643748d9700e3",
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.1, 20.4.59, 20.4.61, 20.4.63, 20.4.67 and 20.4.69",
+  "scope": "VIEW, UCS, VPORT, DIMSTYLE and viewport-entity control frames in the generated AC1012 pair.",
+  "checks": [
+    "Both drawings' five CRC-checked control frames have exact data/handle boundaries, no EED or reactors and typed null owner/extension. VIEW, UCS and viewport-entity controls are empty; VPORT and DIMSTYLE each have one role-2 entry, respectively 0x26 and 0x2D.",
+    "The observer rejects every byte-prefix truncation and wrong-role mutation and passes the unchanged frame on retry. Adapter readback contains the expected VPORT and DIMSTYLE identities, names and control owners; the two input checks and shared vector CTest pass.",
+    "Independent cadkit-dwg 0.5.4 decodes the selected VPORT and DIMSTYLE control entries with no unconsumed bits; it labels R13 untested. The updated handoff packet includes all five control frame hashes. No drawing fixture was committed."
+  ],
+  "scratchPacket": "/private/tmp/ac1012-native-two-element-other-controls-20261127",
+  "hashes": {
+    "observer": "c0450270b7aacadcb09f7ae8d727d7e64d3bc44e5b0ad41b6dd1370dd0ffa92f",
+    "observerResults": "b2b556fa8cc0e380f9b6262abd3961688d1d51cf6f901a6c3a2ebc7bcb435ee9",
+    "ctestLog": "476e36e12f5c7fe4763169c8d0f7ddc0d4d8c193c93fb1ab13293a32f62f28a2",
+    "cadkitVportControlLog": "aa4f1f11b97858a59ae917c3161ab10a68cff1b8d4c7a9d38b967ee4231cac15",
+    "cadkitDimstyleControlLog": "bf4847bc3035259985f485bb1e3c8a1bddd7f098619795d97bc275b039984a24",
+    "packetManifest": "a0ccc6b68c1ae098792ca03bff78f40a6a3cdab0a1e1aa83f919b9b532f92941"
+  },
+  "limits": [
+    "The active VPORT and DIMSTYLE body layouts remain separately unqualified by this control-only evidence. Native normal-open, cloning behavior, whole-file graph closure and output support remain open."
+  ]
+}
