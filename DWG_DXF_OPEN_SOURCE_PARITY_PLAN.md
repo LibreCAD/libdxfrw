@@ -73,7 +73,7 @@ below is still open, and its linked evidence defines the present boundary.
    suppress that evidence for selected unsupported payloads and classes. The
    [shared HEADER query and observed-field guard](docs/research/p8d-hatch-known-header-fields-2026-11-28.json)
    also refuse unknown variables, custom properties and unrecognized field
-   codes. Finish per-field semantic closure, copy/identity checks and staged
+   codes, including [unprefixed aliases](docs/research/p8d-hatch-header-alias-guard-2026-11-28.json). Finish per-field semantic closure, copy/identity checks and staged
    finalization with late-edit revalidation before enabling replay.
    The [composed entity inspector](docs/research/p8d-entity-inspector-composition-2026-11-28.json)
    provides the common hook for binding the check to consumer finalization.
