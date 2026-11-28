@@ -68,6 +68,7 @@ EXTRA_PATCHES = {
         "freecad-p8-3dface-block-layer-report-2026-11-27.patch",
         "freecad-p8-block-geometry-layer-report-2026-11-27.patch",
         "freecad-p8-block-original-layer-metadata-2026-11-28.patch",
+        "freecad-p8-original-layer-persistence-2026-11-28.patch",
     ),
 }
 

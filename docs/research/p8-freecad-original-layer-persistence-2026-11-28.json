@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-original-layer-persistence-2026-11-28",
+  "supportClaimEffect": "none",
+  "freecadBase": "477a7041803823a1fcae528133cb07ee5533b1b2",
+  "candidate": "25 ordered local patches; no FreeCAD commit or submission",
+  "finding": "The shared OriginalLayer property helper passed Property::Hidden (status index 3) as a PropertyType mask. This combines no-persist and transient flags, so the name appeared during import but reloaded empty from FCStd.",
+  "fix": "Use the existing PropertyType mask App::Prop_Hidden, keeping the property hidden while allowing it to persist; the helper serves ordinary imported objects, block children and INSERT links.",
+  "checks": [
+    "A generated nested-block test initially passed during import but failed after FCStd save, close and reopen because the outer, nested and child values were empty.",
+    "After the helper fix, the two shared outer INSERT links reopen with layer A, the nested INSERT reopens with B, and the three block children reopen with 0, A and B; shared block identity remains intact. A separate save/reopen probe independently repeats those assertions.",
+    "The 25-patch chain replays exactly against the pinned source archive and the macOS ARM64 candidate passes all 20 headless tests with no skips or failures. Source-release inventory and refusal self-tests pass. No generated drawing fixture was committed."
+  ],
+  "evidenceSha256": {
+    "patch": "ff02ec784a519cceb9792a7736c4de563e5bf74b29007ec61059485047e76c90",
+    "red": "cd58d51a23be9d7a1b71a40f59050d542cdf6a9553f35d57579ca5d87003e076",
+    "green": "b807114cacefe11e7806afb016b5400d1625fd178d08fc65874e4a27da00e76b",
+    "separateReopenProbe": "8897605ed0513c9b099c8dbe4c1eacf49cc64dc62ecd41c5aa8429ab33dd66c3",
+    "verifiedReceipt": "b6b9e35e70423d438f4d76e6d03dd082c9e41ef151d5a13b7b9446c14377506e",
+    "driver": "53d863ef94a7791576a285b03a055513e49a382416c0a19a72e6399979262b94"
+  },
+  "verifiedReceipt": "/private/tmp/freecad-block-layer-persist-20261128/verified/freecad-candidate-probe-c7ecp1du/receipt.json",
+  "limits": [
+    "This preserves declared names as metadata, not effective layer visibility or grouping, and does not cover per-child layers in fused shapes.",
+    "Native GUI rendering, edits, layer-zero inheritance, other platforms and independent producers remain unqualified.",
+    "The FreeCAD candidate is a local draft; the project reserves submission and contributor attestations for a human contributor."
+  ]
+}
