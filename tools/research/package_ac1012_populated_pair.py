@@ -147,7 +147,7 @@ def main():
                   "Screen normal-open and style validity before native merge testing.\n"
                   "See NATIVE_WITNESS.md; repository-relative links refer to libdxfrw.\n"
                   "Root, EED, complete graph, and native semantics remain unqualified.\n")
-        if args.profile == "populated-links":
+        if args.profile in ("oda", "populated-links"):
             readme += ("ODA DXF reopens change selected Standard DIMSTYLE values compared with the\n"
                        "source DWG; do not use those reopens as whole-drawing fidelity evidence.\n")
         (packet / "README.txt").write_text(readme)

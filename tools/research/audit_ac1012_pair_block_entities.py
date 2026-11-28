@@ -105,8 +105,10 @@ def observe_style_or_appid(frame: bytes, style: bool) -> dict:
     return {"frameSha256": sha(frame), "spans": spans, "paddingBits": len(frame) * 8 - bits.position}
 
 
-def observe_dimstyle(frame: bytes) -> dict:
-    """Bind the generated R13 Standard DIMSTYLE's complete selected body."""
+def observe_dimstyle(frame: bytes, handle: int = 0x2d, name: str = "Standard",
+                     owner_role: int = 12, extension: int = 0,
+                     text_style: int = 0x11) -> dict:
+    """Bind an R13 Standard DIMSTYLE with the selected default body."""
     bits = Bits(frame)
     spans = {}
 
@@ -129,10 +131,10 @@ def observe_dimstyle(frame: bytes) -> dict:
         return 1.0 if tag == 1 else 0.0
 
     require(field("type", bits.bs) == 69
-            and field("self", lambda: bits.handle(0, own=True))["value"] == 0x2d
+            and field("self", lambda: bits.handle(0, own=True))["value"] == handle
             and field("eedSize", bits.bs) == 0, "unexpected DIMSTYLE prefix")
     boundary = field("dataEnd", lambda: bits.little(4))
-    require(field("reactorCount", bits.bl) == 0 and field("name", text_value) == "Standard"
+    require(field("reactorCount", bits.bl) == 0 and field("name", text_value) == name
             and field("xref64", lambda: bits.take(1)) == 1
             and field("xrefIndexPlusOne", bits.bs) == 0
             and field("xrefDependent", lambda: bits.take(1)) == 0,
@@ -160,9 +162,9 @@ def observe_dimstyle(frame: bytes) -> dict:
     for name, kind, expected in fields:
         require(field(name, readers[kind]) == expected, f"unexpected DIMSTYLE {name}")
     require(bits.position == boundary, "unexpected DIMSTYLE data boundary")
-    for label, role, expected, raw_role in (("owner", 4, 10, 12), ("extension", 3, 0, 3),
-                                             ("xref", 5, 0, 5), ("textStyle", 5, 0x11, 5)):
-        value = field(label, lambda: bits.handle(role, 0x2d))
+    for label, role, expected, raw_role in (("owner", 4, 10, owner_role), ("extension", 3, extension, 3),
+                                             ("xref", 5, 0, 5), ("textStyle", 5, text_style, 5)):
+        value = field(label, lambda: bits.handle(role, handle))
         require(value["role"] == raw_role and value["value"] == expected,
                 f"wrong DIMSTYLE {label}")
     require(len(frame) * 8 - bits.position < 8, "unexpected DIMSTYLE tail")
