@@ -15,6 +15,22 @@ from generate_ac1012_dictionary_merge_samples import read_object_frame
 from generate_ac1012_dictionary_witness import require, run, sha
 
 
+def check_header_targets(prefix: dict, objects: dict) -> dict:
+    expected = {"CLAYER": (51, "0"), "TEXTSTYLE": (53, "Standard"),
+                "CELTYPE": (57, "BYLAYER"), "DIMSTYLE": (69, "Standard"),
+                "CMLSTYLE": (73, "Standard")}
+    targets = {}
+    for name, (kind, label) in expected.items():
+        handle = prefix["fields"][name]["value"][2]
+        target = objects.get(handle)
+        require(target is not None and target.get("type") == kind and target.get("name") == label,
+                f"wrong HEADER {name} target")
+        targets[name] = {"handle": handle, "type": kind, "name": label}
+    seed = prefix["fields"]["HANDSEED"]["value"][2]
+    require(seed > max(objects), "HANDSEED does not exceed source objects")
+    return targets
+
+
 def audit(packet: Path, side: str, manifest: dict, dwgread: str, probe: str) -> dict:
     path = packet / f"{side}.dwg"
     record = manifest["samples"][side]
@@ -66,6 +82,18 @@ def audit(packet: Path, side: str, manifest: dict, dwgread: str, probe: str) -> 
         46: (73, styles["SAME_KEY"]), 47: (73, styles[unique]),
     }
     require(set(expected) == set(by_handle), "missing or extra source object")
+    prefix = audit_prefix(path.read_bytes(), drawing["HEADER"])
+    targets = check_header_targets(prefix, by_handle)
+    damaged = dict(by_handle)
+    layer = targets["CLAYER"]["handle"]
+    damaged[layer] = dict(damaged[layer], type=0)
+    try:
+        check_header_targets(prefix, damaged)
+    except ValueError:
+        pass
+    else:
+        raise ValueError("wrong current-layer target type was accepted")
+    require(check_header_targets(prefix, by_handle) == targets, "HEADER target retry changed")
     # The probe verifies both retained BLOCK_HEADER bodies and their frame
     # binding, generation, reference roles, target types, refusal and retry.
     probe_result = run([probe, "--legacy-block-pair-wire", str(path)])
@@ -78,7 +106,8 @@ def audit(packet: Path, side: str, manifest: dict, dwgread: str, probe: str) -> 
         frames[f"{handle:X}"] = {"type": kind, "offset": offset, "frameSha256": digest,
                                   "binding": "shared-block-probe" if expected_sha is None else "audited-packet"}
     return {"sourceSha256": source_sha, "headerEnvelope": audit_header(path.read_bytes()),
-            "headerPrefix": audit_prefix(path.read_bytes(), drawing["HEADER"]),
+            "headerPrefix": prefix, "headerTargets": targets,
+            "wrongHeaderTargetRejectedAndRetryPassed": True,
             "frameCount": len(frames),
             "probeOutputSha256": sha(probe_result.stdout + probe_result.stderr), "frames": frames}
 

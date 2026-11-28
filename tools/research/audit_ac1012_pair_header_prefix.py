@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Compare the selected AC1012 HEADER prefix with an independent decoder.
 
-The prefix follows ODA v5.4.1 section 9 through CELTSCALE. It is a bounded
+The prefix follows ODA v5.4.1 section 9 through model-space UCSNAME. It is a bounded
 physical comparison for these generated witnesses, not full HEADER admission.
 """
 import argparse
@@ -58,6 +58,20 @@ def audit_prefix(data, peer):
         except UnicodeDecodeError as error:
             raise ValueError("non-ASCII witness text") from error
 
+    def rawdouble():
+        value = struct.unpack("<d", bytes(bits.take(8) for _ in range(8)))[0]
+        require(math.isfinite(value), "non-finite raw double")
+        return value
+
+    def handle(name, role):
+        first = bits.bit
+        code, width, value = bits.handle()
+        require(code == role, f"unexpected handle role: {name}")
+        peer_handle = peer.get(name)
+        require(isinstance(peer_handle, list) and peer_handle == [code, width, value, value],
+                f"peer handle differs: {name}")
+        fields[name] = {"startBit": first, "endBit": bits.bit, "value": [code, width, value]}
+
     for index in range(1, 5):
         observe(f"unit{index}_ratio", bitdouble)
     for index in range(1, 5):
@@ -65,17 +79,30 @@ def audit_prefix(data, peer):
     observe("unknown_8", bits.bl)
     observe("unknown_9", bits.bl)
     observe("unknown_10", bits.bs)
-    first = bits.bit
-    code, width, value = bits.handle()
-    require(code == 5 and width == 0 and value == 0, "unexpected viewport handle role")
-    require(peer.get("VX_TABLE_RECORD") == [5, 0, 0, 0], "peer viewport handle differs")
-    fields["VX_TABLE_RECORD"] = {"startBit": first, "endBit": bits.bit, "value": [code, width, value]}
+    handle("VX_TABLE_RECORD", 5)
+    require(fields["VX_TABLE_RECORD"]["value"] == [5, 0, 0], "non-null viewport handle")
     for name in FLAGS:
         observe(name, lambda: bits.take(1))
     for name in SHORTS:
         observe(name, bits.bs)
     for name in DOUBLES:
         observe(name, bitdouble)
+    observe("MENU", text)
+    for name in ("TDUCREATE", "TDUUPDATE", "TDINDWG", "TDUSRTIMER"):
+        observe(name, lambda: [bits.bl(), bits.bl()])
+    observe("CECOLOR", bits.bs)
+    handle("HANDSEED", 0)
+    for name in ("CLAYER", "TEXTSTYLE", "CELTYPE", "DIMSTYLE", "CMLSTYLE"):
+        handle(name, 5)
+    for prefix in ("P", ""):
+        for name in ("INSBASE", "EXTMIN", "EXTMAX"):
+            observe(prefix + name, lambda: [bitdouble() for _ in range(3)])
+        for name in ("LIMMIN", "LIMMAX"):
+            observe(prefix + name, lambda: [rawdouble() for _ in range(2)])
+        observe(prefix + "ELEVATION", bitdouble)
+        for name in ("UCSORG", "UCSXDIR", "UCSYDIR"):
+            observe(prefix + name, lambda: [bitdouble() for _ in range(3)])
+        handle(prefix + "UCSNAME", 5)
     return {"startBit": 0, "endBit": bits.bit, "fieldCount": len(fields), "fields": fields}
 
 
@@ -94,6 +121,7 @@ def check_mutations(data, peer, original):
     envelope = audit_envelope(data)
     cases = {
         "wrong-handle-role": [original["fields"]["VX_TABLE_RECORD"]["startBit"] + 3],
+        "wrong-current-layer-role": [original["fields"]["CLAYER"]["startBit"] + 3],
         "changed-dimaso": [original["fields"]["DIMASO"]["startBit"]],
         "invalid-bitdouble-tag": [original["fields"]["unit1_ratio"]["startBit"],
                                   original["fields"]["unit1_ratio"]["startBit"] + 1],
