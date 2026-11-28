@@ -1,0 +1,32 @@
+diff --git a/src/Mod/Import/App/dxf/dxf.cpp b/src/Mod/Import/App/dxf/dxf.cpp
+--- a/src/Mod/Import/App/dxf/dxf.cpp
++++ b/src/Mod/Import/App/dxf/dxf.cpp
+@@ -2916 +2916,6 @@
+-    // Reject the complete array before creating anything if any point overflows.
++    ResolveEntityAttributes();
++    const auto finitePoint = [](const Base::Vector3d& point) {
++        return std::isfinite(point.x) && std::isfinite(point.y) && std::isfinite(point.z);
++    };
++    // Reject the complete array before creating anything if an OCS point or
++    // its world-coordinate transform overflows.
+@@ -2920 +2925 @@
+-            if (!std::isfinite(point.x) || !std::isfinite(point.y) || !std::isfinite(point.z)) {
++            if (!finitePoint(point) || !finitePoint(OCSOrientationTransform * point)) {
+@@ -2926 +2930,0 @@
+-    ResolveEntityAttributes();
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -1692 +1692 @@
+-                  [(70, 3), (44, "1e308")], []]
++                  [(70, 3), (44, "1e308")]]
+@@ -1695 +1695,5 @@
+-        base += [(0, "ENDSEC"), (0, "EOF")]
++        # Components are finite in OCS, but their rotated WCS sum overflows.
++        base += [(0, "INSERT"), (8, "0"), (2, "B"), (10, "1.1e308"), (20, "-1.1e308"),
++                 (30, "1.1e308"), (210, 1), (220, 1), (230, 1),
++                 (0, "INSERT"), (8, "0"), (2, "B"), (10, 0), (20, 0), (30, 0),
++                 (0, "ENDSEC"), (0, "EOF")]
+@@ -1707 +1711 @@
+-                self.assertEqual(len(stats["unsupportedFeatures"]["INSERT invalid array parameters"]), 7)
++                self.assertEqual(len(stats["unsupportedFeatures"]["INSERT invalid array parameters"]), 8)
