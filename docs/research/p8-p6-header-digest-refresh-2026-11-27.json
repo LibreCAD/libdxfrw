@@ -1,0 +1,15 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-p6-header-digest-refresh-2026-11-27",
+  "supportClaimEffect": "none",
+  "implementationCommit": "2a00d23ff",
+  "previousDigest": "ee0342be46823c64fc12633b6e45d7cf38f863c0c94756445534677babd2781d",
+  "implementationDigestSha256": "d11615411874d88558bad2d027b6927b9dd5ed7dabda6c25854923a7e7987076",
+  "inputCount": 784,
+  "checks": [
+    "Clean detached checkout qualification digest and workflow contract; all 15 claims remain experimental and no routes are advertised."
+  ],
+  "limits": [
+    "Earlier hosted and platform results bind older implementation digests; current-head qualification is pending."
+  ]
+}
