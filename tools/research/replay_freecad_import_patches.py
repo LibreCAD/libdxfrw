@@ -65,6 +65,7 @@ PATCHES = (
 EXTRA_PATCHES = {
     "477a7041803823a1fcae528133cb07ee5533b1b2": (
         "freecad-p8-mesh-bylayer-display-2026-11-27.patch",
+        "freecad-p8-3dface-block-layer-report-2026-11-27.patch",
     ),
 }
 

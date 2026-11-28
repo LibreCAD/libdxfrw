@@ -1,0 +1,68 @@
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.cpp b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.cpp
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+@@ -1417,0 +1418,7 @@
++                // The block instance is placed on its INSERT's layer; retain
++                // this face but report a named child layer that is lost.
++                if (m_preserveLayers && m_entityAttributes.m_Layer != nullptr
++                    && m_entityAttributes.m_Layer->Name != "0"
++                    && dynamic_cast<BlockDefinitionCollector*>(Collector) != nullptr) {
++                    UnsupportedFeature("3DFACE nondefault layer in block");
++                }
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -941,0 +942,53 @@
++    def test_3dface_block_layer_loss_is_reported(self):
++        """Keep face geometry and report a named child layer lost in a block."""
++        import sys
++        import types
++        draft = types.ModuleType("Draft")
++
++        def make_layer(name, *args):
++            layer = self.document.addObject("App::FeaturePython", "TestLayer")
++            layer.Label = name
++            layer.addProperty("App::PropertyLinkListHidden", "Group")
++            return layer
++
++        draft.make_layer = make_layer
++        old_draft = sys.modules.get("Draft")
++        sys.modules["Draft"] = draft
++        try:
++            for mode in (2, 3):
++                for layer in ("0", "FACE"):
++                    for preserve in (False, True):
++                        with self.subTest(mode=mode, layer=layer, preserve=preserve):
++                            options = FreeCAD.ParamGet(self.option_source)
++                            options.SetInt("DxfImportMode", mode)
++                            options.SetBool("dxfUseDraftVisGroups", preserve)
++                            tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                                    (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"),
++                                    (0, "SECTION"), (2, "TABLES"), (0, "TABLE"), (2, "LAYER"), (70, 2)]
++                            for name in ("0", "FACE"):
++                                tags.extend([(0, "LAYER"), (2, name), (70, 0), (62, 1), (6, "CONTINUOUS")])
++                            tags.extend([(0, "ENDTAB"), (0, "ENDSEC"), (0, "SECTION"), (2, "BLOCKS"),
++                                         (0, "BLOCK"), (8, "0"), (2, "INNER"), (70, 0),
++                                         (10, 0), (20, 0), (30, 0), (0, "3DFACE"), (8, layer),
++                                         (10, 0), (20, 0), (30, 0), (11, 4), (21, 0), (31, 0),
++                                         (12, 0), (22, 3), (32, 0), (13, 0), (23, 3), (33, 0),
++                                         (0, "ENDBLK"), (8, "0"), (0, "ENDSEC"), (0, "SECTION"),
++                                         (2, "ENTITIES"), (0, "INSERT"), (8, "0"), (2, "INNER"),
++                                         (10, 1), (20, 2), (30, 0), (0, "ENDSEC"), (0, "EOF")])
++                            path = os.path.join(self.temp_dir, f"block-face-{mode}-{layer}-{preserve}.dxf")
++                            with open(path, "w", encoding="ascii", newline="\n") as stream:
++                                stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++                            previous = set(self.document.Objects)
++                            stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                            objects = [obj for obj in self.document.Objects if obj not in previous]
++                            reason = "3DFACE nondefault layer in block"
++                            self.assertEqual(reason in stats["unsupportedFeatures"], preserve and layer != "0")
++                            links = [obj for obj in objects if obj.Name.startswith("Link_INNER")]
++                            self.assertEqual(len(links), 1)
++                            self.assertAlmostEqual(links[0].Shape.Area, 6.0)
++        finally:
++            if old_draft is None:
++                del sys.modules["Draft"]
++            else:
++                sys.modules["Draft"] = old_draft
++
