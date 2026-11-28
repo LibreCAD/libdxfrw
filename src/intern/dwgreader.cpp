@@ -9273,6 +9273,20 @@ bool dwgReader::readDwgTables(DRW_Header &hdr, dwgBuffer *dbuf,
         ret2 = parseTableRecord(oc, kDimStyleTable, sty);
         ret = ret && ret2;
         if (ret2) {
+          // DIMTXSTY is a hard-pointer handle in DWG, not a stored name.
+          // Resolve it only through the STYLE table parsed in this import;
+          // an absent target remains unresolved for strict output checks.
+          const dwgHandle &textHandle = sty->dimtxstyH;
+          if (textHandle.rawCode == DRW::DwgHardPointer
+              && textHandle.ref != 0u && textHandle.ref != DRW::NoHandle
+              && textHandle.ref64 == textHandle.ref) {
+            const auto textStyle = stylemap.find(textHandle.ref);
+            if (textStyle != stylemap.end() && textStyle->second != nullptr
+                && !textStyle->second->name.empty()) {
+              sty->dimtxsty = textStyle->second->name;
+              sty->add("$DIMTXSTY", 340, sty->dimtxsty);
+            }
+          }
           insertTableRecord(dimstylemap, std::move(sty), "dimension style",
                             oc.handle, kDimStyleTable.recordType);
         } else {

@@ -244,6 +244,17 @@ public:
             added = output_.addLayer(&layer);
         }
     }
+    void writeTextstyles() override {
+        if (extraLayers_ == 0) return;
+        textStyle_.name = "P6_CUSTOM_TEXT";
+        textStyleAdded_ = output_.addTextstyle(&textStyle_);
+    }
+    void writeDimstyles() override {
+        if (extraLayers_ == 0 || !textStyleAdded_) return;
+        dimStyle_.name = "P6_CUSTOM_DIM";
+        dimStyle_.dimtxstyH.ref = textStyle_.handle;
+        dimStyleAdded_ = output_.addDimstyle(&dimStyle_);
+    }
     void writeObjects() override {
         ++objectCalls;
         if (material_) {
@@ -276,6 +287,7 @@ public:
     }
     bool added = false;
     bool registered_ = false, objects_ = false;
+    bool textStyleAdded_ = false, dimStyleAdded_ = false;
     int incompatible = 0;
     int graphFailure = 0;
     bool callerUnchanged = false;
@@ -286,11 +298,25 @@ private:
     bool material_;
     int layerShape_;
     int extraLayers_;
+    DRW_Textstyle textStyle_;
+    DRW_Dimstyle dimStyle_;
     std::uint32_t global_ = 0u;
     DRW_DictionaryWithDefault plotDictionary_;
     DRW_AcDbPlaceholder plotPlaceholder_;
 };
-static bool checkFile(const std::filesystem::path& path, bool expectMaterial) {
+static bool hasCustomDimStyle(const dx_data& data) {
+    const auto style = std::find_if(data.textStyles.begin(), data.textStyles.end(),
+        [](const DRW_Textstyle& item) { return item.name == "P6_CUSTOM_TEXT"; });
+    const auto dim = std::find_if(data.dimStyles.begin(), data.dimStyles.end(),
+        [](const DRW_Dimstyle& item) { return item.name == "P6_CUSTOM_DIM"; });
+    return style != data.textStyles.end() && dim != data.dimStyles.end()
+        && dim->dimtxstyH.ref == style->handle && dim->dimtxsty == style->name
+        && dim->get("$DIMTXSTY") != nullptr && dim->get("$DIMTXSTY")->c_str() != nullptr
+        && dim->get("$DIMTXSTY")->c_str() == style->name;
+}
+
+static bool checkFile(const std::filesystem::path& path, bool expectMaterial,
+                      bool expectCustomDimStyle = false) {
     dx_data data;
     dx_iface reader;
     if (!reader.fileImport(path.string(), &data, false)
@@ -301,6 +327,31 @@ static bool checkFile(const std::filesystem::path& path, bool expectMaterial) {
         std::cerr << "AC1024 layer source/publication binding failed\n";
         DxIfaceStandardDwgCaptureTestAccess::diagnose(reader, data);
         return false;
+    }
+    if (expectCustomDimStyle && !hasCustomDimStyle(data)) {
+        std::cerr << "DWG DIMSTYLE text-style reference was not resolved\n";
+        return false;
+    }
+    return true;
+}
+
+static bool checkDimStyleVersions(const std::filesystem::path& directory) {
+    for (const auto version : {DRW::AC1015, DRW::AC1021, DRW::AC1024, DRW::AC1027}) {
+        const auto path = directory / ("dimstyle-" + std::to_string(version) + ".dwg");
+        dwgRW output(path.string().c_str());
+        BindingAuthor author(output, false, 3, 1);
+        const bool written = output.write(&author, version, false)
+            && author.textStyleAdded_ && author.dimStyleAdded_;
+        dx_data data;
+        dx_iface reader;
+        const bool resolved = written && reader.fileImport(path.string(), &data, false)
+            && hasCustomDimStyle(data);
+        std::error_code error;
+        std::filesystem::remove(path, error);
+        if (!resolved) {
+            std::cerr << "DWG DIMSTYLE text-style resolution failed for version " << version << '\n';
+            return false;
+        }
     }
     return true;
 }
@@ -338,6 +389,14 @@ static bool checkOutput(const std::filesystem::path& input,
             [](const DRW_Material& item) { return item.m_name == "Global"; });
         if (global == actual.materials.end() || dict.m_defaultEntryHandle != plot.handle
             || plot.parentHandle != dict.handle) return false;
+        if (expectedLayers > 2u) {
+            const auto style = std::find_if(actual.textStyles.begin(), actual.textStyles.end(),
+                [](const DRW_Textstyle& item) { return item.name == "P6_CUSTOM_TEXT"; });
+            const auto dim = std::find_if(actual.dimStyles.begin(), actual.dimStyles.end(),
+                [](const DRW_Dimstyle& item) { return item.name == "P6_CUSTOM_DIM"; });
+            if (style == actual.textStyles.end() || dim == actual.dimStyles.end()
+                || dim->dimtxstyH.ref != style->handle) return false;
+        }
         for (const auto& layer : actual.layers) {
             std::uint32_t material = 0u, plotStyle = 0u; bool hasMaterial = false, hasPlot = false;
             if (!layer.getDxfMaterialHandle(material, hasMaterial) || !hasMaterial
@@ -378,6 +437,18 @@ static bool checkOutput(const std::filesystem::path& input,
         controlByte ^= 0x80u;
         if (!refuse()) return false;
         controlByte = savedControlByte;
+        auto dim = std::find_if(source.dimStyles.begin(), source.dimStyles.end(),
+            [](const DRW_Dimstyle& item) { return item.name == "P6_CUSTOM_DIM"; });
+        if (dim == source.dimStyles.end()) return false;
+        const auto savedTextHandle = dim->dimtxstyH.ref;
+        dim->dimtxstyH.ref = 0xEFFFu;
+        dim->dimtxstyH.ref64 = 0xEFFFu;
+        if (!refuse()) return false;
+        dim->dimtxstyH.ref = savedTextHandle;
+        dim->dimtxstyH.ref64 = savedTextHandle;
+        dim->add("$DIMTXSTY", 340, "WRONG_STYLE");
+        if (!refuse()) return false;
+        dim->add("$DIMTXSTY", 340, dim->dimtxsty);
     }
     auto& plotRaw = DxIfaceStandardDwgCaptureTestAccess::plotFrame(source).m_rawBytes.front();
     const auto savedPlotRaw = plotRaw;
@@ -411,6 +482,7 @@ int main(int argc, char** argv) {
     const auto scratch = directory / ("layer-binding-" + std::to_string(nonce));
     std::error_code error;
     if (!std::filesystem::create_directory(scratch, error)) return 1;
+    if (!checkDimStyleVersions(scratch)) return 1;
     const auto path = scratch / "generated.dwg";
     const auto materialPath = scratch / "material.dwg";
     const auto extraPath = scratch / "extra-layer.dwg";
@@ -477,7 +549,8 @@ int main(int argc, char** argv) {
     BindingAuthor extraAuthor(extraWriter, true, 3, 1);
     if (!extraWriter.reserveHandle(0xA11u) || !extraWriter.write(&extraAuthor, DRW::AC1024, false)
         || !extraAuthor.added || !extraAuthor.registered_ || !extraAuthor.objects_
-        || !checkFile(extraPath, true) || !checkOutput(extraPath, asciiPath, false, 3u)
+        || !extraAuthor.textStyleAdded_ || !extraAuthor.dimStyleAdded_
+        || !checkFile(extraPath, true, true) || !checkOutput(extraPath, asciiPath, false, 3u)
         || !checkOutput(extraPath, binaryPath, true, 3u)) return 1;
     if (keep) std::cout << "AC1024_OUTPUT " << scratch.string() << '\n';
     return 0;
