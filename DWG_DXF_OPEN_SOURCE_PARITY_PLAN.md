@@ -28,7 +28,7 @@ Completed-slice details belong in `docs/research/` and Git history. Each item
 below is still open, and its linked evidence defines the present boundary.
 
 1. **LibreCAD MATERIAL graphs.** Extend ordinary same-version replay beyond the
-   [current bounded entity and color profiles](docs/research/p8d-librecad-sparse-material-exact-truecolor-2026-11-27.json), [explicit POINT, LINE, CIRCLE and ARC defaults](docs/research/p8d-librecad-sparse-material-curved-defaults-2026-11-27.json), and [ELLIPSE/LWPOLYLINE default extrusion](docs/research/p8d-librecad-sparse-material-ellipse-polyline-defaults-2026-11-27.json).
+   [current bounded entity and color profiles](docs/research/p8d-librecad-sparse-material-exact-truecolor-2026-11-27.json), [explicit POINT, LINE, CIRCLE and ARC defaults](docs/research/p8d-librecad-sparse-material-curved-defaults-2026-11-27.json), [ELLIPSE/LWPOLYLINE default extrusion](docs/research/p8d-librecad-sparse-material-ellipse-polyline-defaults-2026-11-27.json), and [explicit model-space flags](docs/research/p8d-librecad-sparse-material-model-space-2026-11-27.json).
    Prove complete ACAD_MATERIAL dictionaries, carriers, identities, ownership,
    reactors, layer/current-material references, handle remapping, and staged
    root/entity edges for each new profile. Address contextual ACI 7, palette

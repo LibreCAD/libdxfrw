@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-sparse-material-model-space-2026-11-27",
+  "supportClaimEffect": "selected profile only",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "3b9abcd46ad6c1b3aa082f5cd66bdc77f5f8cdef",
+  "parent": "bc9a860e6cd687dd83a4a95e8a4c0b6117c952e3",
+  "authority": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+  "scope": "Bounded ordinary ASCII AC1021 sparse-MATERIAL model-space POINT, LINE, CIRCLE, ARC, ELLIPSE and LWPOLYLINE with explicit common-entity group 67 equal to zero.",
+  "checks": [
+    "Before the change, the explicit zero model-space control was refused.",
+    "The focused test passes 246 assertions covering all six entity types, geometry edits, reopen/resave, nonzero, duplicated, malformed and misplaced fields, physical/typed disagreement, destination preservation and corrected retry.",
+    "The MATERIAL selector passes 4331 assertions in 23 cases against the installed shared codec; the bundled-codec library builds.",
+    "ezdxf 1.4.5 independently verifies edited coordinates, model-space membership, PlainMat links and zero audit errors or fixes for each generated output."
+  ],
+  "hashes": {
+    "redLog": "e2534d827b10942686b33ce1ce31c460cc5aee3b6041f4fd736efd823cea04d8",
+    "focusedLog": "b751201ff1a34af934626a8d26fdacf00f671238bde4fdae5efdf5be910eddb9",
+    "materialLog": "c2c879fcfe6f4fce9b1e15dccc6699e50fa3a35d8fbc69db8c9ae049259555de",
+    "bundledBuildLog": "33b366fa1b796685fcad8ca85434ce908ccf3af7ef470ed601123ba9f7f2e18c",
+    "scratchOutputs": {
+      "ARC": "efa7ce6ad576d1440b903ed7d39ceb1371e55ea02dc6c71eb57783471f4fcc12",
+      "CIRCLE": "bf54990b3dd10f3886d1763fc0c6fb847260173f9291c71bd8da3e37efab77c7",
+      "ELLIPSE": "f3dd735a2927212cb1c789558f6d3354c19eb12e11b2a087b8a53dbdc38a8b31",
+      "LINE": "3f3f2bcf4ab0ab4b48ed69aa69858bbc5cab0faa518fd0e6fbf97aca9320ed7d",
+      "LWPOLYLINE": "42c8ab3da3a4a6515ca7e9414ff5909603631ba915110d606593aabb674e906e",
+      "POINT": "0e7cc6a006e8fabf23d8e4f7a19de0c6073c2ba7eb84e4b89af52ee57c00c563"
+    }
+  },
+  "limits": [
+    "Paper-space and unqualified layout, owner and material graphs remain guarded.",
+    "Generated ASCII AC1021 and headless macOS ARM64 only; no native GUI, binary, other producer or general parity claim. No drawing fixture was committed."
+  ]
+}
